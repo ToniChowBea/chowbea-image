@@ -1,9 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react"
 import { CursorPointer01Icon } from "@hugeicons/core-free-icons"
+import { AnimatePresence, motion } from "motion/react"
 
-import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress"
 import { formatBytes } from "@/lib/api"
-import type { JobProgress } from "@/lib/jobs"
 import { useWorkspace, type ToolName } from "@/stores/workspace"
 
 import { GoBar } from "./go-bar"
@@ -13,42 +12,55 @@ import { ConvertPanel } from "./panels/convert-panel"
 import { CropPanel } from "./panels/crop-panel"
 import { ResizePanel } from "./panels/resize-panel"
 import { RotatePanel } from "./panels/rotate-panel"
+import { ProgressRow } from "./progress-row"
+import { ResultCard } from "./result-card"
 import { Toolbar, TOOLS } from "./toolbar"
 
-const PHASE_LABEL: Record<JobProgress["phase"], string> = {
-  uploading: "Uploading",
-  queued: "Queued in line",
-  processing: "Processing",
-  downloading: "Downloading",
+const PANEL_FADE = {
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -6 },
+  transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] as const },
 }
 
 /**
- * The panel's right-hand slot for whichever tool is active. Each tool's real
- * options + live preview land in W11-13; for now this renders a clearly
- * labeled "coming next" placeholder per tool so the two-column layout reads
- * correctly ahead of that work, plus the empty "select a tool" state.
+ * The panel's right-hand slot for whichever tool is active: a per-tool
+ * options block (crossfades on tool switch) above either a checkerboard
+ * preview placeholder or — once a job finishes — the `ResultCard`, which
+ * takes over that same slot.
  */
 function ToolPanelSlot({ tool }: { tool: ToolName | null }) {
-  if (!tool) {
-    return (
-      <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-line p-8 text-center">
-        <span className="flex size-12 items-center justify-center rounded-2xl border-2 border-ink bg-card text-ink shadow-block-sm">
-          <HugeiconsIcon icon={CursorPointer01Icon} className="size-5" strokeWidth={2.2} />
-        </span>
-        <p className="font-heading text-sm font-extrabold tracking-wide text-ink uppercase">
-          Select a tool
-        </p>
-        <p className="max-w-[220px] text-[13px] font-semibold text-muted-ink">
-          Pick Convert, Compress, Resize, Rotate or Crop above to see its options here.
-        </p>
-      </div>
-    )
-  }
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      {!tool ? (
+        <motion.div key="empty" {...PANEL_FADE}>
+          <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 rounded-[16px] border-2 border-dashed border-line p-8 text-center">
+            <span className="flex size-12 items-center justify-center rounded-2xl border-2 border-ink bg-card text-ink shadow-block-sm">
+              <HugeiconsIcon icon={CursorPointer01Icon} className="size-5" strokeWidth={2.2} />
+            </span>
+            <p className="font-heading text-sm font-extrabold tracking-wide text-ink uppercase">
+              Select a tool
+            </p>
+            <p className="max-w-[220px] text-[13px] font-semibold text-muted-ink">
+              Pick Convert, Compress, Resize, Rotate or Crop above to see its options here.
+            </p>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div key={tool} {...PANEL_FADE} className="flex h-full flex-col gap-4">
+          <ToolPanelBody tool={tool} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
 
+function ToolPanelBody({ tool }: { tool: ToolName }) {
+  const result = useWorkspace((state) => state.result)
   const meta = TOOLS.find((t) => t.id === tool)!
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <>
       <div className="flex items-center gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border-2 border-ink bg-amber text-ink shadow-block-sm">
           <HugeiconsIcon icon={meta.icon} className="size-5" strokeWidth={2.2} />
@@ -66,54 +78,36 @@ function ToolPanelSlot({ tool }: { tool: ToolName | null }) {
         <ResizePanel />
       ) : tool === "rotate" ? (
         <RotatePanel />
-      ) : tool === "crop" ? (
-        <CropPanel />
       ) : (
-        <div className="rounded-[14px] border-2 border-dashed border-line p-4">
-          <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">Options</p>
-          <p className="mt-1.5 text-[13px] font-bold text-ink">{meta.label} options — coming next</p>
-        </div>
+        <CropPanel />
       )}
 
-      <div className="checkerboard flex min-h-[160px] flex-1 items-center justify-center rounded-[14px] border-2 border-dashed border-line p-4">
-        <p className="rounded-md border-2 border-ink bg-card px-3 py-1.5 text-[13px] font-bold text-ink shadow-block-sm">
-          Preview — coming next
-        </p>
-      </div>
+      <AnimatePresence mode="wait" initial={false}>
+        {result ? (
+          <motion.div
+            key="result"
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <ResultCard />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="preview"
+            {...PANEL_FADE}
+            className="checkerboard flex min-h-[160px] flex-1 items-center justify-center rounded-[14px] border-2 border-dashed border-line p-4"
+          >
+            <p className="rounded-md border-2 border-ink bg-card px-3 py-1.5 text-[13px] font-bold text-ink shadow-block-sm">
+              Preview — coming next
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <GoBar />
-    </div>
-  )
-}
-
-/** Reserved row for the active job's progress. Idle until a later task wires
-a run flow into `setProgress`/`setError` — then this same slot lights up
-with a live bar, matching the queue board's "nothing yet" idiom. */
-function ProgressRow() {
-  const progress = useWorkspace((state) => state.progress)
-  const error = useWorkspace((state) => state.error)
-
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="rounded-[16px] border-2 border-ink bg-card p-4 shadow-block-sm"
-    >
-      {error ? (
-        <p className="text-sm font-bold text-destructive">{error}</p>
-      ) : progress ? (
-        <Progress value={progress.percent}>
-          <div className="flex w-full items-center justify-between">
-            <ProgressLabel>{PHASE_LABEL[progress.phase]}…</ProgressLabel>
-            {progress.percent !== null && <ProgressValue />}
-          </div>
-        </Progress>
-      ) : (
-        <p className="text-[13px] font-semibold text-muted-ink">
-          Nothing running yet — pick a tool, set your options, and go.
-        </p>
-      )}
-    </div>
+    </>
   )
 }
 

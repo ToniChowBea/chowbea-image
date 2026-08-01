@@ -10,6 +10,7 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Image01Icon, GithubIcon } from "@hugeicons/core-free-icons"
+import { MotionConfig } from "motion/react"
 
 import { JobsCounter } from "@/components/jobs-counter"
 import { resolveQueueToggle } from "@/lib/queue-toggle"
@@ -129,7 +130,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               </div>
             </header>
 
-            <main className="flex-1">{children}</main>
+            {/* Every `motion`-driven transition in the app inherits this
+            policy from one place: `reducedMotion="user"` collapses all of
+            them to instant when the OS "reduce motion" setting is on,
+            mirroring how styles.css zeroes its own --duration-* tokens. */}
+            <MotionConfig reducedMotion="user">
+              <main className="flex-1">{children}</main>
+            </MotionConfig>
 
             {/* Footer line, echoing the design-system footer. */}
             <footer className="mt-14 flex flex-col items-center justify-between gap-3 border-t-[3px] border-ink pt-6 sm:flex-row">

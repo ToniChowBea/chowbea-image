@@ -34,9 +34,9 @@ export function isBrowserRenderable(name: string): boolean {
 }
 
 /**
- * Create a blob URL from a File.
+ * Create a blob URL from a File (or any Blob, e.g. a job result).
  */
-export function objectUrlFor(file: File): string {
+export function objectUrlFor(file: Blob): string {
   return URL.createObjectURL(file)
 }
 
