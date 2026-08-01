@@ -13,6 +13,19 @@ export interface Rect {
 }
 
 /**
+ * Banker's rounding (round-half-to-even), matching Python 3's round().
+ * Ensures client crop preview matches server crop output exactly.
+ */
+function pyRound(x: number): number {
+  const floor = Math.floor(x)
+  const diff = x - floor
+  if (diff < 0.5) return floor
+  if (diff > 0.5) return floor + 1
+  // exact .5 → round to even
+  return floor % 2 === 0 ? floor : floor + 1
+}
+
+/**
  * Largest rectangle of ratio_w:ratio_h that fits in w×h, centered.
  * Mirrors the API's _centered_box function.
  */
@@ -27,10 +40,10 @@ export function centeredBox(
 
   if (w * ratioH >= h * ratioW) {
     cropH = h
-    cropW = Math.round((h * ratioW) / ratioH)
+    cropW = pyRound((h * ratioW) / ratioH)
   } else {
     cropW = w
-    cropH = Math.round((w * ratioH) / ratioW)
+    cropH = pyRound((w * ratioH) / ratioW)
   }
 
   const x = Math.floor((w - cropW) / 2)

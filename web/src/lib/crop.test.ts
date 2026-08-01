@@ -28,10 +28,10 @@ describe("centeredBox", () => {
   it("height-limits a 9:16 rect in 400×200", () => {
     // w*ratio_h >= h*ratio_w?
     // 400*16 >= 200*9 → 6400 >= 1800 → yes, height-limited
-    // crop_h = 200, crop_w = round(200*9/16) = round(112.5) = 113
-    // x = (400-113)/2 = 143.5, floor = 143, y = 0
+    // crop_h = 200, crop_w = pyRound(200*9/16) = pyRound(112.5) = 112 (banker's rounding, 112 is even)
+    // x = (400-112)/2 = 144, y = 0
     const box = centeredBox(400, 200, 9, 16)
-    expect(box).toEqual({ x: 143, y: 0, width: 113, height: 200 })
+    expect(box).toEqual({ x: 144, y: 0, width: 112, height: 200 })
   })
 
   it("returns centered box for 1:1 in square", () => {
@@ -45,6 +45,13 @@ describe("centeredBox", () => {
     // crop_h = 600, crop_w = round(600*4/3) = 800
     // x = (800-800)/2 = 0, y = 0
     expect(box).toEqual({ x: 0, y: 0, width: 800, height: 600 })
+  })
+
+  it("uses banker's rounding to match Python's round() for .5 ties", () => {
+    // Regression test: JS Math.round vs Python round on exact .5
+    // 712*9/16 = 400.5, JS rounds UP to 401, Python banker's rounds to 400 (even)
+    const box = centeredBox(712, 1000, 16, 9)
+    expect(box).toEqual({ x: 0, y: 300, width: 712, height: 400 })
   })
 })
 
