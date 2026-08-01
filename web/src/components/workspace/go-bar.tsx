@@ -1,14 +1,18 @@
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import { compressImages, convertImages, resizeImages, rotateImages } from "@/lib/api"
+import { compressImages, convertImages, cropImages, resizeImages, rotateImages } from "@/lib/api"
 import { useWorkspace } from "@/stores/workspace"
 
 /**
  * The shared submit control for every tool: shows how many images are
  * selected and, on click, runs the active tool's API wrapper against the
- * selected files with the current options. Crop falls into the `default`
- * branch below until W13 adds its case.
+ * selected files with the current options.
+ *
+ * Freeform crop (`options.crop.mode === "rect"`) is the one tool with an
+ * extra precondition — the API only accepts a `rect` crop for a single
+ * file, so Go stays disabled until exactly one previewable image is
+ * selected and a box has been drawn (`options.crop.rect` set).
  */
 export function GoBar() {
   const images = useWorkspace((state) => state.images)
@@ -23,9 +27,12 @@ export function GoBar() {
 
   const selectedFiles = images.filter((image) => selectedIds.has(image.id)).map((image) => image.file)
   const count = selectedFiles.length
+  const cropRectBlocked =
+    activeTool === "crop" && options.crop.mode === "rect" && (count !== 1 || !options.crop.rect)
+  const canSubmit = count > 0 && !cropRectBlocked
 
   async function handleGo() {
-    if (!activeTool || count === 0) return
+    if (!activeTool || !canSubmit) return
     reset()
     setRunning(true)
     try {
@@ -57,8 +64,17 @@ export function GoBar() {
           setResult(await rotateImages(selectedFiles, options.rotate, setProgress))
           break
         }
-        default:
-          setError(`${activeTool} isn't wired up yet.`)
+        case "crop": {
+          const { mode, aspect, rect } = options.crop
+          setResult(
+            await cropImages(
+              selectedFiles,
+              mode === "rect" ? { mode, rect: rect! } : { mode, aspect },
+              setProgress
+            )
+          )
+          break
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.")
@@ -75,7 +91,7 @@ export function GoBar() {
       <Button
         type="button"
         onClick={handleGo}
-        disabled={count === 0 || running}
+        disabled={!canSubmit || running}
         className="bg-amber text-ink shadow-block-sm hover:bg-amber active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
       >
         {running ? "Working…" : "Go"}

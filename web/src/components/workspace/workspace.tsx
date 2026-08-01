@@ -10,6 +10,7 @@ import { GoBar } from "./go-bar"
 import { ImageGrid } from "./image-grid"
 import { CompressPanel } from "./panels/compress-panel"
 import { ConvertPanel } from "./panels/convert-panel"
+import { CropPanel } from "./panels/crop-panel"
 import { ResizePanel } from "./panels/resize-panel"
 import { RotatePanel } from "./panels/rotate-panel"
 import { Toolbar, TOOLS } from "./toolbar"
@@ -65,6 +66,8 @@ function ToolPanelSlot({ tool }: { tool: ToolName | null }) {
         <ResizePanel />
       ) : tool === "rotate" ? (
         <RotatePanel />
+      ) : tool === "crop" ? (
+        <CropPanel />
       ) : (
         <div className="rounded-[14px] border-2 border-dashed border-line p-4">
           <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">Options</p>

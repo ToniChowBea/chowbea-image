@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { ASPECTS, centeredBox, clampRect } from "./crop"
+import { ASPECTS, centeredBox, clampRect, displayToNaturalRect } from "./crop"
 
 describe("ASPECTS", () => {
   it("has the standard aspect ratios", () => {
@@ -52,6 +52,21 @@ describe("centeredBox", () => {
     // 712*9/16 = 400.5, JS rounds UP to 401, Python banker's rounds to 400 (even)
     const box = centeredBox(712, 1000, 16, 9)
     expect(box).toEqual({ x: 0, y: 300, width: 712, height: 400 })
+  })
+})
+
+describe("displayToNaturalRect", () => {
+  it("scales a box drawn on a 400×300 preview of an 800×600 image (2× in both axes)", () => {
+    const box = { x: 50, y: 50, width: 100, height: 80 }
+    const natural = displayToNaturalRect(box, { width: 400, height: 300 }, { width: 800, height: 600 })
+    expect(natural).toEqual({ x: 100, y: 100, width: 200, height: 160 })
+  })
+
+  it("scales independently per axis for a non-uniform ratio", () => {
+    // display 300×300 of a natural 1000×750 image: scaleX=3.333…, scaleY=2.5
+    const box = { x: 30, y: 60, width: 90, height: 60 }
+    const natural = displayToNaturalRect(box, { width: 300, height: 300 }, { width: 1000, height: 750 })
+    expect(natural).toEqual({ x: 100, y: 150, width: 300, height: 150 })
   })
 })
 
