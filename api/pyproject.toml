@@ -1,0 +1,26 @@
+[project]
+name = "chowbea-image-api"
+version = "0.1.0"
+description = "FastAPI backend for batch image actions (convert, compress, resize, rotate, crop)."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.34.0",
+    "python-multipart==0.0.20",
+    "pydantic-settings==2.7.1",
+    "aio-pika==9.6.2",
+    "pyvips==2.2.3",
+]
+
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest==8.3.4",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
