@@ -32,7 +32,7 @@ function AspectPreview({ image, ratio }: { image: WorkspaceImage; ratio: AspectR
       />
       {box && (
         <div
-          className="pointer-events-none absolute border-2 border-dashed border-amber [box-shadow:0_0_0_9999px_rgba(20,16,10,0.45)]"
+          className="pointer-events-none absolute border-2 border-dashed border-amber [box-shadow:0_0_0_9999px_color-mix(in_oklch,var(--ink)_45%,transparent)]"
           style={{ left: box.x, top: box.y, width: box.width, height: box.height }}
         />
       )}

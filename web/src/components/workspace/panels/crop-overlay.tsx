@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 
 import type { CropRect } from "@/lib/api"
-import { scaleRect, type Rect } from "@/lib/crop"
+import { clampRect, scaleRect, type Rect } from "@/lib/crop"
 import { cn } from "@/lib/utils"
 
 type Size = { width: number; height: number }
@@ -134,7 +134,7 @@ export function CropOverlay({ src, alt, initialRect, onRectChange }: CropOverlay
         height,
       }
       setBox(seeded)
-      onRectChange(scaleRect(seeded, display, natural))
+      onRectChange(clampRect(scaleRect(seeded, display, natural), natural))
     }
   }, [natural, display, initialRect, box, onRectChange])
 
@@ -176,7 +176,7 @@ export function CropOverlay({ src, alt, initialRect, onRectChange }: CropOverlay
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
     if (box && natural && display) {
-      onRectChange(scaleRect(box, display, natural))
+      onRectChange(clampRect(scaleRect(box, display, natural), natural))
     }
   }
 
@@ -196,7 +196,7 @@ export function CropOverlay({ src, alt, initialRect, onRectChange }: CropOverlay
         <div
           role="group"
           aria-label="Crop box — drag to move, drag a corner to resize"
-          className="absolute cursor-move touch-none border-2 border-amber [box-shadow:0_0_0_9999px_rgba(20,16,10,0.45)]"
+          className="absolute cursor-move touch-none border-2 border-amber [box-shadow:0_0_0_9999px_color-mix(in_oklch,var(--ink)_45%,transparent)]"
           style={{ left: box.x, top: box.y, width: box.width, height: box.height }}
           onPointerDown={(e) => startDrag("move", e)}
           onPointerMove={onPointerMove}

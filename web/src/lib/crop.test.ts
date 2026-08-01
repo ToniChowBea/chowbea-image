@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { ASPECTS, centeredBox, clampRect, displayToNaturalRect } from "./crop"
+import { ASPECTS, centeredBox, clampRect, displayToNaturalRect, scaleRect } from "./crop"
 
 describe("ASPECTS", () => {
   it("has the standard aspect ratios", () => {
@@ -111,5 +111,29 @@ describe("clampRect", () => {
     const rect = { x: 10, y: 150, width: 100, height: 50 }
     const clamped = clampRect(rect, { width: 200, height: 150 })
     expect(clamped).toEqual({ x: 10, y: 149, width: 100, height: 1 })
+  })
+})
+
+describe("scaleRect + clampRect (regression: freeform crop rect must stay in image bounds)", () => {
+  it("clamps a rect that scaleRect's independent x/y/width/height rounding pushed out of bounds", () => {
+    // Reproduces the reported crash: a box dragged flush to the right edge
+    // of a 100px-wide display (of a 250×100 natural image) scales to a
+    // natural rect whose x+width overshoots natural.width by 1px purely
+    // from rounding x and width independently — the server then rejects it
+    // ("The crop rectangle is outside the image.").
+    const display = { width: 100, height: 100 }
+    const natural = { width: 250, height: 100 }
+    const box = { x: 67, y: 0, width: 33, height: 100 }
+
+    const naturalRect = scaleRect(box, display, natural)
+    expect(naturalRect).toEqual({ x: 168, y: 0, width: 83, height: 100 })
+    expect(naturalRect.x + naturalRect.width).toBeGreaterThan(natural.width) // 251 > 250 — the bug
+
+    const clamped = clampRect(naturalRect, natural)
+    expect(clamped.x).toBeGreaterThanOrEqual(0)
+    expect(clamped.y).toBeGreaterThanOrEqual(0)
+    expect(clamped.x + clamped.width).toBeLessThanOrEqual(natural.width)
+    expect(clamped.y + clamped.height).toBeLessThanOrEqual(natural.height)
+    expect(clamped).toEqual({ x: 168, y: 0, width: 82, height: 100 })
   })
 })
