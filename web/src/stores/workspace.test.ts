@@ -36,6 +36,7 @@ afterEach(() => {
     progress: null,
     result: null,
     error: null,
+    submitting: false,
   })
 })
 
@@ -421,7 +422,7 @@ describe("useWorkspace store", () => {
   describe("setResult", () => {
     it("sets result", () => {
       const blob = new Blob(["result"])
-      const resultData = { blob, filename: "output.png" }
+      const resultData = { blob, filename: "output.png", originalBytes: 100 }
       useWorkspace.getState().setResult(resultData)
 
       expect(useWorkspace.getState().result).toEqual(resultData)
@@ -429,12 +430,30 @@ describe("useWorkspace store", () => {
 
     it("can set to null", () => {
       const blob = new Blob(["result"])
-      const resultData = { blob, filename: "output.png" }
+      const resultData = { blob, filename: "output.png", originalBytes: 100 }
       useWorkspace.getState().setResult(resultData)
 
       useWorkspace.getState().setResult(null)
 
       expect(useWorkspace.getState().result).toBeNull()
+    })
+  })
+
+  describe("setSubmitting", () => {
+    it("toggles the submitting flag and survives unrelated state changes", () => {
+      expect(useWorkspace.getState().submitting).toBe(false)
+
+      useWorkspace.getState().setSubmitting(true)
+      expect(useWorkspace.getState().submitting).toBe(true)
+
+      // Simulates a tool-switch remount: activeTool changes, but the busy
+      // flag lives in the store, not a component's local state, so it must
+      // stay true — this is the guard the double-submit fix relies on.
+      useWorkspace.getState().setActiveTool("compress")
+      expect(useWorkspace.getState().submitting).toBe(true)
+
+      useWorkspace.getState().setSubmitting(false)
+      expect(useWorkspace.getState().submitting).toBe(false)
     })
   })
 
@@ -458,7 +477,7 @@ describe("useWorkspace store", () => {
     it("clears progress, result, and error", () => {
       useWorkspace.getState().setProgress({ phase: "processing", percent: null })
 
-      useWorkspace.getState().setResult({ blob: new Blob(), filename: "out.png" })
+      useWorkspace.getState().setResult({ blob: new Blob(), filename: "out.png", originalBytes: 100 })
 
       useWorkspace.getState().setError("Some error")
 

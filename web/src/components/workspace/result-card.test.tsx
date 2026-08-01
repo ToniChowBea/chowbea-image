@@ -37,6 +37,7 @@ describe("ResultCard", () => {
     useWorkspace.getState().setResult({
       blob: new Blob([new Uint8Array(200)]),
       filename: "converted-photo.jpg",
+      originalBytes: 1000,
     })
 
     render(<ResultCard />)
@@ -54,6 +55,7 @@ describe("ResultCard", () => {
     useWorkspace.getState().setResult({
       blob: new Blob([new Uint8Array(400)]),
       filename: "converted-images.zip",
+      originalBytes: 1000,
     })
 
     render(<ResultCard />)
@@ -67,6 +69,7 @@ describe("ResultCard", () => {
     useWorkspace.getState().setResult({
       blob: new Blob([new Uint8Array(200)]),
       filename: "converted-photo.jpg",
+      originalBytes: 1000,
     })
 
     render(<ResultCard />)

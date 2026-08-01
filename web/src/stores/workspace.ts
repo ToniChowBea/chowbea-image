@@ -66,8 +66,14 @@ export interface WorkspaceState {
     crop: CropOptions
   }
   progress: JobProgress | null
-  result: { blob: Blob; filename: string } | null
+  result: { blob: Blob; filename: string; originalBytes: number } | null
   error: string | null
+  // True for the duration of a submit → poll → download run. Lives in the
+  // store (not a component's local useState) so it survives GoBar
+  // unmounting/remounting when the tool-switch crossfade swaps panels —
+  // otherwise switching tools mid-job resets the busy flag and a second Go
+  // click races the in-flight job.
+  submitting: boolean
 
   // Actions
   addFiles(files: File[]): void
@@ -79,8 +85,9 @@ export interface WorkspaceState {
   setActiveTool(tool: ToolName | null): void
   setOption<T extends ToolName>(tool: T, patch: Partial<WorkspaceState["options"][T]>): void
   setProgress(progress: JobProgress | null): void
-  setResult(result: { blob: Blob; filename: string } | null): void
+  setResult(result: { blob: Blob; filename: string; originalBytes: number } | null): void
   setError(error: string | null): void
+  setSubmitting(submitting: boolean): void
   reset(): void
 }
 
@@ -106,6 +113,7 @@ export const useWorkspace = create<WorkspaceState>((set) => ({
   progress: null,
   result: null,
   error: null,
+  submitting: false,
 
   // Actions
   addFiles(files: File[]) {
@@ -215,12 +223,16 @@ export const useWorkspace = create<WorkspaceState>((set) => ({
     set(() => ({ progress }))
   },
 
-  setResult(result: { blob: Blob; filename: string } | null) {
+  setResult(result: { blob: Blob; filename: string; originalBytes: number } | null) {
     set(() => ({ result }))
   },
 
   setError(error: string | null) {
     set(() => ({ error }))
+  },
+
+  setSubmitting(submitting: boolean) {
+    set(() => ({ submitting }))
   },
 
   reset() {

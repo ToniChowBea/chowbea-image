@@ -26,7 +26,9 @@ export function ResultCard() {
     [images, selectedIds]
   )
   const before = selectedImages[0] ?? null
-  const originalBytes = selectedImages.reduce((sum, image) => sum + image.size, 0)
+  // Frozen at submit time (see go-bar.tsx) so this can't drift if the
+  // selection changes while — or after — the job runs.
+  const originalBytes = result?.originalBytes ?? 0
 
   const isZip = result ? result.filename.toLowerCase().endsWith(".zip") : false
   const renderableAfter = Boolean(result) && !isZip && isBrowserRenderable(result!.filename)

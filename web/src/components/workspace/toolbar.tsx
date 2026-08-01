@@ -33,11 +33,14 @@ export const TOOLS: ToolDef[] = [
  * plus a slow breathing ring so it reads as the live tool at a glance.
  * Labels collapse to icon-only under `sm` (~640px) so five chunky buttons
  * never overflow a phone-width pill — the accessible name stays on the
- * button via `aria-label` even when the visible label is hidden.
+ * button via `aria-label` even when the visible label is hidden. Disabled
+ * while a job is `submitting` so the user can't wander to another tool
+ * (and its independent options/Go state) mid-run.
  */
 export function Toolbar({ className }: { className?: string }) {
   const activeTool = useWorkspace((state) => state.activeTool)
   const setActiveTool = useWorkspace((state) => state.setActiveTool)
+  const submitting = useWorkspace((state) => state.submitting)
 
   return (
     <div role="group" aria-label="Image tools" className={cn("toolbar w-full", className)}>
@@ -49,9 +52,10 @@ export function Toolbar({ className }: { className?: string }) {
             type="button"
             aria-pressed={active}
             aria-label={tool.label}
+            disabled={submitting}
             onClick={() => setActiveTool(tool.id)}
             className={cn(
-              "press lift flex flex-1 flex-col items-center justify-center gap-1.5 rounded-[14px] border-2 px-1.5 py-2.5 font-heading text-[11px] font-extrabold tracking-wide text-ink uppercase outline-none transition-colors duration-(--duration-fast) ease-(--ease-snap) focus-visible:ring-3 focus-visible:ring-amber/50 sm:px-2",
+              "press lift flex flex-1 flex-col items-center justify-center gap-1.5 rounded-[14px] border-2 px-1.5 py-2.5 font-heading text-[11px] font-extrabold tracking-wide text-ink uppercase outline-none transition-colors duration-(--duration-fast) ease-(--ease-snap) focus-visible:ring-3 focus-visible:ring-amber/50 disabled:pointer-events-none disabled:opacity-50 sm:px-2",
               active
                 ? "brand-breathe border-ink bg-amber shadow-block-sm"
                 : "border-transparent hover:bg-soft-amber"

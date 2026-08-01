@@ -13,7 +13,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
-  useWorkspace.setState({ images: [], selectedIds: new Set(), activeTool: null })
+  useWorkspace.setState({ images: [], selectedIds: new Set(), activeTool: null, submitting: false })
 })
 
 describe("GoBar", () => {
@@ -33,5 +33,22 @@ describe("GoBar", () => {
 
     expect(screen.getByText("1 image selected")).toBeTruthy()
     expect(screen.getByRole("button", { name: /go/i }).hasAttribute("disabled")).toBe(false)
+  })
+
+  it("disables Go while submitting, even across a remount (tool-switch crossfade)", () => {
+    const file = new File(["a"], "photo.png", { type: "image/png" })
+    useWorkspace.getState().addFiles([file])
+    useWorkspace.getState().setActiveTool("convert")
+    useWorkspace.getState().setSubmitting(true)
+
+    const { unmount } = render(<GoBar />)
+    expect(screen.getByRole("button", { name: /working/i }).hasAttribute("disabled")).toBe(true)
+
+    // Simulate the AnimatePresence key={tool} swap unmounting/remounting
+    // GoBar mid-job — the busy state must survive since it now lives in
+    // the store, not a local useState.
+    unmount()
+    render(<GoBar />)
+    expect(screen.getByRole("button", { name: /working/i }).hasAttribute("disabled")).toBe(true)
   })
 })

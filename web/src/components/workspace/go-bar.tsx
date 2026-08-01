@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Alert01Icon, Cancel01Icon } from "@hugeicons/core-free-icons"
 import { AnimatePresence, motion } from "motion/react"
@@ -23,11 +22,12 @@ export function GoBar() {
   const activeTool = useWorkspace((state) => state.activeTool)
   const options = useWorkspace((state) => state.options)
   const error = useWorkspace((state) => state.error)
+  const submitting = useWorkspace((state) => state.submitting)
   const reset = useWorkspace((state) => state.reset)
   const setProgress = useWorkspace((state) => state.setProgress)
   const setResult = useWorkspace((state) => state.setResult)
   const setError = useWorkspace((state) => state.setError)
-  const [running, setRunning] = useState(false)
+  const setSubmitting = useWorkspace((state) => state.setSubmitting)
 
   const selectedFiles = images.filter((image) => selectedIds.has(image.id)).map((image) => image.file)
   const count = selectedFiles.length
@@ -36,54 +36,61 @@ export function GoBar() {
   const canSubmit = count > 0 && !cropRectBlocked
 
   async function handleGo() {
-    if (!activeTool || !canSubmit) return
+    if (!activeTool || !canSubmit || submitting) return
     reset()
-    setRunning(true)
+    setSubmitting(true)
+    // Frozen at submit time so the result card's size delta can't drift if
+    // the user changes the selection while the job is still running.
+    const originalBytes = selectedFiles.reduce((sum, file) => sum + file.size, 0)
     try {
       switch (activeTool) {
         case "convert": {
           const { target, quality } = options.convert
           const lossy = target === "jpeg" || target === "webp" || target === "avif"
-          setResult(await convertImages(selectedFiles, target, lossy ? quality : null, setProgress))
+          const result = await convertImages(selectedFiles, target, lossy ? quality : null, setProgress)
+          setResult({ ...result, originalBytes })
           break
         }
         case "compress": {
-          setResult(await compressImages(selectedFiles, options.compress.quality, setProgress))
+          const result = await compressImages(selectedFiles, options.compress.quality, setProgress)
+          setResult({ ...result, originalBytes })
           break
         }
         case "resize": {
           // Store keeps width/height as `null` for empty inputs; the API
           // wrapper wants them omitted (`undefined`) instead.
           const { width, height, ...rest } = options.resize
-          setResult(
-            await resizeImages(
-              selectedFiles,
-              { ...rest, width: width ?? undefined, height: height ?? undefined },
-              setProgress
-            )
+          const result = await resizeImages(
+            selectedFiles,
+            { ...rest, width: width ?? undefined, height: height ?? undefined },
+            setProgress
           )
+          setResult({ ...result, originalBytes })
           break
         }
         case "rotate": {
-          setResult(await rotateImages(selectedFiles, options.rotate, setProgress))
+          const result = await rotateImages(selectedFiles, options.rotate, setProgress)
+          setResult({ ...result, originalBytes })
           break
         }
         case "crop": {
           const { mode, aspect, rect } = options.crop
-          setResult(
-            await cropImages(
-              selectedFiles,
-              mode === "rect" ? { mode, rect: rect! } : { mode, aspect },
-              setProgress
-            )
+          const result = await cropImages(
+            selectedFiles,
+            mode === "rect" ? { mode, rect: rect! } : { mode, aspect },
+            setProgress
           )
+          setResult({ ...result, originalBytes })
           break
         }
       }
+      // Job finished — the ResultCard is up, so the bottom status row
+      // should go back to idle instead of lingering on "Downloading… 100%".
+      setProgress(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.")
     } finally {
-      setRunning(false)
+      setSubmitting(false)
     }
   }
 
@@ -129,10 +136,10 @@ export function GoBar() {
         <Button
           type="button"
           onClick={handleGo}
-          disabled={!canSubmit || running}
+          disabled={!canSubmit || submitting}
           className="bg-amber text-ink shadow-block-sm hover:bg-amber active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
         >
-          {running ? "Working…" : "Go"}
+          {submitting ? "Working…" : "Go"}
         </Button>
       </div>
     </div>
