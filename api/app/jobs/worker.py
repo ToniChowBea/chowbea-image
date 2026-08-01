@@ -40,19 +40,20 @@ def _inputs(record: JobRecord) -> list[Path]:
 
 
 def _dedupe_names(names: list[str]) -> list[str]:
-    """Disambiguate repeated names by inserting -2, -3, ... before the extension,
-    so colliding outputs (e.g. logo.png + logo.jpg both converted to webp) don't
-    overwrite each other as ZIP entries."""
-    seen: dict[str, int] = {}
-    deduped = []
+    """Make ZIP entry names unique, disambiguating collisions with -2, -3, …
+    Checks each candidate against ALL names already emitted (originals and
+    generated), so a generated name can't collide with a real one."""
+    used: set[str] = set()
+    deduped: list[str] = []
     for name in names:
-        seen[name] = seen.get(name, 0) + 1
-        count = seen[name]
-        if count == 1:
-            deduped.append(name)
-        else:
-            stem, ext = Path(name).stem, Path(name).suffix
-            deduped.append(f"{stem}-{count}{ext}")
+        candidate = name
+        stem, ext = Path(name).stem, Path(name).suffix
+        count = 1
+        while candidate in used:
+            count += 1
+            candidate = f"{stem}-{count}{ext}"
+        used.add(candidate)
+        deduped.append(candidate)
     return deduped
 
 

@@ -48,6 +48,22 @@ def test_run_convert_batch_dedupes_colliding_names(tmp_path):
         assert len(names) == 2
 
 
+def test_run_convert_batch_dedupes_against_generated_names(tmp_path):
+    """A real 'logo-2.png' must not collide with the '-2' name generated for
+    the second 'logo.png'/'logo.jpg' pair — all three inputs must survive."""
+    reg = JobRegistry()
+    rec = _seed(reg, tmp_path, "convert",
+                {"names": ["logo.png", "logo.jpg", "logo-2.png"], "target": "webp", "quality": 75},
+                [".png", ".jpg", ".png"])
+    run_job(rec)
+    assert rec.media_type == "application/zip"
+    with zipfile.ZipFile(rec.result_path) as zf:
+        names = zf.namelist()
+        assert len(names) == 3
+        assert len(set(names)) == 3  # no entry silently overwritten
+        assert "logo.webp" in names and "logo-2.webp" in names
+
+
 def test_run_keep_format_tif_media_type(tmp_path):
     reg = JobRegistry()
     rec = _seed(reg, tmp_path, "rotate", {"names": ["a.tif"], "rotation": 90, "flip": "none"}, [".tif"])
