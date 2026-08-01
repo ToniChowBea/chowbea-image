@@ -1,6 +1,15 @@
 import { create } from "zustand"
 import { extOf, isBrowserRenderable, objectUrlFor, revokeUrl } from "../lib/images"
 import type { JobProgress } from "../lib/jobs"
+import type {
+  ConvertTarget,
+  ResizeMode,
+  ResizePreset,
+  FlipDirection,
+  CropMode,
+  AspectRatio,
+  CropRect,
+} from "../lib/api"
 
 export type ToolName = "convert" | "compress" | "resize" | "rotate" | "crop"
 
@@ -15,7 +24,7 @@ export interface WorkspaceImage {
 }
 
 export interface ConvertOptions {
-  target: string
+  target: ConvertTarget
   quality: number
 }
 
@@ -23,24 +32,27 @@ export interface CompressOptions {
   quality: number
 }
 
+// Workspace store uses required fields with defaults, matching the API's ResizeOptions shape.
 export interface ResizeOptions {
-  mode: string
+  mode: ResizeMode
   width: number | null
   height: number | null
   lockAspect: boolean
   percent: number
-  preset: string
+  preset: ResizePreset
 }
 
+// Workspace store uses required fields with defaults, matching the API's RotateOptions shape.
 export interface RotateOptions {
   rotation: number
-  flip: string
+  flip: FlipDirection
 }
 
+// Workspace store requires rect to be CropRect | null (not optional) to allow setting it.
 export interface CropOptions {
-  mode: string
-  aspect: string
-  rect: null
+  mode: CropMode
+  aspect: AspectRatio
+  rect: CropRect | null
 }
 
 export interface WorkspaceState {
@@ -99,15 +111,18 @@ export const useWorkspace = create<WorkspaceState>((set) => ({
   // Actions
   addFiles(files: File[]) {
     set((state) => {
-      const newImages: WorkspaceImage[] = files.map((file) => ({
-        id: crypto.randomUUID(),
-        file,
-        name: file.name,
-        size: file.size,
-        ext: extOf(file.name),
-        previewable: isBrowserRenderable(file.name),
-        url: isBrowserRenderable(file.name) ? objectUrlFor(file) : null,
-      }))
+      const newImages: WorkspaceImage[] = files.map((file) => {
+        const previewable = isBrowserRenderable(file.name)
+        return {
+          id: crypto.randomUUID(),
+          file,
+          name: file.name,
+          size: file.size,
+          ext: extOf(file.name),
+          previewable,
+          url: previewable ? objectUrlFor(file) : null,
+        }
+      })
 
       const allImages = [...state.images, ...newImages]
       const newSelectedIds = new Set(state.selectedIds)

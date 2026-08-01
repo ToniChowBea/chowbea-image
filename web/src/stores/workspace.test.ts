@@ -357,10 +357,10 @@ describe("useWorkspace store", () => {
     })
 
     it("merges resize options", () => {
-      useWorkspace.getState().setOption("resize", { width: 1920, mode: "pixel" })
+      useWorkspace.getState().setOption("resize", { width: 1920, mode: "dimensions" })
 
       expect(useWorkspace.getState().options.resize).toEqual({
-        mode: "pixel",
+        mode: "dimensions",
         width: 1920,
         height: null,
         lockAspect: true,
@@ -379,10 +379,10 @@ describe("useWorkspace store", () => {
     })
 
     it("merges crop options", () => {
-      useWorkspace.getState().setOption("crop", { aspect: "16:9", mode: "freeform" })
+      useWorkspace.getState().setOption("crop", { aspect: "16:9", mode: "rect" })
 
       expect(useWorkspace.getState().options.crop).toEqual({
-        mode: "freeform",
+        mode: "rect",
         aspect: "16:9",
         rect: null,
       })
