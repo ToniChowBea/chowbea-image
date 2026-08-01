@@ -14,6 +14,11 @@ class _FakeQueue:
     async def publish(self, job_id): self.published.append(job_id)
 
 
+class _FailingQueue:
+    async def publish(self, job_id):
+        raise RuntimeError("boom")
+
+
 @pytest.fixture
 def client():
     app = FastAPI()
@@ -25,6 +30,14 @@ def client():
 
 def _png_bytes(w=16, h=16) -> bytes:
     return pyvips.Image.black(w, h).add(80).cast("uchar").write_to_buffer(".png")
+
+
+def _jpeg_bytes(w=16, h=16) -> bytes:
+    return pyvips.Image.black(w, h).add(80).cast("uchar").write_to_buffer(".jpg")
+
+
+def _gif_bytes(w=16, h=16) -> bytes:
+    return pyvips.Image.black(w, h).add(80).cast("uchar").write_to_buffer(".gif")
 
 
 def test_convert_accepts_and_queues(client):
@@ -59,4 +72,86 @@ def test_crop_rect_requires_single_file(client):
 def test_resize_percent_accepts(client):
     files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
     resp = client.post("/img/resize", files=files, data={"mode": "percent", "percent": "50"})
+    assert resp.status_code == 202
+
+
+def test_resize_preset_accepts(client):
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/resize", files=files, data={"mode": "preset", "preset": "1920"})
+    assert resp.status_code == 202
+
+
+def test_resize_dimensions_locked_accepts(client):
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/resize", files=files, data={"mode": "dimensions", "width": "100"})
+    assert resp.status_code == 202
+
+
+def test_resize_dimensions_unlocked_one_sided_rejected(client):
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/resize", files=files,
+                       data={"mode": "dimensions", "width": "100", "lock_aspect": "false"})
+    assert resp.status_code == 400
+
+
+def test_compress_accepts_and_queues(client):
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/compress", files=files, data={"quality": "50"})
+    assert resp.status_code == 202
+
+
+def test_rotate_accepts(client):
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/rotate", files=files, data={"rotation": "90"})
+    assert resp.status_code == 202
+
+
+def test_rotate_nothing_to_do_rejected(client):
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/rotate", files=files, data={"rotation": "0", "flip": "none"})
+    assert resp.status_code == 400
+
+
+def test_crop_aspect_accepts(client):
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/crop", files=files, data={"mode": "aspect", "aspect": "1:1"})
+    assert resp.status_code == 202
+
+
+def test_crop_aspect_invalid_ratio_rejected(client):
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/crop", files=files, data={"mode": "aspect", "aspect": "3:3:3"})
+    assert resp.status_code == 400
+
+
+def test_upload_over_size_limit_rejected(client, monkeypatch):
+    monkeypatch.setattr(images, "_MAX_UPLOAD_BYTES", 10)
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/convert", files=files, data={"target": "jpeg"})
+    assert resp.status_code == 413
+
+
+def test_empty_upload_rejected(client):
+    files = {"files": ("a.png", io.BytesIO(b""), "image/png")}
+    resp = client.post("/img/convert", files=files, data={"target": "jpeg"})
+    assert resp.status_code == 400
+
+
+def test_publish_failure_returns_503_and_discards_job(client):
+    client.app.state.job_queue = _FailingQueue()
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/convert", files=files, data={"target": "jpeg"})
+    assert resp.status_code == 503
+    assert client.app.state.registry.queue_size() == 0
+
+
+def test_convert_accepts_real_jpeg(client):
+    files = {"files": ("a.jpg", io.BytesIO(_jpeg_bytes()), "image/jpeg")}
+    resp = client.post("/img/convert", files=files, data={"target": "png"})
+    assert resp.status_code == 202
+
+
+def test_convert_accepts_real_gif(client):
+    files = {"files": ("a.gif", io.BytesIO(_gif_bytes()), "image/gif")}
+    resp = client.post("/img/convert", files=files, data={"target": "png"})
     assert resp.status_code == 202

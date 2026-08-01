@@ -33,8 +33,7 @@ _SOURCE_EXTS = {
 _MAGIC_PREFIXES = {
     "png": (b"\x89PNG\r\n\x1a\n",),
     "jpeg": (b"\xff\xd8\xff",),
-    "webp": (b"RIFF",),
-    "gif": (b"GIF87a", "GIF89a".encode()),
+    "gif": (b"GIF87a", b"GIF89a"),
     "tiff": (b"II*\x00", b"MM\x00*"),
     "bmp": (b"BM",),
 }
@@ -53,6 +52,11 @@ def _validate_head(head: bytes, kind: str, filename: str) -> None:
     mismatch = HTTPException(status_code=400, detail=f"'{filename}' does not look like a {kind} image.")
     if kind in _FTYP_KINDS:
         if len(head) < 12 or head[4:8] != b"ftyp":
+            raise mismatch
+        return
+    if kind == "webp":
+        # RIFF is a generic container (also .wav/.avi); require the WEBP fourCC too.
+        if len(head) < 12 or head[:4] != b"RIFF" or head[8:12] != b"WEBP":
             raise mismatch
         return
     prefixes = _MAGIC_PREFIXES.get(kind)
@@ -152,6 +156,8 @@ async def resize(request: Request, files: List[UploadFile] = File(...), mode: st
         raise HTTPException(status_code=400, detail="Unknown size preset.")
     if mode == "dimensions" and not (width or height):
         raise HTTPException(status_code=400, detail="A width or height is required.")
+    if mode == "dimensions" and not lock_aspect and not (width and height):
+        raise HTTPException(status_code=400, detail="Both width and height are required when aspect is unlocked.")
     return await _intake(request, files, "resize", "chowbea-img-resize-",
                          {"mode": mode, "width": width, "height": height, "lock_aspect": lock_aspect, "percent": percent, "preset": preset})
 
