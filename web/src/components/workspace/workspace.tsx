@@ -10,6 +10,8 @@ import { GoBar } from "./go-bar"
 import { ImageGrid } from "./image-grid"
 import { CompressPanel } from "./panels/compress-panel"
 import { ConvertPanel } from "./panels/convert-panel"
+import { ResizePanel } from "./panels/resize-panel"
+import { RotatePanel } from "./panels/rotate-panel"
 import { Toolbar, TOOLS } from "./toolbar"
 
 const PHASE_LABEL: Record<JobProgress["phase"], string> = {
@@ -59,6 +61,10 @@ function ToolPanelSlot({ tool }: { tool: ToolName | null }) {
         <ConvertPanel />
       ) : tool === "compress" ? (
         <CompressPanel />
+      ) : tool === "resize" ? (
+        <ResizePanel />
+      ) : tool === "rotate" ? (
+        <RotatePanel />
       ) : (
         <div className="rounded-[14px] border-2 border-dashed border-line p-4">
           <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">Options</p>

@@ -5,11 +5,16 @@ import type {
   ConvertTarget,
   ResizeMode,
   ResizePreset,
-  FlipDirection,
   CropMode,
   AspectRatio,
   CropRect,
+  RotateOptions,
 } from "../lib/api"
+
+// Re-exported so consumers can import every tool's options type from one
+// place; the API's RotateOptions already matches the store's shape exactly
+// (both fields required), so there's no separate store-side definition.
+export type { RotateOptions }
 
 export type ToolName = "convert" | "compress" | "resize" | "rotate" | "crop"
 
@@ -40,12 +45,6 @@ export interface ResizeOptions {
   lockAspect: boolean
   percent: number
   preset: ResizePreset
-}
-
-// Workspace store uses required fields with defaults, matching the API's RotateOptions shape.
-export interface RotateOptions {
-  rotation: number
-  flip: FlipDirection
 }
 
 // Workspace store requires rect to be CropRect | null (not optional) to allow setting it.

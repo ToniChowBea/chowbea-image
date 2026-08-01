@@ -1,15 +1,14 @@
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
-import { compressImages, convertImages } from "@/lib/api"
+import { compressImages, convertImages, resizeImages, rotateImages } from "@/lib/api"
 import { useWorkspace } from "@/stores/workspace"
 
 /**
  * The shared submit control for every tool: shows how many images are
  * selected and, on click, runs the active tool's API wrapper against the
- * selected files with the current options. Only convert + compress are
- * wired up so far — resize/rotate/crop fall into the `default` branch below
- * until W12-13 add their cases.
+ * selected files with the current options. Crop falls into the `default`
+ * branch below until W13 adds its case.
  */
 export function GoBar() {
   const images = useWorkspace((state) => state.images)
@@ -39,6 +38,23 @@ export function GoBar() {
         }
         case "compress": {
           setResult(await compressImages(selectedFiles, options.compress.quality, setProgress))
+          break
+        }
+        case "resize": {
+          // Store keeps width/height as `null` for empty inputs; the API
+          // wrapper wants them omitted (`undefined`) instead.
+          const { width, height, ...rest } = options.resize
+          setResult(
+            await resizeImages(
+              selectedFiles,
+              { ...rest, width: width ?? undefined, height: height ?? undefined },
+              setProgress
+            )
+          )
+          break
+        }
+        case "rotate": {
+          setResult(await rotateImages(selectedFiles, options.rotate, setProgress))
           break
         }
         default:
