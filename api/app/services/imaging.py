@@ -13,7 +13,7 @@ import pyvips
 
 from app.core.config import settings
 
-ATTRIBUTION = "Chowbea Image (img.chowbea.com)"
+ATTRIBUTION = "Chowbea Image — img.chowbea.com"
 
 # Minimal XMP packet carrying the same attribution, written verbatim.
 _XMP_PACKET = (
@@ -83,15 +83,11 @@ def _stamp_and_strip(image: pyvips.Image) -> pyvips.Image:
     for field in image.get_fields():
         if field.startswith(_STRIP_PREFIXES):
             image.remove(field)
-    # libvips' ASCII-tag writer (vips_exif_set_string_ascii -> drop_tail() in
-    # libvips/foreign/exif.c) strips a trailing " (...)" from any value it
-    # writes, to avoid duplicating the "(raw, type, N components, N bytes)"
-    # annotation libvips itself appends when *displaying* an EXIF string via
-    # get(). ATTRIBUTION ends in ")" and contains " (", so it matches that
-    # heuristic and would be silently truncated to "Chowbea Image". Append a
-    # trailing "." so the value no longer ends in ")"; ATTRIBUTION still
-    # appears verbatim as a substring.
-    image.set_type(pyvips.GValue.gstr_type, "exif-ifd0-Software", f"{ATTRIBUTION}.")
+    # ATTRIBUTION intentionally avoids a trailing "(...)" — libvips' ASCII-tag
+    # writer (drop_tail() in libvips/foreign/exif.c) strips a trailing
+    # " (...)" from any value ending in ")", assuming it's the annotation
+    # libvips itself appends when *displaying* an EXIF string via get().
+    image.set_type(pyvips.GValue.gstr_type, "exif-ifd0-Software", ATTRIBUTION)
     image.set_type(pyvips.GValue.blob_type, "xmp-data", _XMP_PACKET)
     return image
 
@@ -101,6 +97,10 @@ def save(image: pyvips.Image, dst: Path, *, quality: int | None = None) -> None:
 
     Keeps only EXIF, XMP, and the ICC profile (our attribution rides in EXIF +
     XMP); everything else is stripped by `_stamp_and_strip` beforehand.
+
+    Note: on libvips 8.18.4, `tiffsave` drops the custom `exif-ifd0-Software`
+    tag even with `keep=EXIF` — TIFF output carries attribution via XMP only.
+    This is accepted behavior (see test_tiff_attribution_in_xmp_only).
     """
     image = _stamp_and_strip(image)
     keep = pyvips.ForeignKeep.EXIF | pyvips.ForeignKeep.XMP | pyvips.ForeignKeep.ICC
