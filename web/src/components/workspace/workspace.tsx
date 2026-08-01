@@ -6,7 +6,10 @@ import { formatBytes } from "@/lib/api"
 import type { JobProgress } from "@/lib/jobs"
 import { useWorkspace, type ToolName } from "@/stores/workspace"
 
+import { GoBar } from "./go-bar"
 import { ImageGrid } from "./image-grid"
+import { CompressPanel } from "./panels/compress-panel"
+import { ConvertPanel } from "./panels/convert-panel"
 import { Toolbar, TOOLS } from "./toolbar"
 
 const PHASE_LABEL: Record<JobProgress["phase"], string> = {
@@ -52,16 +55,24 @@ function ToolPanelSlot({ tool }: { tool: ToolName | null }) {
         </p>
       </div>
 
-      <div className="rounded-[14px] border-2 border-dashed border-line p-4">
-        <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">Options</p>
-        <p className="mt-1.5 text-[13px] font-bold text-ink">{meta.label} options — coming next</p>
-      </div>
+      {tool === "convert" ? (
+        <ConvertPanel />
+      ) : tool === "compress" ? (
+        <CompressPanel />
+      ) : (
+        <div className="rounded-[14px] border-2 border-dashed border-line p-4">
+          <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">Options</p>
+          <p className="mt-1.5 text-[13px] font-bold text-ink">{meta.label} options — coming next</p>
+        </div>
+      )}
 
       <div className="checkerboard flex min-h-[160px] flex-1 items-center justify-center rounded-[14px] border-2 border-dashed border-line p-4">
         <p className="rounded-md border-2 border-ink bg-card px-3 py-1.5 text-[13px] font-bold text-ink shadow-block-sm">
           Preview — coming next
         </p>
       </div>
+
+      <GoBar />
     </div>
   )
 }
