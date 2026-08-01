@@ -78,11 +78,12 @@ def test_queue_board_is_anonymized(registry, tmp_path):
     job_id = _queue_job(registry, tmp_path, name="secret-salary-data.png")
     registry.get(job_id).status = JobStatus.processing
     waiting_id = _queue_job(registry, tmp_path)
-    board = client.get("/queue").json()
+    response = client.get("/queue")
+    board = response.json()
     assert board["concurrency"] == 3
     assert [e["id_prefix"] for e in board["processing"]] == [job_id[:6]]
     assert [e["id_prefix"] for e in board["waiting"]] == [waiting_id[:6]]
-    assert "name" not in board["processing"][0]
+    assert "secret-salary-data.png" not in response.text
 
 
 def test_queue_board_reports_jobs_completed(registry, tmp_path):
