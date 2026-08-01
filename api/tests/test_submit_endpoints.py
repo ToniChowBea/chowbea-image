@@ -155,3 +155,19 @@ def test_convert_accepts_real_gif(client):
     files = {"files": ("a.gif", io.BytesIO(_gif_bytes()), "image/gif")}
     resp = client.post("/img/convert", files=files, data={"target": "png"})
     assert resp.status_code == 202
+
+
+def test_rejects_riff_not_webp(client):
+    fake = b"RIFF" + (36).to_bytes(4, "little") + b"WAVE" + b"\x00" * 32
+    files = {"files": ("a.webp", io.BytesIO(fake), "image/webp")}
+    resp = client.post("/img/convert", files=files, data={"target": "png"})
+    assert resp.status_code == 400
+
+
+def test_convert_accepts_real_webp(client):
+    webp = pyvips.Image.black(16, 16).write_to_buffer(".webp")
+    files = {"files": ("a.webp", io.BytesIO(webp), "image/webp")}
+    resp = client.post("/img/convert", files=files, data={"target": "png"})
+    assert resp.status_code == 202
+    body = resp.json()
+    assert client.app.state.job_queue.published == [body["job_id"]]
