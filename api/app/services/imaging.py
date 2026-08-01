@@ -13,7 +13,7 @@ import pyvips
 
 from app.core.config import settings
 
-ATTRIBUTION = "Chowbea Image — img.chowbea.com"
+ATTRIBUTION = "Chowbea Image - img.chowbea.com"
 
 # Minimal XMP packet carrying the same attribution, written verbatim.
 _XMP_PACKET = (

@@ -28,10 +28,12 @@ def test_save_strips_metadata_and_stamps_attribution(tmp_path):
 
     result = pyvips.Image.new_from_file(str(out))
     software = result.get("exif-ifd0-Software")
-    # EXIF Software is an ASCII-only tag; libvips transliterates the em dash
-    # in ATTRIBUTION to ASCII on write (g_str_to_ascii in libvips/foreign/exif.c),
-    # so the brand name (ASCII-safe) is what survives verbatim in EXIF.
-    assert "Chowbea Image" in software
+    # pyvips.get() always appends its own "(raw, type, N components, N bytes)"
+    # display annotation to every exif- field (this happens for any string,
+    # not just ours) — strip that wrapper to compare the actual stored value.
+    # This is the same "(...)" pattern libvips' own drop_tail() strips before
+    # re-writing a value, so it's the canonical way to get the raw value back.
+    assert software.split(" (")[0] == imaging.ATTRIBUTION
     assert "SomeOtherApp" not in software
 
     xmp = result.get("xmp-data").decode("utf-8")
