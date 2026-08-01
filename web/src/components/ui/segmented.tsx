@@ -31,7 +31,13 @@ function Segmented<Value extends string = string>({
       data-slot="segmented"
       value={value === undefined ? undefined : [value]}
       defaultValue={defaultValue === undefined ? undefined : [defaultValue]}
-      onValueChange={(next) => onValueChange?.(next[0] as Value)}
+      onValueChange={(next) => {
+        // Base UI's toggle-group deselects on re-click of the active item,
+        // firing with an empty array. A segmented control must always have
+        // exactly one selection, so ignore that case — the controlled
+        // `value` prop keeps the current item visually selected.
+        if (next.length > 0) onValueChange?.(next[0] as Value)
+      }}
       className={cn(
         "inline-flex items-center gap-1 rounded-full border-2 border-ink bg-surface p-1 shadow-block-sm",
         className

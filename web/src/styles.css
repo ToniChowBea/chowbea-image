@@ -315,17 +315,28 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Every primitive (button/select/slider/progress/toggle-switch/segmented)
+     times its transitions off --duration-*, not hardcoded values — zeroing
+     the tokens here makes all of them instant in one place, root-cause
+     style, instead of patching motion-reduce: onto each component. */
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
   .brand-breathe,
   .animate-indeterminate,
   .image-card,
-  .lift {
+  .lift,
+  .press {
     animation: none;
     transition: none;
   }
   .image-card:hover,
   .image-card:active,
   .lift:hover,
-  .lift:active {
+  .lift:active,
+  .press:active {
     transform: none;
   }
 }
