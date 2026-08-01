@@ -80,7 +80,7 @@ def _run_keep_format(record: JobRecord, op) -> None:
         dst = record.workspace / f"output-{i}{ext}"
         op(src, dst)
         outputs.append((dst, _out_name(name, ext)))
-    media_type = imaging.MEDIA_TYPES.get(exts[0].lstrip(".").replace("jpg", "jpeg"), "application/octet-stream")
+    media_type = imaging.MEDIA_TYPE_BY_EXT.get(exts[0].lower(), "application/octet-stream")
     _finish(record, outputs, media_type, "images.zip")
 
 

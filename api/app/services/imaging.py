@@ -42,6 +42,16 @@ MEDIA_TYPES: dict[str, str] = {
     "tiff": "image/tiff",
 }
 
+# File extension (with dot, lowercase) -> MIME type, for keep-format outputs
+# whose content-type must match the *source* extension rather than a convert
+# target. Covers everything the loaders can read, including formats with no
+# ENCODE_TARGETS/MEDIA_TYPES entry (gif, bmp) and both tiff spellings.
+MEDIA_TYPE_BY_EXT: dict[str, str] = {
+    ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+    ".webp": "image/webp", ".avif": "image/avif", ".gif": "image/gif",
+    ".tif": "image/tiff", ".tiff": "image/tiff", ".bmp": "image/bmp",
+}
+
 # Metadata field-name prefixes we drop on save (everything a source can carry
 # that could leak GPS/camera/timestamps or crafted payloads). The ICC profile
 # is deliberately kept for colour fidelity.

@@ -36,6 +36,20 @@ def test_run_convert_batch_returns_zip(tmp_path):
         assert sorted(zf.namelist()) == ["a.webp", "b.webp"]
 
 
+def test_run_keep_format_tif_media_type(tmp_path):
+    reg = JobRegistry()
+    rec = _seed(reg, tmp_path, "rotate", {"names": ["a.tif"], "rotation": 90, "flip": "none"}, [".tif"])
+    run_job(rec)
+    assert rec.media_type == "image/tiff"
+
+
+def test_run_keep_format_gif_media_type(tmp_path):
+    reg = JobRegistry()
+    rec = _seed(reg, tmp_path, "rotate", {"names": ["a.gif"], "rotation": 90, "flip": "none"}, [".gif"])
+    run_job(rec)
+    assert rec.media_type == "image/gif"
+
+
 def test_execute_job_marks_done_and_increments(tmp_path):
     reg = JobRegistry()
     rec = _seed(reg, tmp_path, "rotate", {"names": ["a.png"], "rotation": 90, "flip": "none"}, [".png"])
