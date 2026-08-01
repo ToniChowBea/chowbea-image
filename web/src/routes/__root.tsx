@@ -23,7 +23,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Bold, free image tools. Convert, compress, resize, rotate and crop — your images never leave the browser.",
+          "Bold, free image tools. Convert, compress, resize, rotate and crop — no accounts, files deleted 30 minutes after processing.",
       },
       { name: "theme-color", content: "#fff3e2" },
       { title: "Chowbea Image" },
@@ -137,7 +137,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                 Chowbea Image — Bold Blocks
               </span>
               <span className="text-[13px] font-semibold text-muted-ink">
-                Free &amp; ad-free · your images never leave the browser
+                Free &amp; ad-free · files deleted 30 minutes after processing
               </span>
             </footer>
           </div>
