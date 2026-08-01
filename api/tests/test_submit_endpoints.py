@@ -137,6 +137,13 @@ def test_empty_upload_rejected(client):
     assert resp.status_code == 400
 
 
+def test_too_many_files_rejected(client, monkeypatch):
+    monkeypatch.setattr(images.settings, "max_files_per_request", 2)
+    files = [("files", (f"{n}.png", io.BytesIO(_png_bytes()), "image/png")) for n in ("a", "b", "c")]
+    resp = client.post("/img/convert", files=files, data={"target": "jpeg"})
+    assert resp.status_code == 400
+
+
 def test_publish_failure_returns_503_and_discards_job(client):
     client.app.state.job_queue = _FailingQueue()
     files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}

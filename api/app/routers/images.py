@@ -118,6 +118,8 @@ async def _intake(request: Request, files: list[UploadFile], tool: str, prefix: 
     """Shared: make a workspace, store uploads, merge params, accept the job."""
     if not files:
         raise HTTPException(status_code=400, detail="No files were uploaded.")
+    if len(files) > settings.max_files_per_request:
+        raise HTTPException(status_code=400, detail=f"Too many files (max {settings.max_files_per_request} per request).")
     work_dir = Path(tempfile.mkdtemp(prefix=prefix))
     try:
         names, exts, total = await _store_uploads(files, work_dir)

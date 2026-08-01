@@ -36,6 +36,18 @@ def test_run_convert_batch_returns_zip(tmp_path):
         assert sorted(zf.namelist()) == ["a.webp", "b.webp"]
 
 
+def test_run_convert_batch_dedupes_colliding_names(tmp_path):
+    reg = JobRegistry()
+    rec = _seed(reg, tmp_path, "convert",
+                {"names": ["logo.png", "logo.jpg"], "target": "webp", "quality": 75}, [".png", ".jpg"])
+    run_job(rec)
+    assert rec.media_type == "application/zip"
+    with zipfile.ZipFile(rec.result_path) as zf:
+        names = sorted(zf.namelist())
+        assert names == ["logo-2.webp", "logo.webp"]
+        assert len(names) == 2
+
+
 def test_run_keep_format_tif_media_type(tmp_path):
     reg = JobRegistry()
     rec = _seed(reg, tmp_path, "rotate", {"names": ["a.tif"], "rotation": 90, "flip": "none"}, [".tif"])

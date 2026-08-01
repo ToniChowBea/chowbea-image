@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     # Reject uploads larger than this (in megabytes) to protect the server.
     max_upload_mb: int = 100
 
+    # Reject requests with more than this many files, to bound disk writes per request.
+    max_files_per_request: int = 100
+
     # Reject images whose pixel count (w*h) exceeds this many megapixels; a cheap,
     # header-only guard against decompression bombs.
     max_image_megapixels: int = 300

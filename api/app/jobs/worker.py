@@ -39,6 +39,23 @@ def _inputs(record: JobRecord) -> list[Path]:
     return [record.workspace / f"input-{i}{ext}" for i, ext in enumerate(exts)]
 
 
+def _dedupe_names(names: list[str]) -> list[str]:
+    """Disambiguate repeated names by inserting -2, -3, ... before the extension,
+    so colliding outputs (e.g. logo.png + logo.jpg both converted to webp) don't
+    overwrite each other as ZIP entries."""
+    seen: dict[str, int] = {}
+    deduped = []
+    for name in names:
+        seen[name] = seen.get(name, 0) + 1
+        count = seen[name]
+        if count == 1:
+            deduped.append(name)
+        else:
+            stem, ext = Path(name).stem, Path(name).suffix
+            deduped.append(f"{stem}-{count}{ext}")
+    return deduped
+
+
 def _finish(record: JobRecord, outputs: list[tuple[Path, str]], media_type: str, zip_name: str) -> None:
     """One image → return it; many → zip them under their download names."""
     if len(outputs) == 1:
@@ -46,8 +63,9 @@ def _finish(record: JobRecord, outputs: list[tuple[Path, str]], media_type: str,
         record.media_type = media_type
         return
     archive = record.workspace / zip_name
+    arcnames = _dedupe_names([arcname for _, arcname in outputs])
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
-        for path, arcname in outputs:
+        for (path, _), arcname in zip(outputs, arcnames):
             zf.write(path, arcname=arcname)
     record.result_path = archive
     record.download_name = zip_name
