@@ -168,7 +168,7 @@ decompression-bomb guard live in exactly one place:
   full decode.
 - **Metadata policy on save:** strip all inherited metadata, then set our own
   attribution in **both**:
-  - EXIF: `Software = "Chowbea Image (img.chowbea.com)"`
+  - EXIF: `Software = "Chowbea Image - img.chowbea.com"` (ASCII hyphen, no parentheses — avoids a libvips EXIF-truncation bug and stays ASCII so EXIF matches XMP byte-for-byte; TIFF output carries attribution in XMP only, since libvips 8.18.4 drops the EXIF `Software` tag on `tiffsave`)
   - XMP: an `xmp:CreatorTool` / equivalent note "edited with Chowbea".
   Saved with libvips `keep` flags limited to the fields we set, so nothing from
   the source (GPS, camera, timestamps) leaks. Attribution is always-on (not a

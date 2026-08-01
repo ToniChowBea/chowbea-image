@@ -15,7 +15,7 @@ Every task's requirements implicitly include these:
 - Python `>=3.12`; managed by `uv` with `[tool.uv] package = false` (app, not a library).
 - Settings read from env with prefix `CHOWBEA_` (via `pydantic-settings`), `.env` supported.
 - Queue name is exactly `img-jobs`.
-- Attribution string written to output metadata is exactly `Chowbea Image (img.chowbea.com)` — always-on, in **both** EXIF `Software` and XMP.
+- Attribution string written to output metadata is exactly `Chowbea Image - img.chowbea.com` (ASCII hyphen, no parentheses: avoids a libvips EXIF-truncation bug on trailing ` (...)` AND stays ASCII so the EXIF `Software` field — which is ASCII-only — matches XMP byte-for-byte) — always-on, in **both** EXIF `Software` and XMP, EXCEPT TIFF output, which carries it in XMP only (libvips 8.18.4 drops the EXIF `Software` tag on `tiffsave`).
 - `max_upload_mb` default `100`; `max_image_megapixels` default `300`; `result_ttl_minutes` default `30`; `job_concurrency` default `3`.
 - Encode (Convert) targets: `png, jpeg, webp, avif, tiff`. Decode (input) kinds: `png, jpeg, webp, avif, heic/heif, gif, tiff, bmp`. (BMP/GIF are input-only — libvips has no dependable BMP saver and v1 flattens animation.)
 - Only **Convert** changes format; compress/resize/rotate/crop keep each input's own format.
