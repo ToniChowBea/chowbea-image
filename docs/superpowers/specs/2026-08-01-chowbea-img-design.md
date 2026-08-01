@@ -35,7 +35,7 @@ input's original format.
 **Format matrix**
 
 - Decode (inputs): PNG, JPEG, WebP, AVIF, HEIC/HEIF, GIF, TIFF, BMP.
-- Encode (Convert targets): PNG, JPEG, WebP, AVIF, TIFF, BMP.
+- Encode (Convert targets): PNG, JPEG, WebP, AVIF, TIFF. (BMP is input-only — libvips has no dependable BMP saver; see the plan's Global Constraints.)
 - GIF and animated formats: v1 treats them as single-frame (flatten to the first
   frame). Animated output is a non-goal.
 
@@ -126,7 +126,7 @@ image back; multiple → a ZIP.
 
 | Method + path | Form fields |
 |---|---|
-| `POST /img/convert` | `files[]` (1+), `target` (png/jpeg/webp/avif/tiff/bmp), `quality?` (1–100, lossy targets only) |
+| `POST /img/convert` | `files[]` (1+), `target` (png/jpeg/webp/avif/tiff), `quality?` (1–100, lossy targets only) |
 | `POST /img/compress` | `files[]` (1+), `quality` (1–100) |
 | `POST /img/resize` | `files[]` (1+), `mode` (dimensions/percent/preset), `width?`, `height?`, `lock_aspect?`, `percent?`, `preset?` |
 | `POST /img/rotate` | `files[]` (1+), `rotation` (0/90/180/270), `flip` (none/horizontal/vertical) |
