@@ -66,7 +66,7 @@ export interface WorkspaceState {
     crop: CropOptions
   }
   progress: JobProgress | null
-  result: { blob: Blob; filename: string; originalBytes: number } | null
+  result: { blob: Blob; filename: string; originalBytes: number; fileCount: number } | null
   error: string | null
   // True for the duration of a submit → poll → download run. Lives in the
   // store (not a component's local useState) so it survives GoBar
@@ -85,7 +85,7 @@ export interface WorkspaceState {
   setActiveTool(tool: ToolName | null): void
   setOption<T extends ToolName>(tool: T, patch: Partial<WorkspaceState["options"][T]>): void
   setProgress(progress: JobProgress | null): void
-  setResult(result: { blob: Blob; filename: string; originalBytes: number } | null): void
+  setResult(result: { blob: Blob; filename: string; originalBytes: number; fileCount: number } | null): void
   setError(error: string | null): void
   setSubmitting(submitting: boolean): void
   reset(): void
@@ -204,7 +204,11 @@ export const useWorkspace = create<WorkspaceState>((set) => ({
   },
 
   setActiveTool(tool: ToolName | null) {
-    set(() => ({ activeTool: tool }))
+    // Also clears the previous tool's job state (result/error/progress) so
+    // switching tools doesn't leave a stale ResultCard/error under the new
+    // tool's panel until the next Go. Mirrors reset(), minus images/
+    // selectedIds/options/submitting.
+    set(() => ({ activeTool: tool, progress: null, result: null, error: null }))
   },
 
   setOption(tool: ToolName, patch: any) {
@@ -223,7 +227,7 @@ export const useWorkspace = create<WorkspaceState>((set) => ({
     set(() => ({ progress }))
   },
 
-  setResult(result: { blob: Blob; filename: string; originalBytes: number } | null) {
+  setResult(result: { blob: Blob; filename: string; originalBytes: number; fileCount: number } | null) {
     set(() => ({ result }))
   },
 

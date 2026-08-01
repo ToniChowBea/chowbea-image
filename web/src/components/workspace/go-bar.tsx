@@ -33,27 +33,37 @@ export function GoBar() {
   const count = selectedFiles.length
   const cropRectBlocked =
     activeTool === "crop" && options.crop.mode === "rect" && (count !== 1 || !options.crop.rect)
-  const canSubmit = count > 0 && !cropRectBlocked
+  // The API 400s if a "dimensions" resize is submitted with neither width
+  // nor height set ("A width or height is required.") — block Go before
+  // that round trip instead of surfacing it as a server error.
+  const resizeDimensionsBlocked =
+    activeTool === "resize" &&
+    options.resize.mode === "dimensions" &&
+    !options.resize.width &&
+    !options.resize.height
+  const canSubmit = count > 0 && !cropRectBlocked && !resizeDimensionsBlocked
 
   async function handleGo() {
     if (!activeTool || !canSubmit || submitting) return
     reset()
     setSubmitting(true)
-    // Frozen at submit time so the result card's size delta can't drift if
-    // the user changes the selection while the job is still running.
+    // Frozen at submit time so the result card's size delta — and, for a
+    // ZIP result, the "N images" count — can't drift if the user changes
+    // the selection while the job is still running.
     const originalBytes = selectedFiles.reduce((sum, file) => sum + file.size, 0)
+    const fileCount = selectedFiles.length
     try {
       switch (activeTool) {
         case "convert": {
           const { target, quality } = options.convert
           const lossy = target === "jpeg" || target === "webp" || target === "avif"
           const result = await convertImages(selectedFiles, target, lossy ? quality : null, setProgress)
-          setResult({ ...result, originalBytes })
+          setResult({ ...result, originalBytes, fileCount })
           break
         }
         case "compress": {
           const result = await compressImages(selectedFiles, options.compress.quality, setProgress)
-          setResult({ ...result, originalBytes })
+          setResult({ ...result, originalBytes, fileCount })
           break
         }
         case "resize": {
@@ -65,12 +75,12 @@ export function GoBar() {
             { ...rest, width: width ?? undefined, height: height ?? undefined },
             setProgress
           )
-          setResult({ ...result, originalBytes })
+          setResult({ ...result, originalBytes, fileCount })
           break
         }
         case "rotate": {
           const result = await rotateImages(selectedFiles, options.rotate, setProgress)
-          setResult({ ...result, originalBytes })
+          setResult({ ...result, originalBytes, fileCount })
           break
         }
         case "crop": {
@@ -80,7 +90,7 @@ export function GoBar() {
             mode === "rect" ? { mode, rect: rect! } : { mode, aspect },
             setProgress
           )
-          setResult({ ...result, originalBytes })
+          setResult({ ...result, originalBytes, fileCount })
           break
         }
       }

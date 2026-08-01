@@ -38,6 +38,7 @@ describe("ResultCard", () => {
       blob: new Blob([new Uint8Array(200)]),
       filename: "converted-photo.jpg",
       originalBytes: 1000,
+      fileCount: 1,
     })
 
     render(<ResultCard />)
@@ -56,6 +57,7 @@ describe("ResultCard", () => {
       blob: new Blob([new Uint8Array(400)]),
       filename: "converted-images.zip",
       originalBytes: 1000,
+      fileCount: 2,
     })
 
     render(<ResultCard />)
@@ -64,12 +66,33 @@ describe("ResultCard", () => {
     expect(screen.queryByText("Before")).toBeNull()
   })
 
+  it("freezes the ZIP count at submit time — changing selection afterward doesn't relabel the card", () => {
+    addSelected("a.png", 500)
+    addSelected("b.png", 500)
+    useWorkspace.getState().selectAll()
+    useWorkspace.getState().setResult({
+      blob: new Blob([new Uint8Array(400)]),
+      filename: "converted-images.zip",
+      originalBytes: 1000,
+      fileCount: 2,
+    })
+
+    // Selection changes after the job finished — the card must keep
+    // reporting the count captured at submit time, not the live selection.
+    useWorkspace.getState().selectNone()
+
+    render(<ResultCard />)
+
+    expect(screen.getByText("2 images · ZIP")).toBeTruthy()
+  })
+
   it("Start over clears the result via reset()", () => {
     addSelected("photo.png", 1000)
     useWorkspace.getState().setResult({
       blob: new Blob([new Uint8Array(200)]),
       filename: "converted-photo.jpg",
       originalBytes: 1000,
+      fileCount: 1,
     })
 
     render(<ResultCard />)

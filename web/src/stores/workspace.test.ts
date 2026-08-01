@@ -337,6 +337,33 @@ describe("useWorkspace store", () => {
 
       expect(useWorkspace.getState().activeTool).toBeNull()
     })
+
+    it("clears result, error, and progress but preserves images/selection/options/submitting", () => {
+      const file = new File(["content"], "image.png", { type: "image/png" })
+      useWorkspace.getState().addFiles([file])
+      const id = useWorkspace.getState().images[0].id
+      useWorkspace.getState().setOption("compress", { quality: 42 })
+
+      useWorkspace.getState().setActiveTool("compress")
+      useWorkspace.getState().setProgress({ phase: "processing", percent: null })
+      useWorkspace
+        .getState()
+        .setResult({ blob: new Blob(), filename: "out.png", originalBytes: 100, fileCount: 1 })
+      useWorkspace.getState().setError("Some error")
+
+      useWorkspace.getState().setActiveTool("crop")
+
+      const state = useWorkspace.getState()
+      expect(state.activeTool).toBe("crop")
+      expect(state.result).toBeNull()
+      expect(state.error).toBeNull()
+      expect(state.progress).toBeNull()
+      // Untouched by the tool switch.
+      expect(state.images).toHaveLength(1)
+      expect(state.selectedIds.has(id)).toBe(true)
+      expect(state.options.compress.quality).toBe(42)
+      expect(state.submitting).toBe(false)
+    })
   })
 
   describe("setOption", () => {
@@ -422,7 +449,7 @@ describe("useWorkspace store", () => {
   describe("setResult", () => {
     it("sets result", () => {
       const blob = new Blob(["result"])
-      const resultData = { blob, filename: "output.png", originalBytes: 100 }
+      const resultData = { blob, filename: "output.png", originalBytes: 100, fileCount: 1 }
       useWorkspace.getState().setResult(resultData)
 
       expect(useWorkspace.getState().result).toEqual(resultData)
@@ -430,7 +457,7 @@ describe("useWorkspace store", () => {
 
     it("can set to null", () => {
       const blob = new Blob(["result"])
-      const resultData = { blob, filename: "output.png", originalBytes: 100 }
+      const resultData = { blob, filename: "output.png", originalBytes: 100, fileCount: 1 }
       useWorkspace.getState().setResult(resultData)
 
       useWorkspace.getState().setResult(null)
@@ -477,7 +504,9 @@ describe("useWorkspace store", () => {
     it("clears progress, result, and error", () => {
       useWorkspace.getState().setProgress({ phase: "processing", percent: null })
 
-      useWorkspace.getState().setResult({ blob: new Blob(), filename: "out.png", originalBytes: 100 })
+      useWorkspace
+        .getState()
+        .setResult({ blob: new Blob(), filename: "out.png", originalBytes: 100, fileCount: 1 })
 
       useWorkspace.getState().setError("Some error")
 

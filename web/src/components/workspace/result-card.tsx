@@ -65,8 +65,8 @@ export function ResultCard() {
             <HugeiconsIcon icon={FileZipIcon} className="size-6 text-ink" strokeWidth={1.8} />
           </span>
           <p className="font-heading text-sm font-extrabold text-ink">
-            {selectedImages.length > 0
-              ? `${selectedImages.length} image${selectedImages.length === 1 ? "" : "s"} · ZIP`
+            {result.fileCount > 0
+              ? `${result.fileCount} image${result.fileCount === 1 ? "" : "s"} · ZIP`
               : "Multiple images · ZIP"}
           </p>
           <p className="max-w-full truncate text-[12px] font-semibold text-muted-ink" title={result.filename}>

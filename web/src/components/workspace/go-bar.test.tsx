@@ -13,7 +13,15 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
-  useWorkspace.setState({ images: [], selectedIds: new Set(), activeTool: null, submitting: false })
+  useWorkspace.setState({
+    images: [],
+    selectedIds: new Set(),
+    activeTool: null,
+    submitting: false,
+  })
+  // A couple of tests below tweak options.resize — reset it so later tests
+  // in this file don't inherit a non-default mode/width/height.
+  useWorkspace.getState().setOption("resize", { mode: "percent", width: null, height: null })
 })
 
 describe("GoBar", () => {
@@ -32,6 +40,28 @@ describe("GoBar", () => {
     render(<GoBar />)
 
     expect(screen.getByText("1 image selected")).toBeTruthy()
+    expect(screen.getByRole("button", { name: /go/i }).hasAttribute("disabled")).toBe(false)
+  })
+
+  it("disables Go for resize 'dimensions' mode when both width and height are empty", () => {
+    const file = new File(["a"], "photo.png", { type: "image/png" })
+    useWorkspace.getState().addFiles([file])
+    useWorkspace.getState().setActiveTool("resize")
+    useWorkspace.getState().setOption("resize", { mode: "dimensions", width: null, height: null })
+
+    render(<GoBar />)
+
+    expect(screen.getByRole("button", { name: /go/i }).hasAttribute("disabled")).toBe(true)
+  })
+
+  it("enables Go for resize 'dimensions' mode once a width or height is set", () => {
+    const file = new File(["a"], "photo.png", { type: "image/png" })
+    useWorkspace.getState().addFiles([file])
+    useWorkspace.getState().setActiveTool("resize")
+    useWorkspace.getState().setOption("resize", { mode: "dimensions", width: 800, height: null })
+
+    render(<GoBar />)
+
     expect(screen.getByRole("button", { name: /go/i }).hasAttribute("disabled")).toBe(false)
   })
 
