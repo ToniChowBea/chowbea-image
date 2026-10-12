@@ -15,6 +15,7 @@ const TOOL_LABELS: Record<string, string> = {
   resize: "Resize",
   rotate: "Rotate",
   crop: "Crop",
+  fix: "Fix",
 }
 
 function BoardRow({

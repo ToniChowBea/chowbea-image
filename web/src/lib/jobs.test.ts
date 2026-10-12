@@ -14,6 +14,7 @@ function status(partial: Partial<JobStatusResponse>): JobStatusResponse {
     file_count: 1,
     total_bytes: 10,
     created_at: 0,
+    report: null,
     ...partial,
   }
 }

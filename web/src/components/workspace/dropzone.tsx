@@ -8,32 +8,52 @@ import { useWorkspace } from "@/stores/workspace"
 
 const ACCEPT = [...SUPPORTED_EXTS].map((ext) => `.${ext}`).join(",")
 
-function pickSupported(files: FileList | null): File[] {
+/** Keep files whose extension is in `accept` (or the default image set). */
+function pickSupported(files: FileList | null, accept?: string): File[] {
   if (!files) return []
-  return Array.from(files).filter((file) => SUPPORTED_EXTS.has(extOf(file.name).slice(1)))
+  const allowed = accept
+    ? new Set(accept.split(",").map((part) => part.trim().replace(/^\./, "").toLowerCase()))
+    : SUPPORTED_EXTS
+  return Array.from(files).filter((file) => allowed.has(extOf(file.name).slice(1)))
 }
 
 /**
- * Drag-and-drop / click-to-browse image intake, self-contained against the
- * workspace store. `compact` renders the small "+ drop more" tile that sits
- * at the end of a populated ImageGrid; the default is the bold, centered
- * empty-state well shown before any image has been added.
+ * Drag-and-drop / click-to-browse intake. Defaults to the workspace store;
+ * pass `onFiles` to keep dropped files on a dedicated page (e.g. /fix).
  */
-export function Dropzone({ compact = false, className }: { compact?: boolean; className?: string }) {
+export function Dropzone({
+  compact = false,
+  className,
+  accept,
+  title,
+  hint,
+  multiple = true,
+  onFiles,
+}: {
+  compact?: boolean
+  className?: string
+  accept?: string
+  title?: string
+  hint?: string
+  multiple?: boolean
+  onFiles?: (files: File[]) => void
+}) {
   const addFiles = useWorkspace((state) => state.addFiles)
   const [isDragging, setIsDragging] = React.useState(false)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
   function handleFiles(files: FileList | null) {
-    const picked = pickSupported(files)
-    if (picked.length > 0) addFiles(picked)
+    const picked = pickSupported(files, accept)
+    if (picked.length === 0) return
+    if (onFiles) onFiles(picked)
+    else addFiles(picked)
   }
 
   return (
     <div
       role="button"
       tabIndex={0}
-      aria-label="Add images"
+      aria-label={title ?? "Add images"}
       onClick={() => inputRef.current?.click()}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -61,8 +81,8 @@ export function Dropzone({ compact = false, className }: { compact?: boolean; cl
       <input
         ref={inputRef}
         type="file"
-        multiple
-        accept={ACCEPT}
+        multiple={multiple}
+        accept={accept ?? ACCEPT}
         className="hidden"
         onChange={(event) => {
           handleFiles(event.target.files)
@@ -86,9 +106,9 @@ export function Dropzone({ compact = false, className }: { compact?: boolean; cl
       ) : (
         <>
           <div>
-            <p className="font-heading text-xl font-extrabold text-ink">Drop images here</p>
+            <p className="font-heading text-xl font-extrabold text-ink">{title ?? "Drop images here"}</p>
             <p className="mt-1 text-[13px] font-bold uppercase tracking-wide text-muted-ink">
-              PNG, JPG, WEBP, AVIF, HEIC, GIF, TIFF, BMP
+              {hint ?? "PNG, JPG, WEBP, AVIF, HEIC, GIF, TIFF, BMP"}
             </p>
           </div>
           <span className="pointer-events-none inline-flex items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-1.5 text-[13px] font-extrabold uppercase tracking-wide text-ink shadow-block-sm">

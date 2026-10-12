@@ -18,6 +18,30 @@ export interface JobAccepted {
   queue_size: number
 }
 
+/** One preset rule compared against the actual output. */
+export interface RuleCheck {
+  id: string
+  label: string
+  passed: boolean
+  actual: string
+  expected: string
+}
+
+/** Pass/fail for every rule on one output file. */
+export interface FileReport {
+  filename: string
+  passed: boolean
+  rules: RuleCheck[]
+}
+
+/** Whole-job report returned on GET /jobs/{id} for tool=fix. */
+export interface FixReport {
+  preset_id: string
+  preset_name: string
+  passed: boolean
+  files: FileReport[]
+}
+
 export interface JobStatusResponse {
   id: string
   tool: string
@@ -28,6 +52,7 @@ export interface JobStatusResponse {
   file_count: number
   total_bytes: number
   created_at: number
+  report?: FixReport | null
 }
 
 export interface QueueBoardEntry {
@@ -201,7 +226,7 @@ function readRemembered(): RememberedJob[] {
 
 export function rememberJob(jobId: string, tool: string): void {
   if (typeof window === "undefined") return
-  // Keep only the most recent handful; results expire server-side in 30 min.
+  // Keep only the most recent handful; results expire server-side in 1 hour.
   const kept = readRemembered().slice(-19)
   kept.push({ id: jobId, tool, at: Date.now() })
   window.localStorage.setItem(JOBS_STORAGE_KEY, JSON.stringify(kept))

@@ -67,6 +67,17 @@ def test_sweep_removes_only_expired_finished_jobs(tmp_path):
     assert registry.get(queued.id) is not None
 
 
+def test_sweep_removes_abandoned_queued_jobs(tmp_path):
+    """Uploads that never finish still expire so passport files cannot linger."""
+    registry = JobRegistry(result_ttl_seconds=1800)
+    stale = make_job(registry, tmp_path, "stale")
+    stale.created_at = time.time() - 3600
+    removed = registry.sweep()
+    assert removed == 1
+    assert registry.get(stale.id) is None
+    assert not stale.workspace.exists()
+
+
 def test_record_repr_hides_params(tmp_path):
     registry = JobRegistry()
     workspace = tmp_path / "a"
@@ -76,3 +87,5 @@ def test_record_repr_hides_params(tmp_path):
         params={"password": "hunter2"},
     )
     assert "hunter2" not in repr(record)
+    record.report = {"preset_id": "uk-passport-online"}
+    assert "uk-passport-online" not in repr(record)

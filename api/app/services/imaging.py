@@ -87,12 +87,18 @@ def load(src: Path) -> pyvips.Image:
     return image.autorot()
 
 
-def _stamp_and_strip(image: pyvips.Image) -> pyvips.Image:
-    """Return a copy with inherited metadata removed and our attribution set."""
+def _strip_metadata(image: pyvips.Image) -> pyvips.Image:
+    """Return a copy with GPS/camera/comment metadata removed."""
     image = image.copy()
     for field in image.get_fields():
         if field.startswith(_STRIP_PREFIXES):
             image.remove(field)
+    return image
+
+
+def _stamp_and_strip(image: pyvips.Image) -> pyvips.Image:
+    """Return a copy with inherited metadata removed and our attribution set."""
+    image = _strip_metadata(image)
     # ATTRIBUTION intentionally avoids a trailing "(...)" — libvips' ASCII-tag
     # writer (drop_tail() in libvips/foreign/exif.c) strips a trailing
     # " (...)" from any value ending in ")", assuming it's the annotation
@@ -102,18 +108,24 @@ def _stamp_and_strip(image: pyvips.Image) -> pyvips.Image:
     return image
 
 
-def save(image: pyvips.Image, dst: Path, *, quality: int | None = None) -> None:
+def save(image: pyvips.Image, dst: Path, *, quality: int | None = None, stamp: bool = True) -> None:
     """Write `image` to `dst`, choosing the encoder from the extension.
 
     Keeps only EXIF, XMP, and the ICC profile (our attribution rides in EXIF +
     XMP); everything else is stripped by `_stamp_and_strip` beforehand.
+    Pass `stamp=False` to strip source metadata without writing attribution
+    (used by the fix job for passport/visa photos).
 
     Note: on libvips 8.18.4, `tiffsave` drops the custom `exif-ifd0-Software`
     tag even with `keep=EXIF` — TIFF output carries attribution via XMP only.
     This is accepted behavior (see test_tiff_attribution_in_xmp_only).
     """
-    image = _stamp_and_strip(image)
-    keep = pyvips.ForeignKeep.EXIF | pyvips.ForeignKeep.XMP | pyvips.ForeignKeep.ICC
+    if stamp:
+        image = _stamp_and_strip(image)
+        keep = pyvips.ForeignKeep.EXIF | pyvips.ForeignKeep.XMP | pyvips.ForeignKeep.ICC
+    else:
+        image = _strip_metadata(image)
+        keep = pyvips.ForeignKeep.ICC
 
     opts: dict[str, object] = {"keep": keep}
     suffix = dst.suffix.lower()

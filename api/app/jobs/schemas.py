@@ -13,6 +13,33 @@ class JobAccepted(BaseModel):
     queue_size: int
 
 
+class RuleCheck(BaseModel):
+    """One preset rule compared against the actual output."""
+
+    id: str
+    label: str
+    passed: bool
+    actual: str
+    expected: str
+
+
+class FileReport(BaseModel):
+    """Pass/fail for every rule on one output file."""
+
+    filename: str
+    passed: bool
+    rules: list[RuleCheck]
+
+
+class FixReport(BaseModel):
+    """Whole-job report returned on GET /jobs/{id} for tool=fix."""
+
+    preset_id: str
+    preset_name: str
+    passed: bool
+    files: list[FileReport]
+
+
 class JobStatusResponse(BaseModel):
     id: str
     tool: str
@@ -23,6 +50,7 @@ class JobStatusResponse(BaseModel):
     file_count: int
     total_bytes: int
     created_at: float
+    report: FixReport | None = None
 
 
 class BoardEntry(BaseModel):

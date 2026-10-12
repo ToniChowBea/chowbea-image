@@ -17,6 +17,11 @@ describe("ProgressRow", () => {
     expect(screen.getByText(/nothing running yet/i)).toBeTruthy()
   })
 
+  it("uses a custom idle label when provided", () => {
+    render(<ProgressRow idleLabel="Drop a file and hit Fix." />)
+    expect(screen.getByText("Drop a file and hit Fix.")).toBeTruthy()
+  })
+
   it("shows a percent for the uploading phase", () => {
     useWorkspace.getState().setProgress({ phase: "uploading", percent: 42 })
     render(<ProgressRow />)

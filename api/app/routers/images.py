@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.jobs.schemas import JobAccepted
 from app.services import imaging
 from app.services.crop import ASPECT_RATIOS
+from app.services.presets import get_preset
 from app.services.resize import WIDTH_PRESETS
 
 router = APIRouter(prefix="/img", tags=["images"])
@@ -28,6 +29,14 @@ _SOURCE_EXTS = {
     ".gif": "gif", ".tif": "tiff", ".tiff": "tiff", ".bmp": "bmp",
 }
 
+# Fix jobs also accept documents (PDF / Word) so a UCAS or NHS file can be checked.
+_FIX_SOURCE_EXTS = {
+    **_SOURCE_EXTS,
+    ".pdf": "pdf",
+    ".doc": "doc",
+    ".docx": "docx",
+}
+
 # Leading magic bytes per kind. HEIF/AVIF carry an 'ftyp' box at offset 4, so we
 # match that box rather than a byte-0 prefix.
 _MAGIC_PREFIXES = {
@@ -40,16 +49,29 @@ _MAGIC_PREFIXES = {
 _FTYP_KINDS = {"heif", "avif"}
 
 
-def _ext_and_kind(filename: str | None) -> tuple[str, str]:
+def _ext_and_kind(filename: str | None, source_exts: dict[str, str] | None = None) -> tuple[str, str]:
     ext = Path(filename or "").suffix.lower()
-    kind = _SOURCE_EXTS.get(ext)
+    kind = (source_exts or _SOURCE_EXTS).get(ext)
     if kind is None:
         raise HTTPException(status_code=400, detail=f"Unsupported file type '{ext or filename}'.")
     return ext, kind
 
 
 def _validate_head(head: bytes, kind: str, filename: str) -> None:
-    mismatch = HTTPException(status_code=400, detail=f"'{filename}' does not look like a {kind} image.")
+    mismatch = HTTPException(status_code=400, detail=f"'{filename}' does not look like a {kind} file.")
+    if kind == "pdf":
+        if not head.startswith(b"%PDF"):
+            raise mismatch
+        return
+    if kind == "doc":
+        # OLE Compound File magic used by legacy .doc
+        if not head.startswith(b"\xd0\xcf\x11\xe0"):
+            raise mismatch
+        return
+    if kind == "docx":
+        if not head.startswith(b"PK"):
+            raise mismatch
+        return
     if kind in _FTYP_KINDS:
         if len(head) < 12 or head[4:8] != b"ftyp":
             raise mismatch
@@ -87,13 +109,17 @@ def _safe_name(filename: str | None, fallback: str) -> str:
     return Path(filename or fallback).name or fallback
 
 
-async def _store_uploads(files: list[UploadFile], work_dir: Path) -> tuple[list[str], list[str], int]:
+async def _store_uploads(
+    files: list[UploadFile],
+    work_dir: Path,
+    source_exts: dict[str, str] | None = None,
+) -> tuple[list[str], list[str], int]:
     """Validate + stream each upload to input-{i}{ext}; return names, exts, total bytes."""
     names: list[str] = []
     exts: list[str] = []
     total = 0
     for i, file in enumerate(files):
-        ext, kind = _ext_and_kind(file.filename)
+        ext, kind = _ext_and_kind(file.filename, source_exts)
         dest = work_dir / f"input-{i}{ext}"
         await _stream_to_disk(file, dest, kind)
         names.append(_safe_name(file.filename, f"image-{i + 1}{ext}"))
@@ -114,7 +140,14 @@ async def _accept_job(request: Request, *, tool: str, workspace: Path, file_coun
     return JobAccepted(job_id=record.id, position=registry.position(record.id), queue_size=registry.queue_size())
 
 
-async def _intake(request: Request, files: list[UploadFile], tool: str, prefix: str, extra: dict[str, Any]) -> JobAccepted:
+async def _intake(
+    request: Request,
+    files: list[UploadFile],
+    tool: str,
+    prefix: str,
+    extra: dict[str, Any],
+    source_exts: dict[str, str] | None = None,
+) -> JobAccepted:
     """Shared: make a workspace, store uploads, merge params, accept the job."""
     if not files:
         raise HTTPException(status_code=400, detail="No files were uploaded.")
@@ -122,7 +155,7 @@ async def _intake(request: Request, files: list[UploadFile], tool: str, prefix: 
         raise HTTPException(status_code=400, detail=f"Too many files (max {settings.max_files_per_request} per request).")
     work_dir = Path(tempfile.mkdtemp(prefix=prefix))
     try:
-        names, exts, total = await _store_uploads(files, work_dir)
+        names, exts, total = await _store_uploads(files, work_dir, source_exts)
     except Exception:
         shutil.rmtree(work_dir, ignore_errors=True)
         raise
@@ -196,3 +229,13 @@ async def crop(request: Request, files: List[UploadFile] = File(...), mode: str 
     else:
         raise HTTPException(status_code=400, detail="Invalid crop mode.")
     return await _intake(request, files, "crop", "chowbea-img-crop-", extra)
+
+
+@router.post("/fix", status_code=202, summary="Queue a file to meet a portal upload preset", response_model=JobAccepted)
+async def fix(request: Request, files: List[UploadFile] = File(...), preset: str = Form(...)) -> JobAccepted:
+    """Accept an image or document and queue a convert/resize/compress-to-preset job."""
+    if get_preset(preset) is None:
+        raise HTTPException(status_code=400, detail="Unknown preset.")
+    return await _intake(
+        request, files, "fix", "chowbea-img-fix-", {"preset": preset}, source_exts=_FIX_SOURCE_EXTS
+    )

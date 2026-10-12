@@ -10,11 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FixRouteImport } from './routes/fix'
 import { Route as QueueRouteImport } from './routes/queue'
+import { Route as FixPresetRouteImport } from './routes/fix.$preset'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FixRoute = FixRouteImport.update({
+  id: '/fix',
+  path: '/fix',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QueueRoute = QueueRouteImport.update({
@@ -22,30 +29,42 @@ const QueueRoute = QueueRouteImport.update({
   path: '/queue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FixPresetRoute = FixPresetRouteImport.update({
+  id: '/$preset',
+  path: '/$preset',
+  getParentRoute: () => FixRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/fix': typeof FixRouteWithChildren
   '/queue': typeof QueueRoute
+  '/fix/$preset': typeof FixPresetRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/fix': typeof FixRouteWithChildren
   '/queue': typeof QueueRoute
+  '/fix/$preset': typeof FixPresetRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/fix': typeof FixRouteWithChildren
   '/queue': typeof QueueRoute
+  '/fix/$preset': typeof FixPresetRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/queue'
+  fullPaths: '/' | '/fix' | '/queue' | '/fix/$preset'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/queue'
-  id: '__root__' | '/' | '/queue'
+  to: '/' | '/fix' | '/queue' | '/fix/$preset'
+  id: '__root__' | '/' | '/fix' | '/queue' | '/fix/$preset'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FixRoute: typeof FixRouteWithChildren
   QueueRoute: typeof QueueRoute
 }
 
@@ -58,6 +77,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fix': {
+      id: '/fix'
+      path: '/fix'
+      fullPath: '/fix'
+      preLoaderRoute: typeof FixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/queue': {
       id: '/queue'
       path: '/queue'
@@ -65,11 +91,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QueueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fix/$preset': {
+      id: '/fix/$preset'
+      path: '/$preset'
+      fullPath: '/fix/$preset'
+      preLoaderRoute: typeof FixPresetRouteImport
+      parentRoute: typeof FixRoute
+    }
   }
 }
 
+interface FixRouteChildren {
+  FixPresetRoute: typeof FixPresetRoute
+}
+
+const FixRouteChildren: FixRouteChildren = {
+  FixPresetRoute: FixPresetRoute,
+}
+
+const FixRouteWithChildren = FixRoute._addFileChildren(FixRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FixRoute: FixRouteWithChildren,
   QueueRoute: QueueRoute,
 }
 export const routeTree = rootRouteImport

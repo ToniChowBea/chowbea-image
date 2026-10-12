@@ -6,7 +6,7 @@ def test_defaults():
     assert s.app_name == "Chowbea Image API"
     assert s.max_upload_mb == 100
     assert s.max_image_megapixels == 300
-    assert s.result_ttl_minutes == 30
+    assert s.result_ttl_minutes == 60
     assert s.job_concurrency == 3
     assert s.commit_sha == "dev"
 

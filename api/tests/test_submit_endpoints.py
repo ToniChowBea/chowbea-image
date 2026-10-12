@@ -171,6 +171,35 @@ def test_rejects_riff_not_webp(client):
     assert resp.status_code == 400
 
 
+def test_fix_accepts_and_queues(client):
+    files = {"files": ("a.png", io.BytesIO(_png_bytes(32, 40)), "image/png")}
+    resp = client.post("/img/fix", files=files, data={"preset": "uk-passport-online"})
+    assert resp.status_code == 202
+    body = resp.json()
+    assert body["job_id"]
+    assert client.app.state.job_queue.published == [body["job_id"]]
+
+
+def test_fix_rejects_unknown_preset(client):
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/fix", files=files, data={"preset": "not-a-preset"})
+    assert resp.status_code == 400
+
+
+def test_fix_accepts_pdf_magic_bytes(client):
+    pdf = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
+    files = {"files": ("doc.pdf", io.BytesIO(pdf), "application/pdf")}
+    resp = client.post("/img/fix", files=files, data={"preset": "ucas-documents"})
+    assert resp.status_code == 202
+
+
+def test_convert_still_rejects_pdf(client):
+    pdf = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
+    files = {"files": ("doc.pdf", io.BytesIO(pdf), "application/pdf")}
+    resp = client.post("/img/convert", files=files, data={"target": "jpeg"})
+    assert resp.status_code == 400
+
+
 def test_convert_accepts_real_webp(client):
     webp = pyvips.Image.black(16, 16).write_to_buffer(".webp")
     files = {"files": ("a.webp", io.BytesIO(webp), "image/webp")}

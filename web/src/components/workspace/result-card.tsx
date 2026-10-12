@@ -11,15 +11,37 @@ import { useWorkspace } from "@/stores/workspace"
  * Shown in the tool panel once a job finishes, taking over the preview slot:
  * a before/after (or an "N images · ZIP" summary for batch results), the
  * size delta against the originals, a prominent Download, and ways to start
- * a new job or clear the workspace entirely. Reads everything it needs
- * straight from the store — self-contained, no props.
+ * a new job or clear the workspace entirely. Defaults to the workspace store;
+ * pass `result` to drive it from a dedicated page (e.g. /fix).
  */
-export function ResultCard() {
-  const result = useWorkspace((state) => state.result)
+export type ResultPayload = {
+  blob: Blob
+  filename: string
+  originalBytes: number
+  fileCount: number
+}
+
+export function ResultCard({
+  result: resultProp,
+  beforeUrl,
+  onReset,
+  onClear,
+  fileNoun = "image",
+}: {
+  result?: ResultPayload | null
+  beforeUrl?: string | null
+  onReset?: () => void
+  onClear?: () => void
+  fileNoun?: string
+} = {}) {
+  const storeResult = useWorkspace((state) => state.result)
+  const result = resultProp !== undefined ? resultProp : storeResult
   const images = useWorkspace((state) => state.images)
   const selectedIds = useWorkspace((state) => state.selectedIds)
   const reset = useWorkspace((state) => state.reset)
   const clear = useWorkspace((state) => state.clear)
+  const handleReset = onReset ?? reset
+  const handleClear = onClear ?? clear
 
   const selectedImages = useMemo(
     () => images.filter((image) => selectedIds.has(image.id)),
@@ -66,8 +88,8 @@ export function ResultCard() {
           </span>
           <p className="font-heading text-sm font-extrabold text-ink">
             {result.fileCount > 0
-              ? `${result.fileCount} image${result.fileCount === 1 ? "" : "s"} · ZIP`
-              : "Multiple images · ZIP"}
+              ? `${result.fileCount} ${fileNoun}${result.fileCount === 1 ? "" : "s"} · ZIP`
+              : `Multiple ${fileNoun}s · ZIP`}
           </p>
           <p className="max-w-full truncate text-[12px] font-semibold text-muted-ink" title={result.filename}>
             {result.filename}
@@ -78,10 +100,10 @@ export function ResultCard() {
           <div className="flex flex-col gap-1.5">
             <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">Before</p>
             <div className="checkerboard flex aspect-square items-center justify-center overflow-hidden rounded-[14px] border-2 border-line">
-              {before?.previewable && before.url ? (
+              {(beforeUrl ?? (before?.previewable ? before.url : null)) ? (
                 <img
-                  src={before.url}
-                  alt={`Original ${before.name}`}
+                  src={beforeUrl ?? before!.url!}
+                  alt={`Original ${before?.name ?? "file"}`}
                   className="size-full object-contain"
                 />
               ) : (
@@ -131,11 +153,11 @@ export function ResultCard() {
       </Button>
 
       <div className="flex gap-2">
-        <Button type="button" variant="secondary" onClick={reset} className="flex-1">
+        <Button type="button" variant="secondary" onClick={handleReset} className="flex-1">
           <HugeiconsIcon icon={Refresh01Icon} className="size-4" strokeWidth={2.2} />
           Start over
         </Button>
-        <Button type="button" variant="ghost" onClick={clear}>
+        <Button type="button" variant="ghost" onClick={handleClear}>
           Clear all
         </Button>
       </div>

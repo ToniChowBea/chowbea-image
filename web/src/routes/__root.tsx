@@ -24,7 +24,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Bold, free image tools. Convert, compress, resize, rotate and crop — no accounts, files deleted 30 minutes after processing.",
+          "Bold, free image tools. Convert, compress, resize, rotate, crop, or fix a file to a UK portal's upload rules — no accounts, files deleted 1 hour after processing.",
       },
       { name: "theme-color", content: "#fff3e2" },
       { title: "Chowbea Image" },
@@ -144,7 +144,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                 Chowbea Image — Bold Blocks
               </span>
               <span className="text-[13px] font-semibold text-muted-ink">
-                Free &amp; ad-free · files deleted 30 minutes after processing
+                Free &amp; ad-free · files deleted 1 hour after processing ·{" "}
+                <Link to="/fix" className="underline decoration-2 underline-offset-2">
+                  Upload fixer
+                </Link>
               </span>
             </footer>
           </div>

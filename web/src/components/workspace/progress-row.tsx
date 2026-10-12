@@ -43,10 +43,18 @@ function IndeterminateTrack() {
  * then a phase-appropriate treatment — a real percent bar for
  * uploading/downloading, an indeterminate Bold Blocks slide for
  * queued/processing. Error states are surfaced next to the Go button
- * instead (see `GoBar`), not duplicated here.
+ * instead (see `GoBar`), not duplicated here. Pass `progress` / `idleLabel`
+ * to reuse the row outside the workspace store.
  */
-export function ProgressRow() {
-  const progress = useWorkspace((state) => state.progress)
+export function ProgressRow({
+  progress: progressProp,
+  idleLabel,
+}: {
+  progress?: JobProgress | null
+  idleLabel?: string
+} = {}) {
+  const storeProgress = useWorkspace((state) => state.progress)
+  const progress = progressProp !== undefined ? progressProp : storeProgress
 
   return (
     <div
@@ -81,7 +89,7 @@ export function ProgressRow() {
           </motion.div>
         ) : (
           <motion.p key="idle" {...FADE} className="text-[13px] font-semibold text-muted-ink">
-            Nothing running yet — pick a tool, set your options, and go.
+            {idleLabel ?? "Nothing running yet — pick a tool, set your options, and go."}
           </motion.p>
         )}
       </AnimatePresence>

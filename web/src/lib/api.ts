@@ -8,8 +8,35 @@
 
 import axios from "axios"
 
-import type { JobAccepted, JobProgress } from "./jobs"
-import { API_BASE_URL, runJobFlow } from "./jobs"
+import type { FixReport, JobAccepted, JobProgress, JobStatusResponse } from "./jobs"
+import {
+  API_BASE_URL,
+  downloadJobResult,
+  rememberJob,
+  runJobFlow,
+  toApiError,
+  waitForJob,
+} from "./jobs"
+
+/** Portal or generic size target returned by GET /presets. */
+export interface Preset {
+  id: string
+  name: string
+  accepted_types: string[]
+  min_bytes: number | null
+  max_bytes: number | null
+  min_width: number | null
+  min_height: number | null
+  orientation: "portrait" | "landscape" | "any"
+  colour: boolean
+  do_not_crop: boolean
+  no_password: boolean
+  preferred_type: string | null
+  source_url: string | null
+  last_checked: string | null
+  verified: boolean
+  notes: string | null
+}
 
 /** Formats the convert tool can produce. */
 export type ConvertTarget = "png" | "jpeg" | "webp" | "avif" | "tiff"
@@ -53,6 +80,11 @@ export interface ToolResult {
   blob: Blob
   /** Suggested download filename parsed from the response. */
   filename: string
+}
+
+/** Fix job result plus the per-rule pass/fail report. */
+export interface FixResult extends ToolResult {
+  report: FixReport
 }
 
 /** POST a multipart form and report upload progress until the job is accepted. */
@@ -233,6 +265,56 @@ export async function cropImages(
       download.filename ??
       batchFilename(files, "cropped-", "cropped-images.zip"),
   }
+}
+
+/**
+ * Convert/resize/compress files to a portal preset and return the file plus
+ * the per-rule report from the job status payload.
+ */
+export async function fixFiles(
+  files: File[],
+  presetId: string,
+  onProgress?: (progress: JobProgress) => void
+): Promise<FixResult> {
+  const form = new FormData()
+  appendFiles(form, files)
+  form.append("preset", presetId)
+  try {
+    const accepted = await submitForm("/img/fix", form, onProgress)
+    rememberJob(accepted.job_id, "fix")
+    onProgress?.({
+      phase: "queued",
+      percent: null,
+      position: accepted.position,
+      queueSize: accepted.queue_size,
+    })
+    const status: JobStatusResponse = await waitForJob(accepted.job_id, { onProgress })
+    const download = await downloadJobResult(accepted.job_id, onProgress)
+    return {
+      blob: download.blob,
+      filename: download.filename ?? batchFilename(files, "fixed-", "fixed-files.zip"),
+      report: status.report ?? {
+        preset_id: presetId,
+        preset_name: "",
+        passed: false,
+        files: [],
+      },
+    }
+  } catch (err) {
+    throw await toApiError(err)
+  }
+}
+
+/** Fetch the full preset catalogue. */
+export async function fetchPresets(): Promise<Preset[]> {
+  const response = await axios.get<{ presets: Preset[] }>(`${API_BASE_URL}/presets`)
+  return response.data.presets
+}
+
+/** Fetch one preset by id. */
+export async function fetchPreset(id: string): Promise<Preset> {
+  const response = await axios.get<Preset>(`${API_BASE_URL}/presets/${id}`)
+  return response.data
 }
 
 /** Trigger a browser download for a Blob. */

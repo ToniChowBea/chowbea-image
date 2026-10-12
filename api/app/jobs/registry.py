@@ -47,6 +47,8 @@ class JobRecord:
     created_at: float = field(default_factory=time.time)
     started_at: float | None = None
     finished_at: float | None = None
+    # Per-file pass/fail for the fix tool. Hidden from repr like params.
+    report: dict[str, Any] | None = field(default=None, repr=False)
 
 
 class JobRegistry:
@@ -108,12 +110,19 @@ class JobRegistry:
         return [r for r in self._jobs.values() if r.status is JobStatus.queued]
 
     def sweep(self, now: float | None = None) -> int:
-        """Delete finished jobs past the TTL, workspace included."""
+        """Delete jobs past the TTL (workspace included).
+
+        Finished jobs expire `ttl` after `finished_at`. Queued or stuck jobs
+        expire `ttl` after `created_at` so passport/visa uploads never linger.
+        """
         now = time.time() if now is None else now
         expired = [
             r
             for r in self._jobs.values()
-            if r.finished_at is not None and now - r.finished_at >= self._ttl
+            if (
+                (r.finished_at is not None and now - r.finished_at >= self._ttl)
+                or now - r.created_at >= self._ttl
+            )
         ]
         for record in expired:
             shutil.rmtree(record.workspace, ignore_errors=True)

@@ -13,7 +13,7 @@ from app.jobs.queue import JobQueue
 from app.jobs.registry import JobRegistry
 from app.jobs.stats import CounterStore
 from app.jobs.worker import execute_job
-from app.routers import images, jobs
+from app.routers import images, jobs, presets
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +103,7 @@ app.add_middleware(
 
 app.include_router(images.router)
 app.include_router(jobs.router)
+app.include_router(presets.router)
 
 
 @app.get("/health", tags=["meta"], summary="Liveness check")

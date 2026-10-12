@@ -19,6 +19,8 @@ from app.services import imaging
 from app.services.compress import CompressError, compress_image
 from app.services.convert import ConvertError, convert_image
 from app.services.crop import CropError, crop_image
+from app.services.fix import FixError, fix_files
+from app.services.presets import get_preset
 from app.services.resize import ResizeError, resize_image
 from app.services.rotate import RotateError, rotate_image
 
@@ -30,6 +32,7 @@ _KNOWN_ERRORS = (
     ResizeError,
     RotateError,
     CropError,
+    FixError,
     imaging.ImageError,
 )
 
@@ -125,12 +128,23 @@ def _run_crop(record: JobRecord) -> None:
     _run_keep_format(record, lambda s, d: crop_image(s, d, mode=p["mode"], aspect=p.get("aspect"), rect=p.get("rect")))
 
 
+def _run_fix(record: JobRecord) -> None:
+    """Convert/resize/compress each file to a portal preset and attach a report."""
+    preset = get_preset(record.params["preset"])
+    if preset is None:
+        raise FixError("Unknown preset.")
+    result = fix_files(_inputs(record), record.params["names"], record.workspace, preset)
+    record.report = result.report.model_dump()
+    _finish(record, result.outputs, result.media_type, "fixed-files.zip")
+
+
 _RUNNERS = {
     "convert": _run_convert,
     "compress": _run_compress,
     "resize": _run_resize,
     "rotate": _run_rotate,
     "crop": _run_crop,
+    "fix": _run_fix,
 }
 
 

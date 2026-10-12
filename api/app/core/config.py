@@ -30,8 +30,9 @@ class Settings(BaseSettings):
     # AMQP URL of the RabbitMQ broker that carries the job queue.
     rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
 
-    # Finished job results are kept this long before being swept from disk.
-    result_ttl_minutes: int = 30
+    # Finished job results (and abandoned uploads) are kept this long before
+    # being swept from disk. One hour matches the fix-tool privacy promise.
+    result_ttl_minutes: int = 60
 
     # How many jobs may be processed at the same time (RabbitMQ prefetch count).
     job_concurrency: int = 3

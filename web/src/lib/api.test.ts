@@ -7,6 +7,7 @@ import {
   compressImages,
   convertImages,
   cropImages,
+  fixFiles,
   formatBytes,
   resizeImages,
   rotateImages,
@@ -142,6 +143,50 @@ describe("rotateImages", () => {
     expect(tool).toBe("rotate")
     expect(form.get("rotation")).toBe("90")
     expect(form.get("flip")).toBe("horizontal")
+  })
+})
+
+describe("fixFiles", () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it("posts /img/fix with the preset and returns the job report", async () => {
+    vi.spyOn(axios, "post").mockResolvedValue({
+      data: { job_id: "job1", position: null, queue_size: 0 },
+    })
+    vi.spyOn(axios, "get").mockImplementation(async (url: string) => {
+      if (String(url).includes("/download")) {
+        return {
+          data: new Blob(["out"]),
+          headers: { "content-disposition": 'attachment; filename="out.jpg"' },
+        }
+      }
+      return {
+        data: {
+          id: "job1",
+          tool: "fix",
+          status: "done",
+          position: null,
+          queue_size: 0,
+          error: null,
+          file_count: 1,
+          total_bytes: 10,
+          created_at: 0,
+          report: {
+            preset_id: "jpg-1mb",
+            preset_name: "JPG under 1 MB",
+            passed: true,
+            files: [],
+          },
+        },
+      }
+    })
+    const result = await fixFiles([file("a.jpg")], "jpg-1mb")
+    expect(vi.mocked(axios.post).mock.calls[0]?.[0]).toBe("http://localhost:8000/img/fix")
+    const form = vi.mocked(axios.post).mock.calls[0]?.[1] as FormData
+    expect(form.get("preset")).toBe("jpg-1mb")
+    expect(result.filename).toBe("out.jpg")
+    expect(result.report.preset_id).toBe("jpg-1mb")
+    expect(result.report.passed).toBe(true)
   })
 })
 
