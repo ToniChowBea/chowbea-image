@@ -13,7 +13,8 @@ from app.jobs.queue import JobQueue
 from app.jobs.registry import JobRegistry
 from app.jobs.stats import CounterStore
 from app.jobs.worker import execute_job
-from app.routers import images, jobs, presets
+from app.routers import billing, images, jobs, presets
+from app.services.billing import EntitlementStore
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,10 @@ async def lifespan(app: FastAPI):
     except OSError:
         logger.warning("Data dir %s unavailable; the jobs counter is disabled", settings.data_dir)
     app.state.counter = counter
+    entitlements_path = None
+    if counter is not None:
+        entitlements_path = Path(settings.data_dir) / "fix-entitlements.json"
+    app.state.entitlements = EntitlementStore(entitlements_path)
 
     async def handle(job_id: str) -> None:
         await execute_job(registry, job_id, counter)
@@ -104,6 +109,7 @@ app.add_middleware(
 app.include_router(images.router)
 app.include_router(jobs.router)
 app.include_router(presets.router)
+app.include_router(billing.router)
 
 
 @app.get("/health", tags=["meta"], summary="Liveness check")

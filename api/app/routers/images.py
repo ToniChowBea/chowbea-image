@@ -8,11 +8,12 @@ import tempfile
 from pathlib import Path
 from typing import Any, List
 
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, File, Form, Header, HTTPException, Request, UploadFile
 
 from app.core.config import settings
 from app.jobs.schemas import JobAccepted
 from app.services import imaging
+from app.services.billing import EntitlementError, EntitlementStore, paywall_enabled
 from app.services.crop import ASPECT_RATIOS
 from app.services.presets import get_preset
 from app.services.resize import WIDTH_PRESETS
@@ -231,11 +232,66 @@ async def crop(request: Request, files: List[UploadFile] = File(...), mode: str 
     return await _intake(request, files, "crop", "chowbea-img-crop-", extra)
 
 
+def _bearer_token(authorization: str | None) -> str | None:
+    """Pull a Bearer token from the Authorization header, if present."""
+    if not authorization:
+        return None
+    scheme, _, value = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not value.strip():
+        return None
+    return value.strip()
+
+
+def _entitlements(request: Request) -> EntitlementStore:
+    """Process-wide store created at startup (tests attach one on app.state)."""
+    store = getattr(request.app.state, "entitlements", None)
+    if store is None:
+        store = EntitlementStore()
+        request.app.state.entitlements = store
+    return store
+
+
 @router.post("/fix", status_code=202, summary="Queue a file to meet a portal upload preset", response_model=JobAccepted)
-async def fix(request: Request, files: List[UploadFile] = File(...), preset: str = Form(...)) -> JobAccepted:
-    """Accept an image or document and queue a convert/resize/compress-to-preset job."""
+async def fix(
+    request: Request,
+    files: List[UploadFile] = File(...),
+    preset: str = Form(...),
+    merge: bool = Form(False),
+    token: str | None = Form(None),
+    authorization: str | None = Header(None),
+) -> JobAccepted:
+    """Accept images or documents and queue a convert/resize/compress-to-preset job.
+
+    One file is always free. Two or more files (an evidence pack) require a
+    signed payment token when the Stripe paywall is on.
+    """
     if get_preset(preset) is None:
         raise HTTPException(status_code=400, detail="Unknown preset.")
-    return await _intake(
-        request, files, "fix", "chowbea-img-fix-", {"preset": preset}, source_exts=_FIX_SOURCE_EXTS
-    )
+    is_batch = len(files) > 1
+    raw_token = (token or "").strip() or _bearer_token(authorization)
+    consumed = False
+    store = _entitlements(request)
+    if is_batch and paywall_enabled():
+        if not raw_token:
+            raise HTTPException(
+                status_code=402,
+                detail="An evidence pack needs a £1.99 payment or a 24-hour pass.",
+            )
+        try:
+            store.consume(raw_token)
+            consumed = True
+        except EntitlementError as exc:
+            raise HTTPException(status_code=402, detail=str(exc)) from exc
+    try:
+        return await _intake(
+            request,
+            files,
+            "fix",
+            "chowbea-img-fix-",
+            {"preset": preset, "merge": merge},
+            source_exts=_FIX_SOURCE_EXTS,
+        )
+    except Exception:
+        if consumed and raw_token:
+            store.restore(raw_token)
+        raise

@@ -133,9 +133,17 @@ def _run_fix(record: JobRecord) -> None:
     preset = get_preset(record.params["preset"])
     if preset is None:
         raise FixError("Unknown preset.")
-    result = fix_files(_inputs(record), record.params["names"], record.workspace, preset)
+    merge = bool(record.params.get("merge"))
+    result = fix_files(
+        _inputs(record),
+        record.params["names"],
+        record.workspace,
+        preset,
+        merge=merge,
+    )
     record.report = result.report.model_dump()
-    _finish(record, result.outputs, result.media_type, "fixed-files.zip")
+    zip_name = "evidence-pack.zip" if merge else "fixed-files.zip"
+    _finish(record, result.outputs, result.media_type, zip_name)
 
 
 _RUNNERS = {

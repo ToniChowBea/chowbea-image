@@ -65,6 +65,13 @@ class Preset(BaseModel):
         return max(1, int(self.max_bytes * 0.9))
 
 
+class FaqItem(BaseModel):
+    """One question on a preset's SEO FAQ."""
+
+    q: str
+    a: str
+
+
 class PresetPublic(BaseModel):
     """Preset fields the web page needs — no internal encode-target math."""
 
@@ -84,6 +91,10 @@ class PresetPublic(BaseModel):
     last_checked: str | None = None
     verified: bool
     notes: str | None = None
+    h1: str
+    seo_title: str
+    seo_description: str
+    faq: list[FaqItem]
 
 
 class PresetList(BaseModel):
@@ -93,8 +104,12 @@ class PresetList(BaseModel):
 
 
 def _to_public(preset: Preset) -> PresetPublic:
-    """Project a loaded preset to the API-facing shape."""
-    return PresetPublic.model_validate(preset.model_dump())
+    """Project a loaded preset to the API-facing shape, with resolved SEO copy."""
+    from app.services.preset_seo import resolve_seo
+
+    data = preset.model_dump()
+    data.update(resolve_seo(preset))
+    return PresetPublic.model_validate(data)
 
 
 @lru_cache(maxsize=1)

@@ -54,5 +54,19 @@ def test_presets_http_list_and_get():
     assert "uk-visa-face" in ids
     one = client.get("/presets/ucas-documents")
     assert one.status_code == 200
-    assert one.json()["no_password"] is True
+    body = one.json()
+    assert body["no_password"] is True
+    assert body["h1"] == "Compress PDF for UCAS (5MB limit)"
+    assert "5MB" in body["seo_title"]
+    assert body["faq"]
     assert client.get("/presets/not-a-real-preset").status_code == 404
+
+
+def test_every_preset_has_seo_copy():
+    from app.services.presets import public_list
+
+    for item in public_list():
+        assert item.h1
+        assert item.seo_title
+        assert item.seo_description
+        assert item.faq

@@ -38,6 +38,8 @@ class FixReport(BaseModel):
     preset_name: str
     passed: bool
     files: list[FileReport]
+    # True when the job also merged every file into one PDF evidence pack.
+    merged: bool = False
 
 
 class JobStatusResponse(BaseModel):

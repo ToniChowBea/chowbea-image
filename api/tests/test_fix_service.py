@@ -9,7 +9,7 @@ from pypdf import PdfWriter
 from app.jobs.registry import JobRegistry
 from app.jobs.worker import run_job
 from app.services.fix import FixError, fix_files
-from app.services.pdfutil import wrap_jpeg_as_pdf
+from app.services.pdfutil import ghostscript_available, wrap_jpeg_as_pdf
 from app.services.presets import get_preset
 
 
@@ -118,3 +118,70 @@ def test_run_fix_job_attaches_report(tmp_path):
     assert record.report is not None
     assert record.report["preset_id"] == "jpg-1mb"
     assert record.report["passed"] is True
+    assert record.report.get("merged") is False
+
+
+def test_fix_oversized_pdf_does_not_error(tmp_path):
+    """Oversized PDFs are distilled (or best-effort copied), never rejected with FixError."""
+    jpeg = (
+        pyvips.Image.gaussnoise(1600, 1200, sigma=60)
+        .cast("uchar")
+        .bandjoin(
+            [
+                pyvips.Image.gaussnoise(1600, 1200, sigma=60).cast("uchar"),
+                pyvips.Image.gaussnoise(1600, 1200, sigma=60).cast("uchar"),
+            ]
+        )
+        .write_to_buffer(".jpg", Q=95)
+    )
+    src = tmp_path / "chunky.pdf"
+    wrap_jpeg_as_pdf(jpeg, 1600, 1200, src, bands=3)
+    preset = get_preset("pdf-100kb")
+    assert preset is not None
+    result = fix_files([src], ["chunky.pdf"], tmp_path, preset)
+    out, name = result.outputs[0]
+    assert name.endswith(".pdf")
+    assert out.exists()
+    # Rule card may still fail size if Ghostscript cannot reach 100 KB.
+    rules = _rule_map(result.report)
+    assert "file_size" in rules
+
+
+def test_fix_merge_two_images_into_one_pdf(tmp_path):
+    a = _colour_jpeg(tmp_path / "a.jpg", 80, 80, quality=40)
+    b = _colour_jpeg(tmp_path / "b.jpg", 80, 80, quality=40)
+    preset = get_preset("ucas-documents")
+    assert preset is not None
+    result = fix_files([a, b], ["a.jpg", "b.jpg"], tmp_path, preset, merge=True)
+    assert result.media_type == "application/pdf"
+    assert len(result.outputs) == 1
+    out, name = result.outputs[0]
+    assert name == "evidence-pack.pdf"
+    from pypdf import PdfReader
+
+    assert len(PdfReader(str(out)).pages) == 2
+    assert result.report.merged is True
+    assert len(result.report.files) == 3  # two individuals + the pack
+
+
+@pytest.mark.skipif(not ghostscript_available(), reason="ghostscript (gs) is not installed")
+def test_fix_pdf_under_2mb_with_ghostscript(tmp_path):
+    jpeg = (
+        pyvips.Image.gaussnoise(2000, 1500, sigma=70)
+        .cast("uchar")
+        .bandjoin(
+            [
+                pyvips.Image.gaussnoise(2000, 1500, sigma=70).cast("uchar"),
+                pyvips.Image.gaussnoise(2000, 1500, sigma=70).cast("uchar"),
+            ]
+        )
+        .write_to_buffer(".jpg", Q=95)
+    )
+    src = tmp_path / "scan.pdf"
+    wrap_jpeg_as_pdf(jpeg, 2000, 1500, src, bands=3)
+    preset = get_preset("pdf-2mb")
+    assert preset is not None
+    assert src.stat().st_size > 0
+    result = fix_files([src], ["scan.pdf"], tmp_path, preset)
+    out, _name = result.outputs[0]
+    assert out.stat().st_size <= 2 * 1024 * 1024

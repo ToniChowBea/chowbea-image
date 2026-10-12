@@ -184,9 +184,52 @@ describe("fixFiles", () => {
     expect(vi.mocked(axios.post).mock.calls[0]?.[0]).toBe("http://localhost:8000/img/fix")
     const form = vi.mocked(axios.post).mock.calls[0]?.[1] as FormData
     expect(form.get("preset")).toBe("jpg-1mb")
+    expect(form.get("merge")).toBe("false")
+    expect(form.has("token")).toBe(false)
     expect(result.filename).toBe("out.jpg")
     expect(result.report.preset_id).toBe("jpg-1mb")
     expect(result.report.passed).toBe(true)
+  })
+
+  it("posts merge and token for an evidence pack", async () => {
+    vi.spyOn(axios, "post").mockResolvedValue({
+      data: { job_id: "job1", position: null, queue_size: 0 },
+    })
+    vi.spyOn(axios, "get").mockImplementation(async (url: string) => {
+      if (String(url).includes("/download")) {
+        return {
+          data: new Blob(["out"]),
+          headers: { "content-disposition": 'attachment; filename="evidence-pack.pdf"' },
+        }
+      }
+      return {
+        data: {
+          id: "job1",
+          tool: "fix",
+          status: "done",
+          position: null,
+          queue_size: 0,
+          error: null,
+          file_count: 2,
+          total_bytes: 10,
+          created_at: 0,
+          report: {
+            preset_id: "ucas-documents",
+            preset_name: "UCAS documents",
+            passed: true,
+            files: [],
+            merged: true,
+          },
+        },
+      }
+    })
+    await fixFiles([file("a.pdf"), file("b.pdf")], "ucas-documents", undefined, {
+      merge: true,
+      token: "batch.jti.1.sig",
+    })
+    const form = vi.mocked(axios.post).mock.calls[0]?.[1] as FormData
+    expect(form.get("merge")).toBe("true")
+    expect(form.get("token")).toBe("batch.jti.1.sig")
   })
 })
 

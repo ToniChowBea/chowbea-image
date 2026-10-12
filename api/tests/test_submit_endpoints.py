@@ -171,6 +171,19 @@ def test_rejects_riff_not_webp(client):
     assert resp.status_code == 400
 
 
+def test_fix_batch_and_merge_queued_when_paywall_off(client):
+    files = [
+        ("files", ("a.png", io.BytesIO(_png_bytes()), "image/png")),
+        ("files", ("b.png", io.BytesIO(_png_bytes()), "image/png")),
+    ]
+    resp = client.post("/img/fix", files=files, data={"preset": "ucas-documents", "merge": "true"})
+    assert resp.status_code == 202
+    job_id = resp.json()["job_id"]
+    record = client.app.state.registry.get(job_id)
+    assert record.params["merge"] is True
+    assert record.file_count == 2
+
+
 def test_fix_accepts_and_queues(client):
     files = {"files": ("a.png", io.BytesIO(_png_bytes(32, 40)), "image/png")}
     resp = client.post("/img/fix", files=files, data={"preset": "uk-passport-online"})

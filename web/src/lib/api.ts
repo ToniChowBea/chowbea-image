@@ -18,6 +18,12 @@ import {
   waitForJob,
 } from "./jobs"
 
+/** One FAQ row returned with each preset. */
+export interface PresetFaq {
+  q: string
+  a: string
+}
+
 /** Portal or generic size target returned by GET /presets. */
 export interface Preset {
   id: string
@@ -36,6 +42,10 @@ export interface Preset {
   last_checked: string | null
   verified: boolean
   notes: string | null
+  h1: string
+  seo_title: string
+  seo_description: string
+  faq: PresetFaq[]
 }
 
 /** Formats the convert tool can produce. */
@@ -269,16 +279,19 @@ export async function cropImages(
 
 /**
  * Convert/resize/compress files to a portal preset and return the file plus
- * the per-rule report from the job status payload.
+ * the per-rule report from the job status payload. `merge` builds one PDF pack.
  */
 export async function fixFiles(
   files: File[],
   presetId: string,
-  onProgress?: (progress: JobProgress) => void
+  onProgress?: (progress: JobProgress) => void,
+  opts: { merge?: boolean; token?: string | null } = {}
 ): Promise<FixResult> {
   const form = new FormData()
   appendFiles(form, files)
   form.append("preset", presetId)
+  form.append("merge", String(Boolean(opts.merge)))
+  if (opts.token) form.append("token", opts.token)
   try {
     const accepted = await submitForm("/img/fix", form, onProgress)
     rememberJob(accepted.job_id, "fix")

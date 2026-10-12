@@ -44,7 +44,32 @@ class Settings(BaseSettings):
     # mounted here in production so the data survives redeploys.
     data_dir: str = "./data"
 
+    # Stripe Checkout (unprefixed env names). Empty → paywall is off.
+    stripe_secret_key: str = Field(default="", validation_alias="STRIPE_SECRET_KEY")
+    stripe_webhook_secret: str = Field(default="", validation_alias="STRIPE_WEBHOOK_SECRET")
+    stripe_price_batch: str = Field(default="", validation_alias="STRIPE_PRICE_BATCH")
+    stripe_price_pass: str = Field(default="", validation_alias="STRIPE_PRICE_PASS")
+    # HMAC secret for one-time / 24h tokens. Falls back to the webhook secret.
+    fix_token_secret: str = Field(default="", validation_alias="FIX_TOKEN_SECRET")
+    # Public origin of the web app, used for Stripe success/cancel redirects.
+    public_web_url: str = Field(default="http://localhost:3000", validation_alias="PUBLIC_WEB_URL")
+
     model_config = SettingsConfigDict(env_file=".env", env_prefix="CHOWBEA_")
+
+    @property
+    def paywall_enabled(self) -> bool:
+        """Paywall is on only when every Stripe key the Checkout flow needs is set."""
+        return bool(
+            self.stripe_secret_key.strip()
+            and self.stripe_webhook_secret.strip()
+            and self.stripe_price_batch.strip()
+            and self.stripe_price_pass.strip()
+        )
+
+    @property
+    def token_signing_secret(self) -> str:
+        """HMAC key for entitlement tokens. Never a hardcoded default secret."""
+        return (self.fix_token_secret or self.stripe_webhook_secret).strip()
 
     @property
     def cors_origin_list(self) -> list[str]:

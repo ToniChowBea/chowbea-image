@@ -40,6 +40,7 @@ export interface FixReport {
   preset_name: string
   passed: boolean
   files: FileReport[]
+  merged?: boolean
 }
 
 export interface JobStatusResponse {

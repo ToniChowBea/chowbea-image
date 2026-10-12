@@ -15,7 +15,13 @@ import pyvips
 
 from app.jobs.schemas import FileReport, FixReport, RuleCheck
 from app.services import imaging
-from app.services.pdfutil import PdfError, pdf_is_encrypted, rewrite_pdf, wrap_jpeg_as_pdf
+from app.services.pdfutil import (
+    PdfError,
+    compress_pdf_to_target,
+    merge_pdfs,
+    pdf_is_encrypted,
+    wrap_jpeg_as_pdf,
+)
 from app.services.presets import Preset, normalize_type
 
 # JPEG/WebP/AVIF quality ladder, highest first. Stop as soon as we are under target.
@@ -261,7 +267,11 @@ def _pass_through_office(src: Path, dest: Path, preset: Preset) -> None:
 
 
 def _fix_existing_pdf(src: Path, dest: Path, preset: Preset) -> None:
-    """Rewrite a PDF (reject passwords) and fail clearly if it still exceeds max."""
+    """Copy, rewrite, or Ghostscript-distill a PDF so it aims under the limit.
+
+    Password-protected files still fail. Size overshoots are reported on the
+    rule card instead of raising — the smallest file we produced is returned.
+    """
     try:
         if pdf_is_encrypted(src):
             raise FixError("This PDF is password-protected. Unlock it and try again.")
@@ -269,15 +279,9 @@ def _fix_existing_pdf(src: Path, dest: Path, preset: Preset) -> None:
         if ceiling is None or src.stat().st_size <= ceiling:
             shutil.copyfile(src, dest)
             return
-        rewrite_pdf(src, dest)
+        compress_pdf_to_target(src, dest, ceiling)
     except PdfError as exc:
         raise FixError(str(exc)) from exc
-    size = dest.stat().st_size
-    if preset.max_bytes is not None and size > preset.max_bytes:
-        raise FixError(
-            "This PDF is still over the size limit. Convert its pages to images "
-            "and run Fix again — full Ghostscript PDF compression is not in this tool yet."
-        )
 
 
 def _inspect_output(path: Path, kind: str) -> tuple[int, int | None, int | None, bool | None, bool]:
@@ -467,22 +471,93 @@ def _fix_one(src: Path, dest_dir: Path, index: int, name: str, preset: Preset) -
     )
 
 
-def fix_files(inputs: list[Path], names: list[str], workspace: Path, preset: Preset) -> JobFix:
-    """Fix every input against `preset`. Raises FixError on unrecoverable failures."""
+def _ensure_pdf(src: Path, dest: Path) -> None:
+    """Turn a fixed file into a PDF page for an evidence-pack merge."""
+    if src.suffix.lower() == ".pdf":
+        shutil.copyfile(src, dest)
+        return
+    if src.suffix.lower() in {".doc", ".docx"}:
+        raise FixError("Word files cannot be merged into a PDF. Export to PDF and try again.")
+    try:
+        image = imaging.load(src)
+        _save_pdf_from_image(image.copy_memory(), dest, 75)
+    except imaging.ImageError as exc:
+        raise FixError(str(exc)) from exc
+    except PdfError as exc:
+        raise FixError(str(exc)) from exc
+
+
+def _merge_pack(results: list[FileFix], workspace: Path, preset: Preset) -> FileFix:
+    """Merge every fixed file into one PDF and distill it to the preset limit."""
+    pdfs: list[Path] = []
+    for index, item in enumerate(results):
+        pdf_path = workspace / f"merge-src-{index}.pdf"
+        _ensure_pdf(item.path, pdf_path)
+        pdfs.append(pdf_path)
+    merged = workspace / "evidence-pack.pdf"
+    try:
+        merge_pdfs(pdfs, merged)
+        ceiling = preset.target_bytes or preset.max_bytes
+        if ceiling is not None and merged.stat().st_size > ceiling:
+            distilled = workspace / "evidence-pack-gs.pdf"
+            compress_pdf_to_target(merged, distilled, ceiling)
+            merged = distilled
+    except PdfError as exc:
+        raise FixError(str(exc)) from exc
+    size, width, height, colour, encrypted = _inspect_output(merged, "pdf")
+    rules = _build_rules(
+        preset,
+        kind="pdf",
+        size=size,
+        width=width,
+        height=height,
+        colour=colour,
+        encrypted=encrypted,
+        cropped=False,
+    )
+    return FileFix(
+        path=merged,
+        download_name="evidence-pack.pdf",
+        media_type="application/pdf",
+        report=FileReport(
+            filename="evidence-pack.pdf",
+            passed=all(rule.passed for rule in rules),
+            rules=rules,
+        ),
+    )
+
+
+def fix_files(
+    inputs: list[Path],
+    names: list[str],
+    workspace: Path,
+    preset: Preset,
+    *,
+    merge: bool = False,
+) -> JobFix:
+    """Fix every input against `preset`. Optionally merge into one PDF pack."""
     if not inputs:
         raise FixError("No files were uploaded.")
     results: list[FileFix] = []
     for index, (src, name) in enumerate(zip(inputs, names)):
         results.append(_fix_one(src, workspace, index, name, preset))
+    files = [item.report for item in results]
+    outputs = [(item.path, item.download_name) for item in results]
+    media_type = results[0].media_type if len(results) == 1 else "application/zip"
+    if merge:
+        packed = _merge_pack(results, workspace, preset)
+        files = files + [packed.report]
+        outputs = [(packed.path, packed.download_name)]
+        media_type = "application/pdf"
     report = FixReport(
         preset_id=preset.id,
         preset_name=preset.name,
-        passed=all(item.report.passed for item in results),
-        files=[item.report for item in results],
+        passed=all(item.passed for item in files),
+        files=files,
+        merged=merge,
     )
-    media_type = results[0].media_type if len(results) == 1 else "application/zip"
     return JobFix(
-        outputs=[(item.path, item.download_name) for item in results],
+        outputs=outputs,
         media_type=media_type,
         report=report,
     )

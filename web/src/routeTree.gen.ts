@@ -11,7 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FixRouteImport } from './routes/fix'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as QueueRouteImport } from './routes/queue'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as FixIndexRouteImport } from './routes/fix.index'
 import { Route as FixPresetRouteImport } from './routes/fix.$preset'
 
 const IndexRoute = IndexRouteImport.update({
@@ -24,10 +28,30 @@ const FixRoute = FixRouteImport.update({
   path: '/fix',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QueueRoute = QueueRouteImport.update({
   id: '/queue',
   path: '/queue',
   getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FixIndexRoute = FixIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FixRoute,
 } as any)
 const FixPresetRoute = FixPresetRouteImport.update({
   id: '/$preset',
@@ -38,34 +62,72 @@ const FixPresetRoute = FixPresetRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/fix': typeof FixRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/queue': typeof QueueRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/fix/$preset': typeof FixPresetRoute
+  '/fix/': typeof FixIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/fix': typeof FixRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/queue': typeof QueueRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/fix/$preset': typeof FixPresetRoute
+  '/fix': typeof FixIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/fix': typeof FixRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/queue': typeof QueueRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/fix/$preset': typeof FixPresetRoute
+  '/fix/': typeof FixIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/fix' | '/queue' | '/fix/$preset'
+  fullPaths:
+    | '/'
+    | '/fix'
+    | '/privacy'
+    | '/queue'
+    | '/robots.txt'
+    | '/sitemap.xml'
+    | '/fix/$preset'
+    | '/fix/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/fix' | '/queue' | '/fix/$preset'
-  id: '__root__' | '/' | '/fix' | '/queue' | '/fix/$preset'
+  to:
+    | '/'
+    | '/privacy'
+    | '/queue'
+    | '/robots.txt'
+    | '/sitemap.xml'
+    | '/fix/$preset'
+    | '/fix'
+  id:
+    | '__root__'
+    | '/'
+    | '/fix'
+    | '/privacy'
+    | '/queue'
+    | '/robots.txt'
+    | '/sitemap.xml'
+    | '/fix/$preset'
+    | '/fix/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FixRoute: typeof FixRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
   QueueRoute: typeof QueueRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -84,12 +146,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FixRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/queue': {
       id: '/queue'
       path: '/queue'
       fullPath: '/queue'
       preLoaderRoute: typeof QueueRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fix/': {
+      id: '/fix/'
+      path: '/'
+      fullPath: '/fix/'
+      preLoaderRoute: typeof FixIndexRouteImport
+      parentRoute: typeof FixRoute
     }
     '/fix/$preset': {
       id: '/fix/$preset'
@@ -103,10 +193,12 @@ declare module '@tanstack/react-router' {
 
 interface FixRouteChildren {
   FixPresetRoute: typeof FixPresetRoute
+  FixIndexRoute: typeof FixIndexRoute
 }
 
 const FixRouteChildren: FixRouteChildren = {
   FixPresetRoute: FixPresetRoute,
+  FixIndexRoute: FixIndexRoute,
 }
 
 const FixRouteWithChildren = FixRoute._addFileChildren(FixRouteChildren)
@@ -114,7 +206,10 @@ const FixRouteWithChildren = FixRoute._addFileChildren(FixRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FixRoute: FixRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
   QueueRoute: QueueRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

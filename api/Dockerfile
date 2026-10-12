@@ -8,6 +8,11 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # libvips-tools brings the `vips` CLI for debugging. pyvips loads libvips at
 # runtime (ABI mode), so the runtime lib is all that's needed.
 #
+# ghostscript (`gs`) distills oversized PDFs down to a portal's byte limit
+# for the upload-fixer. The API process is also the worker, so this image
+# is what runs fix jobs. Locally: `sudo apt-get install ghostscript`
+# (Debian/Ubuntu) or `brew install ghostscript` (macOS).
+#
 # Debian's libheif ships WITHOUT the AV1/HEVC codecs, so HEIC/AVIF would fail;
 # the codec plugins add them: aomenc = AVIF encode, dav1d = AVIF decode,
 # libde265 = HEIC decode (the "HEIC -> JPG" input path). HEIC *encode* is not a
@@ -19,6 +24,7 @@ RUN apt-get update \
         libheif-plugin-aomenc \
         libheif-plugin-dav1d \
         libheif-plugin-libde265 \
+        ghostscript \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
