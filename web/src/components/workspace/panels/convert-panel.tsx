@@ -20,19 +20,27 @@ export function ConvertPanel() {
   const setOption = useWorkspace((state) => state.setOption)
 
   return (
-    <div className="flex flex-col gap-4 rounded-[14px] border-2 border-dashed border-line p-4">
+    <div className="options-well">
       <div className="flex flex-col gap-2">
         <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">
           Convert to
         </p>
         <Segmented
           value={target}
-          onValueChange={(value) => setOption("convert", { target: value as ConvertTarget })}
-          className="flex-wrap"
+          onValueChange={(value) =>
+            setOption("convert", { target: value as ConvertTarget })
+          }
+          className="flex w-full flex-wrap rounded-2xl"
           aria-label="Target format"
         >
           {TARGETS.map((t) => (
-            <SegmentedItem key={t.value} value={t.value}>
+            <SegmentedItem
+              key={t.value}
+              value={t.value}
+              // ~3-per-row wrap (PNG/JPEG/WEBP, then AVIF/TIFF) instead of
+              // flex-1 packing four pills and leaving TIFF on a lone row.
+              className="min-w-[30%] flex-[1_1_30%]"
+            >
               {t.label}
             </SegmentedItem>
           ))}
@@ -45,7 +53,9 @@ export function ConvertPanel() {
           min={1}
           max={100}
           onValueChange={(value) =>
-            setOption("convert", { quality: Array.isArray(value) ? value[0] : value })
+            setOption("convert", {
+              quality: Array.isArray(value) ? value[0] : value,
+            })
           }
         >
           <div className="flex items-center justify-between">

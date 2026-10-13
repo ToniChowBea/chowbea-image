@@ -27,13 +27,17 @@ export function ResizePanel() {
   const setOption = useWorkspace((state) => state.setOption)
 
   return (
-    <div className="flex flex-col gap-4 rounded-[14px] border-2 border-dashed border-line p-4">
+    <div className="options-well">
       <div className="flex flex-col gap-2">
-        <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">Resize by</p>
+        <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">
+          Resize by
+        </p>
         <Segmented
           value={mode}
-          onValueChange={(value) => setOption("resize", { mode: value as ResizeMode })}
-          className="flex-wrap"
+          onValueChange={(value) =>
+            setOption("resize", { mode: value as ResizeMode })
+          }
+          className="flex w-full flex-wrap rounded-2xl"
           aria-label="Resize mode"
         >
           {MODES.map((m) => (
@@ -48,34 +52,46 @@ export function ResizePanel() {
         <div className="flex flex-col gap-3">
           <div className="flex gap-3">
             <label className="flex flex-1 flex-col gap-1.5">
-              <span className="font-heading text-sm font-bold text-ink">Width</span>
+              <span className="font-heading text-sm font-bold text-ink">
+                Width
+              </span>
               <input
                 type="number"
                 min={1}
                 inputMode="numeric"
                 value={width ?? ""}
                 onChange={(e) =>
-                  setOption("resize", { width: e.target.value === "" ? null : Number(e.target.value) })
+                  setOption("resize", {
+                    width:
+                      e.target.value === "" ? null : Number(e.target.value),
+                  })
                 }
                 className={inputClass}
               />
             </label>
             <label className="flex flex-1 flex-col gap-1.5">
-              <span className="font-heading text-sm font-bold text-ink">Height</span>
+              <span className="font-heading text-sm font-bold text-ink">
+                Height
+              </span>
               <input
                 type="number"
                 min={1}
                 inputMode="numeric"
                 value={height ?? ""}
                 onChange={(e) =>
-                  setOption("resize", { height: e.target.value === "" ? null : Number(e.target.value) })
+                  setOption("resize", {
+                    height:
+                      e.target.value === "" ? null : Number(e.target.value),
+                  })
                 }
                 className={inputClass}
               />
             </label>
           </div>
           <div className="flex items-center justify-between">
-            <span className="font-heading text-sm font-bold text-ink">Lock aspect ratio</span>
+            <span className="font-heading text-sm font-bold text-ink">
+              Lock aspect ratio
+            </span>
             <ToggleSwitch
               checked={lockAspect}
               onChange={(next) => setOption("resize", { lockAspect: next })}
@@ -91,7 +107,9 @@ export function ResizePanel() {
           min={10}
           max={200}
           onValueChange={(value) =>
-            setOption("resize", { percent: Array.isArray(value) ? value[0] : value })
+            setOption("resize", {
+              percent: Array.isArray(value) ? value[0] : value,
+            })
           }
         >
           <div className="flex items-center justify-between">
@@ -108,7 +126,10 @@ export function ResizePanel() {
           </p>
           <Segmented
             value={preset}
-            onValueChange={(value) => setOption("resize", { preset: value as ResizePreset })}
+            onValueChange={(value) =>
+              setOption("resize", { preset: value as ResizePreset })
+            }
+            className="flex w-full rounded-2xl"
             aria-label="Resize preset"
           >
             {PRESETS.map((p) => (

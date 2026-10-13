@@ -21,7 +21,7 @@ export function ImageGrid() {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
       <AnimatePresence initial={false}>
         {images.map((image) => (
           <motion.div
@@ -30,6 +30,7 @@ export function ImageGrid() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="h-full"
           >
             <ImageCard image={image} />
           </motion.div>

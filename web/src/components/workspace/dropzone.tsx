@@ -12,9 +12,15 @@ const ACCEPT = [...SUPPORTED_EXTS].map((ext) => `.${ext}`).join(",")
 function pickSupported(files: FileList | null, accept?: string): File[] {
   if (!files) return []
   const allowed = accept
-    ? new Set(accept.split(",").map((part) => part.trim().replace(/^\./, "").toLowerCase()))
+    ? new Set(
+        accept
+          .split(",")
+          .map((part) => part.trim().replace(/^\./, "").toLowerCase())
+      )
     : SUPPORTED_EXTS
-  return Array.from(files).filter((file) => allowed.has(extOf(file.name).slice(1)))
+  return Array.from(files).filter((file) =>
+    allowed.has(extOf(file.name).slice(1))
+  )
 }
 
 /**
@@ -73,8 +79,14 @@ export function Dropzone({
       }}
       className={cn(
         "flex cursor-pointer flex-col items-center justify-center rounded-[20px] border-[3px] border-dashed text-center transition-colors",
-        compact ? "min-h-[220px] gap-2 p-4" : "min-h-[280px] gap-4 px-6 py-14",
-        isDragging ? "border-ink bg-soft-amber/60" : "border-[#c9b89c] bg-card hover:bg-surface",
+        compact
+          ? // Stretch to the gallery row height (thumbnail + caption) so the
+            // "Drop more" tile lines up with neighbouring image cards.
+            "h-full min-h-0 gap-2 p-3"
+          : "min-h-[280px] gap-4 px-6 py-14",
+        isDragging
+          ? "border-ink bg-soft-amber/60"
+          : "border-[#c9b89c] bg-card hover:bg-surface",
         className
       )}
     >
@@ -102,16 +114,20 @@ export function Dropzone({
         />
       </span>
       {compact ? (
-        <p className="text-xs font-extrabold uppercase tracking-wide text-muted-ink">Drop more</p>
+        <p className="text-xs font-extrabold tracking-wide text-muted-ink uppercase">
+          Drop more
+        </p>
       ) : (
         <>
           <div>
-            <p className="font-heading text-xl font-extrabold text-ink">{title ?? "Drop images here"}</p>
-            <p className="mt-1 text-[13px] font-bold uppercase tracking-wide text-muted-ink">
+            <p className="font-heading text-xl font-extrabold text-ink">
+              {title ?? "Drop images here"}
+            </p>
+            <p className="mt-1 text-[13px] font-bold tracking-wide text-muted-ink uppercase">
               {hint ?? "PNG, JPG, WEBP, AVIF, HEIC, GIF, TIFF, BMP"}
             </p>
           </div>
-          <span className="pointer-events-none inline-flex items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-1.5 text-[13px] font-extrabold uppercase tracking-wide text-ink shadow-block-sm">
+          <span className="pointer-events-none inline-flex items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-1.5 text-[13px] font-extrabold tracking-wide text-ink uppercase shadow-block-sm">
             Browse files
           </span>
         </>

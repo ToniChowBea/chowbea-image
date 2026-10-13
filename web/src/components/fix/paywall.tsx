@@ -29,13 +29,14 @@ export function PaywallCard({
   }
 
   return (
-    <div className="rounded-[16px] border-2 border-ink bg-soft-amber p-4 shadow-block-sm">
+    <div className="rounded-[20px] border-2 border-ink bg-soft-amber p-5 shadow-block-sm">
       <p className="font-heading text-sm font-extrabold tracking-wide text-ink uppercase">
         Evidence pack
       </p>
       <p className="mt-2 text-[13px] font-semibold text-ink">
-        Single files stay free. A pack of several files is {config.batch_price} once, or{" "}
-        {config.pass_price} for a 24-hour pass. Paid via Stripe — no account.
+        Single files stay free. A pack of several files is {config.batch_price}{" "}
+        once, or {config.pass_price} for a 24-hour pass. Paid via Stripe — no
+        account.
       </p>
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <Button
@@ -45,7 +46,9 @@ export function PaywallCard({
           onClick={() => void pay("batch")}
           className="bg-amber text-ink hover:bg-amber"
         >
-          {busy === "batch" ? "Redirecting…" : `Pay ${config.batch_price} this pack`}
+          {busy === "batch"
+            ? "Redirecting…"
+            : `Pay ${config.batch_price} this pack`}
         </Button>
         <Button
           type="button"
@@ -54,7 +57,9 @@ export function PaywallCard({
           disabled={busy !== null}
           onClick={() => void pay("pass")}
         >
-          {busy === "pass" ? "Redirecting…" : `${config.pass_price} 24-hour pass`}
+          {busy === "pass"
+            ? "Redirecting…"
+            : `${config.pass_price} 24-hour pass`}
         </Button>
       </div>
     </div>

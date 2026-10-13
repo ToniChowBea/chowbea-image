@@ -43,7 +43,11 @@ export function Toolbar({ className }: { className?: string }) {
   const submitting = useWorkspace((state) => state.submitting)
 
   return (
-    <div role="group" aria-label="Image tools" className={cn("toolbar w-full", className)}>
+    <div
+      role="group"
+      aria-label="Image tools"
+      className={cn("toolbar w-full", className)}
+    >
       {TOOLS.map((tool) => {
         const active = activeTool === tool.id
         return (
@@ -55,13 +59,17 @@ export function Toolbar({ className }: { className?: string }) {
             disabled={submitting}
             onClick={() => setActiveTool(tool.id)}
             className={cn(
-              "press lift flex flex-1 flex-col items-center justify-center gap-1.5 rounded-[14px] border-2 px-1.5 py-2.5 font-heading text-[11px] font-extrabold tracking-wide text-ink uppercase outline-none transition-colors duration-(--duration-fast) ease-(--ease-snap) focus-visible:ring-3 focus-visible:ring-amber/50 disabled:pointer-events-none disabled:opacity-50 sm:px-2",
+              "press lift flex flex-1 flex-col items-center justify-center gap-1.5 rounded-[14px] border-2 px-1.5 py-3 font-heading text-[11px] font-extrabold tracking-wide text-ink uppercase transition-colors duration-(--duration-fast) ease-(--ease-snap) outline-none focus-visible:ring-3 focus-visible:ring-amber/50 disabled:pointer-events-none disabled:opacity-50 sm:px-2",
               active
                 ? "brand-breathe border-ink bg-amber shadow-block-sm"
                 : "border-transparent hover:bg-soft-amber"
             )}
           >
-            <HugeiconsIcon icon={tool.icon} className="size-6" strokeWidth={2.2} />
+            <HugeiconsIcon
+              icon={tool.icon}
+              className="size-6"
+              strokeWidth={2.2}
+            />
             <span className="hidden sm:block">{tool.label}</span>
           </button>
         )

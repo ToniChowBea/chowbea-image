@@ -67,11 +67,15 @@ export const Route = createRootRoute({
 /** Amber logo block + wordmark — the constant top-left mark on every screen. */
 function Wordmark() {
   return (
-    <Link to="/" className="flex items-center gap-3">
-      <span className="flex size-10 items-center justify-center rounded-xl border-2 border-ink bg-amber text-ink">
-        <HugeiconsIcon icon={Image01Icon} className="size-5" strokeWidth={2.4} />
+    <Link to="/" className="flex min-w-0 items-center gap-3">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border-2 border-ink bg-amber text-ink">
+        <HugeiconsIcon
+          icon={Image01Icon}
+          className="size-5"
+          strokeWidth={2.4}
+        />
       </span>
-      <span className="font-heading text-xl font-extrabold tracking-tight text-ink">
+      <span className="font-heading text-lg font-extrabold tracking-tight text-ink sm:text-xl">
         Chowbea Image
       </span>
     </Link>
@@ -86,12 +90,21 @@ let rememberedPath: string | null = null
 second click. Middle-click / open-in-new-tab keep normal link behavior. */
 function QueueLink() {
   const router = useRouter()
-  const pathname = useRouterState({ select: (state) => state.location.pathname })
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
   return (
     <Link
       to="/queue"
       onClick={(event) => {
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return
+        if (
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey ||
+          event.button !== 0
+        )
+          return
         event.preventDefault()
         const { to, remember } = resolveQueueToggle(pathname, rememberedPath)
         rememberedPath = remember
@@ -114,7 +127,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <div className="min-h-svh bg-cream">
           <div className="mx-auto flex min-h-svh w-full max-w-7xl flex-col px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
             {/* Top bar: wordmark left; jobs count, GitHub, and queue right. */}
-            <header className="flex items-center justify-between">
+            <header className="flex flex-wrap items-center justify-between gap-3">
               <Wordmark />
               <div className="flex items-center gap-3">
                 <JobsCounter />
@@ -125,7 +138,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                   aria-label="View the source and contribute on GitHub"
                   className="press flex size-[42px] items-center justify-center rounded-full border-2 border-ink bg-card text-ink shadow-block-sm"
                 >
-                  <HugeiconsIcon icon={GithubIcon} className="size-5" strokeWidth={2.2} />
+                  <HugeiconsIcon
+                    icon={GithubIcon}
+                    className="size-5"
+                    strokeWidth={2.2}
+                  />
                 </a>
                 <QueueLink />
               </div>
@@ -147,11 +164,17 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               </span>
               <span className="text-[13px] font-semibold text-muted-ink">
                 Free &amp; ad-free · files deleted 1 hour after processing ·{" "}
-                <Link to="/fix" className="underline decoration-2 underline-offset-2">
+                <Link
+                  to="/fix"
+                  className="underline decoration-2 underline-offset-2"
+                >
                   Upload fixer
                 </Link>
                 {" · "}
-                <Link to="/privacy" className="underline decoration-2 underline-offset-2">
+                <Link
+                  to="/privacy"
+                  className="underline decoration-2 underline-offset-2"
+                >
                   Privacy
                 </Link>
               </span>
