@@ -21,7 +21,7 @@ def _privacy_faq() -> list[dict[str, str]]:
     return [
         {
             "q": "Do you keep my file?",
-            "a": "No. Files are deleted 1 hour after processing. We never log file contents, only generic errors.",
+            "a": "No. Files are deleted 1 hour after processing. We never log file contents, only generic errors. Optional PostHog events (off without a key) record preset and file type only — never names or bytes.",
         },
         {
             "q": "Is a single file free?",
@@ -55,7 +55,7 @@ _COPY: dict[str, dict[str, str]] = {
     "ukvcas": {
         "h1": "Compress files for UKVCAS (6MB limit)",
         "title": "Compress PDF or photos for UKVCAS (6MB) | Chowbea",
-        "description": "Get a PDF, JPG or PNG under UKVCAS's 6MB upload limit. Unverified limit — check the portal. Files deleted after 1 hour.",
+        "description": "Get a PDF, JPG or PNG under UKVCAS's 6MB upload limit. Files deleted after 1 hour.",
     },
     "vfs-global": {
         "h1": "Compress files for VFS Global (2MB limit)",
@@ -63,9 +63,9 @@ _COPY: dict[str, dict[str, str]] = {
         "description": "Shrink a PDF, JPG or PNG to VFS Global's 2MB limit. Unverified limit — check the portal. Files deleted after 1 hour.",
     },
     "nhs-jobs": {
-        "h1": "Compress a CV for NHS Jobs (1MB limit)",
+        "h1": "Compress a document for NHS Jobs (1MB limit)",
         "title": "Compress PDF or Word for NHS Jobs (1MB) | Chowbea",
-        "description": "Fit a CV or supporting statement under NHS Jobs' 1MB limit. Word files over the limit should be exported to PDF first.",
+        "description": "Fit a supporting document under NHS Jobs' 1MB DOC/DOCX/PDF limit. Oversize Word files are converted to PDF. Files deleted after 1 hour.",
     },
     "jpg-100kb": {
         "h1": "Compress a JPG to under 100 KB",

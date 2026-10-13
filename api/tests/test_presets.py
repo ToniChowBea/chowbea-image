@@ -62,6 +62,24 @@ def test_presets_http_list_and_get():
     assert client.get("/presets/not-a-real-preset").status_code == 404
 
 
+def test_portal_verification_matches_official_sources():
+    ukvcas = get_preset("ukvcas")
+    vfs = get_preset("vfs-global")
+    nhs = get_preset("nhs-jobs")
+    ucas = get_preset("ucas-documents")
+    saas = get_preset("saas-documents")
+    assert ukvcas is not None and ukvcas.verified is True
+    assert ukvcas.max_bytes == 6 * 1024 * 1024
+    assert "prepareDocuments" in (ukvcas.source_url or "")
+    assert vfs is not None and vfs.verified is False
+    assert vfs.max_bytes == 2 * 1024 * 1024
+    assert nhs is not None and nhs.verified is True
+    assert nhs.max_bytes == 1024 * 1024
+    assert ucas is not None
+    assert set(ucas.accepted_types) == {"pdf", "jpeg", "odt"}
+    assert saas is not None and "edocs.saas.gov.uk" in (saas.source_url or "")
+
+
 def test_every_preset_has_seo_copy():
     from app.services.presets import public_list
 

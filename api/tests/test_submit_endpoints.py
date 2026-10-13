@@ -125,7 +125,7 @@ def test_crop_aspect_invalid_ratio_rejected(client):
 
 
 def test_upload_over_size_limit_rejected(client, monkeypatch):
-    monkeypatch.setattr(images, "_MAX_UPLOAD_BYTES", 10)
+    monkeypatch.setattr(images, "_max_upload_bytes", lambda *, for_fix: 10)
     files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
     resp = client.post("/img/convert", files=files, data={"target": "jpeg"})
     assert resp.status_code == 413
@@ -204,6 +204,15 @@ def test_fix_accepts_pdf_magic_bytes(client):
     files = {"files": ("doc.pdf", io.BytesIO(pdf), "application/pdf")}
     resp = client.post("/img/fix", files=files, data={"preset": "ucas-documents"})
     assert resp.status_code == 202
+
+
+def test_convert_accepts_jpeg_magic_despite_png_name(client):
+    files = {"files": ("a.png", io.BytesIO(_jpeg_bytes()), "image/png")}
+    resp = client.post("/img/convert", files=files, data={"target": "png"})
+    assert resp.status_code == 202
+    job_id = resp.json()["job_id"]
+    record = client.app.state.registry.get(job_id)
+    assert record.params["exts"] == [".jpg"]
 
 
 def test_convert_still_rejects_pdf(client):

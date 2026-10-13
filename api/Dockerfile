@@ -9,9 +9,11 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # runtime (ABI mode), so the runtime lib is all that's needed.
 #
 # ghostscript (`gs`) distills oversized PDFs down to a portal's byte limit
-# for the upload-fixer. The API process is also the worker, so this image
-# is what runs fix jobs. Locally: `sudo apt-get install ghostscript`
-# (Debian/Ubuntu) or `brew install ghostscript` (macOS).
+# for the upload-fixer. libreoffice-writer converts DOC/DOCX/ODT to PDF
+# when a portal accepts PDF. The API process is also the worker, so this
+# image is what runs fix jobs. Locally:
+#   sudo apt-get install ghostscript libreoffice-writer
+#   brew install ghostscript && brew install --cask libreoffice
 #
 # Debian's libheif ships WITHOUT the AV1/HEVC codecs, so HEIC/AVIF would fail;
 # the codec plugins add them: aomenc = AVIF encode, dav1d = AVIF decode,
@@ -25,6 +27,8 @@ RUN apt-get update \
         libheif-plugin-dav1d \
         libheif-plugin-libde265 \
         ghostscript \
+        libreoffice-writer \
+        fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

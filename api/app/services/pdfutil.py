@@ -72,7 +72,9 @@ def pdf_is_encrypted(path: Path) -> bool:
     try:
         reader = PdfReader(str(path), strict=False)
     except PdfReadError as exc:
-        raise PdfError("The PDF could not be read.") from exc
+        raise PdfError(
+            "This PDF is corrupt or unreadable. Export it again and try again."
+        ) from exc
     return bool(reader.is_encrypted)
 
 

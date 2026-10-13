@@ -54,6 +54,15 @@ def test_merge_pdfs_concatenates_pages(tmp_path):
     assert len(PdfReader(str(dest)).pages) == 2
 
 
+def test_corrupt_pdf_has_clear_error(tmp_path):
+    from app.services.pdfutil import pdf_is_encrypted
+
+    bogus = tmp_path / "broken.pdf"
+    bogus.write_bytes(b"%PDF-1.4\nthis is not a valid pdf")
+    with pytest.raises(PdfError, match="corrupt"):
+        pdf_is_encrypted(bogus)
+
+
 def test_merge_pdfs_rejects_empty_list(tmp_path):
     with pytest.raises(PdfError, match="No PDFs"):
         merge_pdfs([], tmp_path / "x.pdf")

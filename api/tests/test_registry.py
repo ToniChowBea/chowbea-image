@@ -67,6 +67,20 @@ def test_sweep_removes_only_expired_finished_jobs(tmp_path):
     assert registry.get(queued.id) is not None
 
 
+def test_sweep_removes_expired_failed_jobs(tmp_path):
+    """Failed jobs still expire so uploads cannot linger after an error."""
+    registry = JobRegistry(result_ttl_seconds=1800)
+    failed = make_job(registry, tmp_path, "failed")
+    now = time.time()
+    failed.status = JobStatus.failed
+    failed.finished_at = now - 3600
+    failed.created_at = now - 3600
+    removed = registry.sweep(now=now)
+    assert removed == 1
+    assert registry.get(failed.id) is None
+    assert not failed.workspace.exists()
+
+
 def test_sweep_removes_abandoned_queued_jobs(tmp_path):
     """Uploads that never finish still expire so passport files cannot linger."""
     registry = JobRegistry(result_ttl_seconds=1800)

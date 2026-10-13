@@ -55,6 +55,7 @@ const TYPE_EXTS: Record<string, string[]> = {
   pdf: ["pdf"],
   doc: ["doc"],
   docx: ["docx"],
+  odt: ["odt"],
   gif: ["gif"],
   webp: ["webp"],
 }
@@ -62,7 +63,9 @@ const TYPE_EXTS: Record<string, string[]> = {
 /** File picker accept list: every image we can decode, plus portal types. */
 function acceptFor(preset: Preset): string {
   const extras = preset.accepted_types.flatMap((type) => TYPE_EXTS[type] ?? [type])
-  return [...new Set([...DECODE_EXTS, ...extras])].map((ext) => `.${ext}`).join(",")
+  // Presets that accept PDF can take Word input; the worker converts to PDF.
+  const office = preset.accepted_types.includes("pdf") ? ["doc", "docx", "odt"] : []
+  return [...new Set([...DECODE_EXTS, ...extras, ...office])].map((ext) => `.${ext}`).join(",")
 }
 
 /** Short dropzone subtitle listing the portal's accepted types. */

@@ -26,8 +26,11 @@ async def _run_queue(job_queue: JobQueue, registry: JobRegistry, handle) -> None
     while True:
         try:
             await job_queue.connect()
-            await job_queue.start_consumer(handle)
-            logger.info("Consuming img-jobs with prefetch=%d", settings.job_concurrency)
+            if settings.run_worker:
+                await job_queue.start_consumer(handle)
+                logger.info("Consuming img-jobs with prefetch=%d", settings.job_concurrency)
+            else:
+                logger.info("Queue publisher connected; this process is not consuming jobs")
             return
         except Exception:
             logger.exception("RabbitMQ unavailable; retrying in 5s")

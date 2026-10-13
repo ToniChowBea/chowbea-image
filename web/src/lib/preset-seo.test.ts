@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   INDEX_SEO,
   PRESET_IDS,
+  fallbackFaq,
   robotsTxt,
   seoForPreset,
   sitemapPaths,
@@ -31,6 +32,11 @@ describe("preset SEO copy", () => {
     expect(robotsTxt("https://example.test")).toContain(
       "Sitemap: https://example.test/sitemap.xml"
     )
+  })
+
+  it("mentions optional PostHog on the privacy FAQ", () => {
+    const privacy = fallbackFaq().find((item) => item.q.includes("keep"))
+    expect(privacy?.a).toMatch(/PostHog/)
   })
 
   it("keeps the /fix index title and H1", () => {

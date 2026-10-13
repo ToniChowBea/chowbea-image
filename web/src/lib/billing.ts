@@ -5,6 +5,7 @@
 
 import axios from "axios"
 
+import { capture } from "./analytics"
 import { API_BASE_URL, toApiError } from "./jobs"
 
 const TOKEN_KEY = "chowbea:fix-token"
@@ -61,6 +62,7 @@ export async function fetchBillingConfig(): Promise<BillingConfig> {
 
 /** Redirect the browser to Stripe Checkout for a one-off payment. */
 export async function startCheckout(kind: CheckoutKind): Promise<string> {
+  capture("checkout_started", { kind })
   try {
     const response = await axios.post<{ url: string }>(`${API_BASE_URL}/billing/checkout`, { kind })
     return response.data.url
@@ -75,6 +77,7 @@ export async function claimSession(sessionId: string): Promise<ClaimedToken> {
     const response = await axios.post<ClaimedToken>(`${API_BASE_URL}/billing/claim`, {
       session_id: sessionId,
     })
+    capture("checkout_completed", { kind: response.data.kind })
     return response.data
   } catch (err) {
     throw await toApiError(err)

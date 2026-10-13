@@ -23,6 +23,19 @@ class Settings(BaseSettings):
     # Reject requests with more than this many files, to bound disk writes per request.
     max_files_per_request: int = 100
 
+    # Fixer packs: tighter caps than the general image tools.
+    fix_max_files: int = 20
+    fix_max_upload_mb: int = 50
+
+    # Per-IP cap on free /img/fix submissions (sliding window, one minute).
+    fix_free_rate_per_minute: int = 10
+
+    # When True, consume RabbitMQ jobs in this process. Set false on an HTTP-only replica.
+    run_worker: bool = True
+
+    # Trust X-Forwarded-For (Railway / compose reverse proxy). Off locally so clients cannot spoof.
+    trust_forwarded_ip: bool = False
+
     # Reject images whose pixel count (w*h) exceeds this many megapixels; a cheap,
     # header-only guard against decompression bombs.
     max_image_megapixels: int = 300
@@ -53,6 +66,10 @@ class Settings(BaseSettings):
     fix_token_secret: str = Field(default="", validation_alias="FIX_TOKEN_SECRET")
     # Public origin of the web app, used for Stripe success/cancel redirects.
     public_web_url: str = Field(default="http://localhost:3000", validation_alias="PUBLIC_WEB_URL")
+
+    # Optional PostHog. Empty key → no events are sent. Never include file contents.
+    posthog_api_key: str = Field(default="", validation_alias="POSTHOG_API_KEY")
+    posthog_host: str = Field(default="https://us.i.posthog.com", validation_alias="POSTHOG_HOST")
 
     model_config = SettingsConfigDict(env_file=".env", env_prefix="CHOWBEA_")
 
