@@ -54,6 +54,17 @@ function PrivacyPage() {
       </section>
 
       <section className="mt-6">
+        <h2 className="font-heading text-lg font-extrabold text-ink">Optional analytics</h2>
+        <p className="mt-2 text-[15px] font-medium text-ink">
+          When a PostHog project key is configured, we send a few product events:
+          fix started, succeeded or failed (preset id and file type only), and
+          checkout started or completed. Analytics is off when that key is missing.
+          We never send file names or file contents, and we do not store a cookie
+          or a personal profile for this.
+        </p>
+      </section>
+
+      <section className="mt-6">
         <h2 className="font-heading text-lg font-extrabold text-ink">What stays in your browser</h2>
         <p className="mt-2 text-[15px] font-medium text-ink">
           localStorage remembers recent job ids so the queue board can highlight
