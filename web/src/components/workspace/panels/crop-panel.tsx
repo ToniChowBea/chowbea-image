@@ -15,11 +15,19 @@ const MODES: { value: CropMode; label: string }[] = [
 const ASPECT_RATIOS: AspectRatio[] = ["1:1", "4:3", "16:9", "9:16"]
 
 /** Non-interactive preview of the centered aspect crop every selected image will get — mirrors the API's `_centered_box`. */
-function AspectPreview({ image, ratio }: { image: WorkspaceImage; ratio: AspectRatio }) {
+function AspectPreview({
+  image,
+  ratio,
+}: {
+  image: WorkspaceImage
+  ratio: AspectRatio
+}) {
   const imgRef = useRef<HTMLImageElement>(null)
   const { display, onLoad } = useImageDisplaySize(imgRef)
   const [ratioW, ratioH] = ASPECTS[ratio]
-  const box = display ? centeredBox(display.width, display.height, ratioW, ratioH) : null
+  const box = display
+    ? centeredBox(display.width, display.height, ratioW, ratioH)
+    : null
 
   return (
     <div className="checkerboard relative inline-block max-w-full overflow-hidden rounded-[14px] border-2 border-line">
@@ -33,7 +41,12 @@ function AspectPreview({ image, ratio }: { image: WorkspaceImage; ratio: AspectR
       {box && (
         <div
           className="pointer-events-none absolute border-2 border-dashed border-amber [box-shadow:0_0_0_9999px_color-mix(in_oklch,var(--ink)_45%,transparent)]"
-          style={{ left: box.x, top: box.y, width: box.width, height: box.height }}
+          style={{
+            left: box.x,
+            top: box.y,
+            width: box.width,
+            height: box.height,
+          }}
         />
       )}
     </div>
@@ -57,12 +70,17 @@ export function CropPanel() {
     images.find((img) => img.previewable && img.url)
 
   return (
-    <div className="flex flex-col gap-4 rounded-[14px] border-2 border-dashed border-line p-4">
+    <div className="options-well">
       <div className="flex flex-col gap-2">
-        <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">Crop by</p>
+        <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">
+          Crop by
+        </p>
         <Segmented
           value={mode}
-          onValueChange={(value) => setOption("crop", { mode: value as CropMode })}
+          onValueChange={(value) =>
+            setOption("crop", { mode: value as CropMode })
+          }
+          className="flex w-full rounded-2xl"
           aria-label="Crop mode"
         >
           {MODES.map((m) => (
@@ -77,8 +95,10 @@ export function CropPanel() {
         <div className="flex flex-col gap-3">
           <Segmented
             value={aspect}
-            onValueChange={(value) => setOption("crop", { aspect: value as AspectRatio })}
-            className="flex-wrap"
+            onValueChange={(value) =>
+              setOption("crop", { aspect: value as AspectRatio })
+            }
+            className="flex w-full flex-wrap rounded-2xl"
             aria-label="Aspect ratio"
           >
             {ASPECT_RATIOS.map((r) => (
@@ -90,7 +110,9 @@ export function CropPanel() {
           <p className="text-[13px] font-semibold text-muted-ink">
             Crops every selected image to a centered {aspect} rectangle.
           </p>
-          {previewImage && <AspectPreview image={previewImage} ratio={aspect} />}
+          {previewImage && (
+            <AspectPreview image={previewImage} ratio={aspect} />
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -102,8 +124,8 @@ export function CropPanel() {
             </p>
           ) : !selectedImages[0].previewable || !selectedImages[0].url ? (
             <p className="text-[13px] font-bold text-destructive">
-              {selectedImages[0].name} can't be previewed in the browser, so freeform crop isn't
-              available for it — try Aspect mode instead.
+              {selectedImages[0].name} can't be previewed in the browser, so
+              freeform crop isn't available for it — try Aspect mode instead.
             </p>
           ) : (
             <CropOverlay

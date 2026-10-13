@@ -12,138 +12,159 @@
  * types (word/excel/slides) to image types (jpg/png/webp/avif/gif/tiff).
  */
 :root {
-    --background: #fff3e2; /* Cream — app background */
-    --foreground: #211a12; /* Ink — text & borders */
-    --card: #ffffff;
-    --card-foreground: #211a12;
-    --popover: #ffffff;
-    --popover-foreground: #211a12;
-    --primary: #211a12; /* Ink — primary actions */
-    --primary-foreground: #fff3e2;
-    --secondary: #fff8ef; /* Surface — inputs, soft fills */
-    --secondary-foreground: #211a12;
-    --muted: #fbe7ce; /* Soft amber — icon wells */
-    --muted-foreground: #8a7d6c; /* Muted — meta, captions */
-    --accent: #f2922b; /* Amber — brand accent */
-    --accent-foreground: #211a12;
-    --destructive: #c0392b;
-    --destructive-foreground: #ffffff;
-    --border: #211a12; /* Ink outline */
-    --input: #fff8ef;
-    --ring: #f2922b;
+  --background: #fff3e2; /* Cream — app background */
+  --foreground: #211a12; /* Ink — text & borders */
+  --card: #ffffff;
+  --card-foreground: #211a12;
+  --popover: #ffffff;
+  --popover-foreground: #211a12;
+  --primary: #211a12; /* Ink — primary actions */
+  --primary-foreground: #fff3e2;
+  --secondary: #fff8ef; /* Surface — inputs, soft fills */
+  --secondary-foreground: #211a12;
+  --muted: #fbe7ce; /* Soft amber — icon wells */
+  --muted-foreground: #8a7d6c; /* Muted — meta, captions */
+  --accent: #f2922b; /* Amber — brand accent */
+  --accent-foreground: #211a12;
+  --destructive: #c0392b;
+  --destructive-foreground: #ffffff;
+  --border: #211a12; /* Ink outline */
+  --input: #fff8ef;
+  --ring: #f2922b;
 
-    /* Named palette tokens, mirroring the design-system swatches. */
-    --brand: #f2922b;
-    --ink: #211a12;
-    --amber: #f2922b;
-    --amber-ink: #c0701a; /* Amber pressed into ink — eyebrows */
-    --cream: #fff3e2;
-    --surface: #fff8ef;
-    --soft-amber: #fbe7ce;
-    --line: #e7ddce; /* Skeletons & dividers */
-    --subtext: #5b5043; /* Subtitles & body */
-    --muted-ink: #8a7d6c;
+  /* Named palette tokens, mirroring the design-system swatches. */
+  --brand: #f2922b;
+  --ink: #211a12;
+  --amber: #f2922b;
+  --amber-ink: #c0701a; /* Amber pressed into ink — eyebrows */
+  --cream: #fff3e2;
+  --surface: #fff8ef;
+  --soft-amber: #fbe7ce;
+  --line: #e7ddce; /* Skeletons & dividers */
+  --subtext: #5b5043; /* Subtitles & body */
+  --muted-ink: #8a7d6c;
 
-    /* Format accents (image type tags, format-select chips). */
-    --jpg: #6b46c1;
-    --png: #b7791f;
-    --webp: #2b6cb0;
-    --avif: #2f855a;
-    --gif: #c05621;
-    --tiff: #a83279;
+  /* Format accents (image type tags, format-select chips). */
+  --jpg: #6b46c1;
+  --png: #b7791f;
+  --webp: #2b6cb0;
+  --avif: #2f855a;
+  --gif: #c05621;
+  --tiff: #a83279;
 
-    --radius: 0.875rem; /* 14px — buttons & chips baseline */
+  --radius: 0.875rem; /* 14px — buttons & chips baseline */
 
-    /* ---- Evolved: image-workspace tokens ---- */
-    /* Motion — one snap curve + a small duration scale so every tactile
+  /* Spacing scale — same 4px rhythm as chowbea-pdf tool pages
+       (gap-7 between columns, 22px card padding, 20px card radius). */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --card-pad: 1.375rem; /* 22px — PDF file-list / options cards */
+  --card-radius: 1.25rem; /* 20px */
+  --panel-min: 22.5rem;
+  --panel-max: 26rem;
+
+  /* ---- Evolved: image-workspace tokens ---- */
+  /* Motion — one snap curve + a small duration scale so every tactile
        press/hover/lift in the app moves in sync. */
-    --ease-snap: cubic-bezier(0.22, 1, 0.36, 1);
-    --duration-fast: 120ms;
-    --duration-base: 200ms;
-    --duration-slow: 320ms;
+  --ease-snap: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
 
-    /* Transparency checkerboard — two warm, low-contrast neutrals (not
+  /* Transparency checkerboard — two warm, low-contrast neutrals (not
        gray) so alpha previews stay legible without fighting the palette. */
-    --checker-size: 16px;
-    --checker-a: #fff8ef;
-    --checker-b: #eee0c9;
+  --checker-size: 16px;
+  --checker-a: #fff8ef;
+  --checker-b: #eee0c9;
 }
 
 @theme inline {
-    --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
-    --font-heading: 'Bricolage Grotesque', 'Hanken Grotesk', sans-serif;
-    --font-mono: ui-monospace, 'SFMono-Regular', monospace;
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Bricolage Grotesque", "Hanken Grotesk", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", monospace;
 
-    /* shadcn token bridge */
-    --color-brand: var(--brand);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-destructive-foreground: var(--destructive-foreground);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
+  /* shadcn token bridge */
+  --color-brand: var(--brand);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
 
-    /* Bold Blocks named colors — usable as bg-amber, border-ink, text-subtext… */
-    --color-ink: var(--ink);
-    --color-amber: var(--amber);
-    --color-amber-ink: var(--amber-ink);
-    --color-cream: var(--cream);
-    --color-surface: var(--surface);
-    --color-soft-amber: var(--soft-amber);
-    --color-line: var(--line);
-    --color-subtext: var(--subtext);
-    --color-muted-ink: var(--muted-ink);
-    --color-jpg: var(--jpg);
-    --color-png: var(--png);
-    --color-webp: var(--webp);
-    --color-avif: var(--avif);
-    --color-gif: var(--gif);
-    --color-tiff: var(--tiff);
+  /* Bold Blocks named colors — usable as bg-amber, border-ink, text-subtext… */
+  --color-ink: var(--ink);
+  --color-amber: var(--amber);
+  --color-amber-ink: var(--amber-ink);
+  --color-cream: var(--cream);
+  --color-surface: var(--surface);
+  --color-soft-amber: var(--soft-amber);
+  --color-line: var(--line);
+  --color-subtext: var(--subtext);
+  --color-muted-ink: var(--muted-ink);
+  --color-jpg: var(--jpg);
+  --color-png: var(--png);
+  --color-webp: var(--webp);
+  --color-avif: var(--avif);
+  --color-gif: var(--gif);
+  --color-tiff: var(--tiff);
 
-    /* Hard offset shadows — no blur. Ink for surfaces, amber for "act now". */
-    --shadow-block-sm: 3px 3px 0 var(--ink);
-    --shadow-block: 5px 5px 0 var(--ink);
-    --shadow-block-lg: 6px 6px 0 var(--ink);
-    --shadow-amber-sm: 4px 4px 0 var(--amber);
-    --shadow-amber: 5px 5px 0 var(--amber);
-    --shadow-amber-lg: 7px 7px 0 var(--amber);
+  /* Hard offset shadows — no blur. Ink for surfaces, amber for "act now". */
+  --shadow-block-sm: 3px 3px 0 var(--ink);
+  --shadow-block: 5px 5px 0 var(--ink);
+  --shadow-block-lg: 6px 6px 0 var(--ink);
+  --shadow-amber-sm: 4px 4px 0 var(--amber);
+  --shadow-amber: 5px 5px 0 var(--amber);
+  --shadow-amber-lg: 7px 7px 0 var(--amber);
 
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.85);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.7);
-    --radius-3xl: calc(var(--radius) * 2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.85);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.7);
+  --radius-3xl: calc(var(--radius) * 2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Named spacing so layout classes can use gap-section / p-card. */
+  --spacing-section: var(--space-7);
+  --spacing-card: var(--card-pad);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/60;
-    }
+  }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    }
+    @apply bg-background font-sans text-foreground antialiased;
+  }
   html {
     @apply font-sans;
-    }
+  }
   /* Headlines, buttons and tool titles speak in Bricolage. */
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     @apply font-heading;
-    }
+  }
 }
 
 /* Sliding indicator used for the indeterminate "Compressing/Converting" progress phase. */
@@ -163,7 +184,8 @@
 /* ============ thin, square brutalist scrollbar ============ */
 * {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in oklch, var(--muted-foreground) 25%, transparent) transparent;
+  scrollbar-color: color-mix(in oklch, var(--muted-foreground) 25%, transparent)
+    transparent;
 }
 *::-webkit-scrollbar {
   width: 7px;
@@ -286,12 +308,63 @@
 .toolbar {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: var(--space-2);
   border: 2px solid var(--ink);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--card-radius);
   background: var(--card);
   box-shadow: var(--shadow-block-sm);
-  padding: 0.375rem;
+  padding: var(--space-2);
+}
+
+/* Page stack + two-column workspace — one container width, one gap.
+   Children keep min-content height so nested cards don't collapse to
+   padding inside the column flex. */
+.page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+  margin-top: var(--space-8);
+}
+.page-stack > * {
+  flex-shrink: 0;
+  min-height: min-content;
+}
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-7);
+  align-items: start;
+  min-height: min-content;
+}
+@media (min-width: 1024px) {
+  .workspace-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(
+        var(--panel-min),
+        var(--panel-max)
+      );
+  }
+}
+
+/* Shared card chrome for gallery, tool panel, status, and /fix blocks. */
+.block-card {
+  border: 2px solid var(--ink);
+  border-radius: var(--card-radius);
+  background: var(--card);
+  box-shadow: var(--shadow-block-sm);
+  padding: var(--card-pad);
+  min-height: min-content;
+  height: auto;
+  overflow: visible;
+}
+
+/* Dashed inner well for a tool's options (convert-to, quality, crop mode). */
+.options-well {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  border: 2px dashed var(--line);
+  border-radius: 1rem;
+  padding: var(--space-5);
 }
 .toolbar-divider {
   align-self: stretch;

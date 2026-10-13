@@ -9,11 +9,10 @@ import { cn } from "@/lib/utils"
  * the options; the active segment fills solid ink, mirroring the primary
  * button treatment instead of a soft radio-pill.
  */
-interface SegmentedProps<Value extends string = string>
-  extends Omit<
-    ToggleGroupPrimitive.Props<Value>,
-    "value" | "defaultValue" | "onValueChange" | "multiple"
-  > {
+interface SegmentedProps<Value extends string = string> extends Omit<
+  ToggleGroupPrimitive.Props<Value>,
+  "value" | "defaultValue" | "onValueChange" | "multiple"
+> {
   value?: Value
   defaultValue?: Value
   onValueChange?: (value: Value) => void
@@ -39,7 +38,7 @@ function Segmented<Value extends string = string>({
         if (next.length > 0) onValueChange?.(next[0] as Value)
       }}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border-2 border-ink bg-surface p-1 shadow-block-sm",
+        "inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-surface p-1.5 shadow-block-sm",
         className
       )}
       {...props}
@@ -47,15 +46,12 @@ function Segmented<Value extends string = string>({
   )
 }
 
-function SegmentedItem({
-  className,
-  ...props
-}: TogglePrimitive.Props<string>) {
+function SegmentedItem({ className, ...props }: TogglePrimitive.Props<string>) {
   return (
     <TogglePrimitive
       data-slot="segmented-item"
       className={cn(
-        "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full px-4 font-heading text-xs font-extrabold tracking-wide text-ink uppercase outline-none transition-colors duration-(--duration-fast) ease-(--ease-snap) select-none hover:bg-soft-amber focus-visible:ring-3 focus-visible:ring-amber/50 disabled:pointer-events-none disabled:opacity-45 data-pressed:bg-ink data-pressed:text-cream data-pressed:hover:bg-ink [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "inline-flex h-8 min-w-[4.25rem] flex-1 items-center justify-center gap-1.5 rounded-full px-3 font-heading text-xs font-extrabold tracking-wide text-ink uppercase transition-colors duration-(--duration-fast) ease-(--ease-snap) outline-none select-none hover:bg-soft-amber focus-visible:ring-3 focus-visible:ring-amber/50 disabled:pointer-events-none disabled:opacity-45 data-pressed:bg-ink data-pressed:text-cream data-pressed:hover:bg-ink [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

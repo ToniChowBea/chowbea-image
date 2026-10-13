@@ -11,7 +11,7 @@ function Home() {
 
   if (!hasImages) {
     return (
-      <div className="flex min-h-[70svh] flex-col items-center justify-center py-10">
+      <div className="flex min-h-[60svh] flex-col items-center justify-center py-10">
         <Dropzone className="w-full max-w-2xl" />
       </div>
     )

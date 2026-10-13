@@ -3,7 +3,13 @@ import { Alert01Icon, Cancel01Icon } from "@hugeicons/core-free-icons"
 import { AnimatePresence, motion } from "motion/react"
 
 import { Button } from "@/components/ui/button"
-import { compressImages, convertImages, cropImages, resizeImages, rotateImages } from "@/lib/api"
+import {
+  compressImages,
+  convertImages,
+  cropImages,
+  resizeImages,
+  rotateImages,
+} from "@/lib/api"
 import { useWorkspace } from "@/stores/workspace"
 
 /**
@@ -29,10 +35,14 @@ export function GoBar() {
   const setError = useWorkspace((state) => state.setError)
   const setSubmitting = useWorkspace((state) => state.setSubmitting)
 
-  const selectedFiles = images.filter((image) => selectedIds.has(image.id)).map((image) => image.file)
+  const selectedFiles = images
+    .filter((image) => selectedIds.has(image.id))
+    .map((image) => image.file)
   const count = selectedFiles.length
   const cropRectBlocked =
-    activeTool === "crop" && options.crop.mode === "rect" && (count !== 1 || !options.crop.rect)
+    activeTool === "crop" &&
+    options.crop.mode === "rect" &&
+    (count !== 1 || !options.crop.rect)
   // The API 400s if a "dimensions" resize is submitted with neither width
   // nor height set ("A width or height is required.") — block Go before
   // that round trip instead of surfacing it as a server error.
@@ -50,19 +60,32 @@ export function GoBar() {
     // Frozen at submit time so the result card's size delta — and, for a
     // ZIP result, the "N images" count — can't drift if the user changes
     // the selection while the job is still running.
-    const originalBytes = selectedFiles.reduce((sum, file) => sum + file.size, 0)
+    const originalBytes = selectedFiles.reduce(
+      (sum, file) => sum + file.size,
+      0
+    )
     const fileCount = selectedFiles.length
     try {
       switch (activeTool) {
         case "convert": {
           const { target, quality } = options.convert
-          const lossy = target === "jpeg" || target === "webp" || target === "avif"
-          const result = await convertImages(selectedFiles, target, lossy ? quality : null, setProgress)
+          const lossy =
+            target === "jpeg" || target === "webp" || target === "avif"
+          const result = await convertImages(
+            selectedFiles,
+            target,
+            lossy ? quality : null,
+            setProgress
+          )
           setResult({ ...result, originalBytes, fileCount })
           break
         }
         case "compress": {
-          const result = await compressImages(selectedFiles, options.compress.quality, setProgress)
+          const result = await compressImages(
+            selectedFiles,
+            options.compress.quality,
+            setProgress
+          )
           setResult({ ...result, originalBytes, fileCount })
           break
         }
@@ -79,7 +102,11 @@ export function GoBar() {
           break
         }
         case "rotate": {
-          const result = await rotateImages(selectedFiles, options.rotate, setProgress)
+          const result = await rotateImages(
+            selectedFiles,
+            options.rotate,
+            setProgress
+          )
           setResult({ ...result, originalBytes, fileCount })
           break
         }
@@ -123,7 +150,9 @@ export function GoBar() {
                 className="mt-0.5 size-4.5 shrink-0 text-destructive"
                 strokeWidth={2.2}
               />
-              <p className="flex-1 text-[13px] font-bold text-destructive">{error}</p>
+              <p className="flex-1 text-[13px] font-bold text-destructive">
+                {error}
+              </p>
               <Button
                 type="button"
                 variant="ghost"
@@ -132,14 +161,18 @@ export function GoBar() {
                 onClick={reset}
                 className="shrink-0 text-destructive hover:bg-destructive/10"
               >
-                <HugeiconsIcon icon={Cancel01Icon} className="size-4" strokeWidth={2.4} />
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  className="size-4"
+                  strokeWidth={2.4}
+                />
               </Button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="flex items-center justify-between gap-3 rounded-[14px] border-2 border-ink bg-surface p-3">
+      <div className="flex items-center justify-between gap-3 rounded-[14px] border-2 border-ink bg-surface px-4 py-3">
         <p className="text-[13px] font-bold text-ink">
           {count} image{count === 1 ? "" : "s"} selected
         </p>
