@@ -1,0 +1,187 @@
+# Portal upload-limit presets for the fix job.
+# last_checked dates are ISO dates of the last human/source review.
+# Target encode size is ~10% under max_bytes (see TARGET_RATIO in fix.py).
+
+presets:
+  - id: uk-passport-online
+    name: UK passport online photo
+    accepted_types: [jpeg]
+    min_bytes: 51200          # 50 KB
+    max_bytes: 10485760       # 10 MB
+    min_width: 600
+    min_height: 750
+    orientation: any
+    colour: true
+    do_not_crop: true
+    source_url: https://www.gov.uk/photos-for-passports
+    last_checked: "2026-10-12"
+    verified: true
+    notes: "Must be colour. Do not crop — GOV.UK crops the photo for you."
+
+  - id: uk-visa-face
+    name: UK visa face photo
+    accepted_types: [jpeg]
+    min_bytes: 51200          # 50 KB
+    max_bytes: 6291456        # 6 MB
+    min_width: 600
+    min_height: 750
+    orientation: portrait
+    colour: true
+    do_not_crop: true
+    source_url: https://www.gov.uk/guidance/how-to-take-a-photo-for-a-visa-application-or-permission
+    last_checked: "2026-10-12"
+    verified: true
+    notes: "JPEG only, colour, portrait (taller than wide)."
+
+  - id: ucas-documents
+    name: UCAS documents
+    accepted_types: [pdf, jpeg, png, doc, docx]
+    max_bytes: 5242880        # 5 MB per file
+    orientation: any
+    no_password: true
+    source_url: https://www.ucas.com/applying/applying-to-university/uploading-documents-to-your-application
+    last_checked: "2026-10-12"
+    verified: true
+    notes: "5 MB per file. Password-protected files are rejected. HEIC is not accepted."
+
+  - id: saas-documents
+    name: SAAS document upload
+    accepted_types: [jpeg, tiff, pdf]
+    max_bytes: 5242880        # 5 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.saas.gov.uk/
+    last_checked: "2026-10-12"
+    verified: true
+    notes: "JPG, TIFF or PDF, 5 MB maximum."
+
+  - id: ukvcas
+    name: UKVCAS
+    accepted_types: [pdf, jpeg, png]
+    preferred_type: pdf
+    max_bytes: 6291456        # 6 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.ukvcas.co.uk/
+    last_checked: "2026-10-12"
+    verified: false
+    notes: "PDF preferred; JPG and PNG also accepted. Limit not independently re-checked."
+
+  - id: vfs-global
+    name: VFS Global
+    accepted_types: [pdf, jpeg, png]
+    max_bytes: 2097152        # 2 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.vfsglobal.com/
+    last_checked: "2026-10-12"
+    verified: false
+    notes: "PDF, JPG or PNG, 2 MB. Limit not independently re-checked."
+
+  - id: nhs-jobs
+    name: NHS Jobs
+    accepted_types: [pdf, doc, docx]
+    preferred_type: pdf
+    max_bytes: 1048576        # 1 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.jobs.nhs.uk/
+    last_checked: "2026-10-12"
+    verified: false
+    notes: "PDF, DOC or DOCX, 1 MB. Word files over the limit cannot be compressed here — export to PDF first."
+
+  # Generic size targets (JPG and PDF). Aim ~10% under each max.
+  - id: jpg-100kb
+    name: JPG under 100 KB
+    accepted_types: [jpeg]
+    max_bytes: 102400
+    orientation: any
+    source_url: null
+    last_checked: "2026-10-12"
+    verified: true
+
+  - id: jpg-200kb
+    name: JPG under 200 KB
+    accepted_types: [jpeg]
+    max_bytes: 204800
+    orientation: any
+    source_url: null
+    last_checked: "2026-10-12"
+    verified: true
+
+  - id: jpg-500kb
+    name: JPG under 500 KB
+    accepted_types: [jpeg]
+    max_bytes: 512000
+    orientation: any
+    source_url: null
+    last_checked: "2026-10-12"
+    verified: true
+
+  - id: jpg-1mb
+    name: JPG under 1 MB
+    accepted_types: [jpeg]
+    max_bytes: 1048576
+    orientation: any
+    source_url: null
+    last_checked: "2026-10-12"
+    verified: true
+
+  - id: jpg-2mb
+    name: JPG under 2 MB
+    accepted_types: [jpeg]
+    max_bytes: 2097152
+    orientation: any
+    source_url: null
+    last_checked: "2026-10-12"
+    verified: true
+
+  - id: pdf-100kb
+    name: PDF under 100 KB
+    accepted_types: [pdf]
+    max_bytes: 102400
+    orientation: any
+    no_password: true
+    source_url: null
+    last_checked: "2026-10-12"
+    verified: true
+
+  - id: pdf-200kb
+    name: PDF under 200 KB
+    accepted_types: [pdf]
+    max_bytes: 204800
+    orientation: any
+    no_password: true
+    source_url: null
+    last_checked: "2026-10-12"
+    verified: true
+
+  - id: pdf-500kb
+    name: PDF under 500 KB
+    accepted_types: [pdf]
+    max_bytes: 512000
+    orientation: any
+    no_password: true
+    source_url: null
+    last_checked: "2026-10-12"
+    verified: true
+
+  - id: pdf-1mb
+    name: PDF under 1 MB
+    accepted_types: [pdf]
+    max_bytes: 1048576
+    orientation: any
+    no_password: true
+    source_url: null
+    last_checked: "2026-10-12"
+    verified: true
+
+  - id: pdf-2mb
+    name: PDF under 2 MB
+    accepted_types: [pdf]
+    max_bytes: 2097152
+    orientation: any
+    no_password: true
+    source_url: null
+    last_checked: "2026-10-12"
+    verified: true

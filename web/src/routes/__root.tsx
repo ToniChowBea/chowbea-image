@@ -12,6 +12,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { Image01Icon, GithubIcon } from "@hugeicons/core-free-icons"
 import { MotionConfig } from "motion/react"
 
+import { FixTokenClaimer } from "@/components/fix/token-claimer"
 import { JobsCounter } from "@/components/jobs-counter"
 import { resolveQueueToggle } from "@/lib/queue-toggle"
 import appCss from "../styles.css?url"
@@ -24,7 +25,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Bold, free image tools. Convert, compress, resize, rotate and crop — no accounts, files deleted 30 minutes after processing.",
+          "Bold, free image tools. Convert, compress, resize, rotate, crop, or fix a file to a UK portal's upload rules — no accounts, files deleted 1 hour after processing.",
       },
       { name: "theme-color", content: "#fff3e2" },
       { title: "Chowbea Image" },
@@ -135,6 +136,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             them to instant when the OS "reduce motion" setting is on,
             mirroring how styles.css zeroes its own --duration-* tokens. */}
             <MotionConfig reducedMotion="user">
+              <FixTokenClaimer />
               <main className="flex-1">{children}</main>
             </MotionConfig>
 
@@ -144,7 +146,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                 Chowbea Image — Bold Blocks
               </span>
               <span className="text-[13px] font-semibold text-muted-ink">
-                Free &amp; ad-free · files deleted 30 minutes after processing
+                Free &amp; ad-free · files deleted 1 hour after processing ·{" "}
+                <Link to="/fix" className="underline decoration-2 underline-offset-2">
+                  Upload fixer
+                </Link>
+                {" · "}
+                <Link to="/privacy" className="underline decoration-2 underline-offset-2">
+                  Privacy
+                </Link>
               </span>
             </footer>
           </div>

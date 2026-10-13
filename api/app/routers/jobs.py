@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 
 from app.core.config import settings
 from app.jobs.registry import JobRecord, JobStatus
-from app.jobs.schemas import BoardEntry, JobStatusResponse, QueueBoard
+from app.jobs.schemas import BoardEntry, FixReport, JobStatusResponse, QueueBoard
 
 router = APIRouter(tags=["jobs"])
 
@@ -33,6 +33,7 @@ async def job_status(request: Request, job_id: str) -> JobStatusResponse:
         file_count=record.file_count,
         total_bytes=record.total_bytes,
         created_at=record.created_at,
+        report=FixReport.model_validate(record.report) if record.report else None,
     )
 
 
