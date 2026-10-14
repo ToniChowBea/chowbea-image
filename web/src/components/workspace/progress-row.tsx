@@ -1,6 +1,10 @@
 import { AnimatePresence, motion } from "motion/react"
 
-import { Progress, ProgressLabel, ProgressValue } from "@/components/ui/progress"
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress"
 import type { JobProgress } from "@/lib/jobs"
 import { useWorkspace } from "@/stores/workspace"
 
@@ -57,11 +61,7 @@ export function ProgressRow({
   const progress = progressProp !== undefined ? progressProp : storeProgress
 
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="rounded-[16px] border-2 border-ink bg-card p-4 shadow-block-sm"
-    >
+    <div role="status" aria-live="polite" className="block-card">
       <AnimatePresence mode="wait" initial={false}>
         {progress ? (
           <motion.div key={progress.phase} {...FADE}>
@@ -78,7 +78,9 @@ export function ProgressRow({
               // primitive entirely, so this is a plain <p> matching its
               // styling instead of the compound component.
               <div className="flex w-full flex-col gap-2">
-                <p className="font-heading text-sm font-bold text-ink">{phaseLabel(progress)}</p>
+                <p className="font-heading text-sm font-bold text-ink">
+                  {phaseLabel(progress)}
+                </p>
                 {progress.phase === "processing" ? (
                   <IndeterminateTrack />
                 ) : (
@@ -88,8 +90,13 @@ export function ProgressRow({
             )}
           </motion.div>
         ) : (
-          <motion.p key="idle" {...FADE} className="text-[13px] font-semibold text-muted-ink">
-            {idleLabel ?? "Nothing running yet — pick a tool, set your options, and go."}
+          <motion.p
+            key="idle"
+            {...FADE}
+            className="text-[13px] font-semibold text-muted-ink"
+          >
+            {idleLabel ??
+              "Nothing running yet — pick a tool, set your options, and go."}
           </motion.p>
         )}
       </AnimatePresence>

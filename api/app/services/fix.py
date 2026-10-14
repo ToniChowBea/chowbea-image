@@ -15,6 +15,7 @@ import pyvips
 
 from app.jobs.schemas import FileReport, FixReport, RuleCheck
 from app.services import imaging
+from app.services.office import OfficeError, convert_office_to_pdf
 from app.services.pdfutil import (
     PdfError,
     compress_pdf_to_target,
@@ -27,8 +28,9 @@ from app.services.presets import Preset, normalize_type
 # JPEG/WebP/AVIF quality ladder, highest first. Stop as soon as we are under target.
 _QUALITY_STEPS = (85, 75, 65, 55, 45, 35, 25, 15, 10, 5)
 
-# Office types we can only pass through, never generate.
-_OFFICE = {"doc", "docx"}
+# Office types: pass through when the portal accepts them and they already fit;
+# otherwise convert to PDF with LibreOffice when the portal accepts PDF.
+_OFFICE = {"doc", "docx", "odt"}
 _IMAGE_OUT = {"jpeg", "png", "tiff", "gif", "webp"}
 _EXT_FOR_TYPE = {
     "jpeg": ".jpg",
@@ -39,6 +41,7 @@ _EXT_FOR_TYPE = {
     "pdf": ".pdf",
     "doc": ".doc",
     "docx": ".docx",
+    "odt": ".odt",
 }
 _MEDIA_FOR_TYPE = {
     "jpeg": "image/jpeg",
@@ -49,6 +52,7 @@ _MEDIA_FOR_TYPE = {
     "pdf": "application/pdf",
     "doc": "application/msword",
     "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "odt": "application/vnd.oasis.opendocument.text",
 }
 
 
@@ -77,7 +81,10 @@ class JobFix:
 
 def _kind_from_ext(ext: str) -> str:
     """Map a stored input extension to a canonical type name."""
-    return normalize_type(ext)
+    kind = normalize_type(ext)
+    if kind in {"heic", "heif"}:
+        return "heif"
+    return kind
 
 
 def _is_colour(image: pyvips.Image) -> bool:
@@ -255,15 +262,31 @@ def _shrink_image_to_target(image: pyvips.Image, dest: Path, kind: str, preset: 
     return current
 
 
+def _office_fits(src: Path, preset: Preset) -> bool:
+    """True when the Word/ODT file is already under the portal's byte cap."""
+    return preset.max_bytes is None or src.stat().st_size <= preset.max_bytes
+
+
 def _pass_through_office(src: Path, dest: Path, preset: Preset) -> None:
-    """Copy a Word file if it already fits; otherwise tell the user we cannot shrink it."""
-    size = src.stat().st_size
-    if preset.max_bytes is not None and size > preset.max_bytes:
+    """Copy a Word file when it already fits the portal's size cap."""
+    if not _office_fits(src, preset):
         raise FixError(
-            "Word documents over the size limit cannot be compressed here. "
-            "Export to PDF and try again."
+            "Word documents over the size limit cannot be passed through. "
+            "We convert them to PDF when the portal accepts PDF."
         )
     shutil.copyfile(src, dest)
+
+
+def _office_to_pdf(src: Path, dest: Path, preset: Preset) -> None:
+    """LibreOffice-convert a Word/ODT file, then distill the PDF to the limit."""
+    tmp = dest.with_suffix(".from-office.pdf")
+    try:
+        convert_office_to_pdf(src, tmp)
+        _fix_existing_pdf(tmp, dest, preset)
+    except OfficeError as exc:
+        raise FixError(str(exc)) from exc
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
 def _fix_existing_pdf(src: Path, dest: Path, preset: Preset) -> None:
@@ -419,9 +442,19 @@ def _fix_one(src: Path, dest_dir: Path, index: int, name: str, preset: Preset) -
     wrapped: tuple[int, int, bool] | None = None
 
     if input_kind in _OFFICE:
-        if output_kind not in _OFFICE:
-            raise FixError("Word documents cannot be converted here. Export to PDF and try again.")
-        _pass_through_office(src, dest, preset)
+        can_pass = input_kind in preset.accepted_types and _office_fits(src, preset)
+        if can_pass:
+            output_kind = input_kind
+            dest = dest_dir / f"output-{index}{_EXT_FOR_TYPE[output_kind]}"
+            _pass_through_office(src, dest, preset)
+        elif "pdf" in preset.accepted_types:
+            output_kind = "pdf"
+            dest = dest_dir / f"output-{index}.pdf"
+            _office_to_pdf(src, dest, preset)
+        else:
+            raise FixError(
+                "This portal does not accept Word documents. Export a JPEG or PDF and try again."
+            )
     elif input_kind == "pdf" and output_kind == "pdf":
         _fix_existing_pdf(src, dest, preset)
     else:
@@ -476,8 +509,12 @@ def _ensure_pdf(src: Path, dest: Path) -> None:
     if src.suffix.lower() == ".pdf":
         shutil.copyfile(src, dest)
         return
-    if src.suffix.lower() in {".doc", ".docx"}:
-        raise FixError("Word files cannot be merged into a PDF. Export to PDF and try again.")
+    if src.suffix.lower() in {".doc", ".docx", ".odt"}:
+        try:
+            convert_office_to_pdf(src, dest)
+        except OfficeError as exc:
+            raise FixError(str(exc)) from exc
+        return
     try:
         image = imaging.load(src)
         _save_pdf_from_image(image.copy_memory(), dest, 75)

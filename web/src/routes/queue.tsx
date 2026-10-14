@@ -1,10 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import * as React from "react"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowLeft01Icon, Image01Icon, Loading03Icon } from "@hugeicons/core-free-icons"
+import {
+  ArrowLeft01Icon,
+  Image01Icon,
+  Loading03Icon,
+} from "@hugeicons/core-free-icons"
 
 import { formatBytes } from "@/lib/api"
-import { type QueueBoard, type QueueBoardEntry, fetchQueueBoard, recallJobIds } from "@/lib/jobs"
+import {
+  type QueueBoard,
+  type QueueBoardEntry,
+  fetchQueueBoard,
+  recallJobIds,
+} from "@/lib/jobs"
 import { cn } from "@/lib/utils"
 
 export const Route = createFileRoute("/queue")({ component: QueuePage })
@@ -31,7 +40,7 @@ function BoardRow({
     <div
       className={cn(
         "flex items-center gap-3 rounded-[14px] border-2 border-ink px-4 py-3",
-        mine ? "bg-soft-amber" : "bg-surface",
+        mine ? "bg-soft-amber" : "bg-surface"
       )}
     >
       {position !== undefined && (
@@ -39,15 +48,18 @@ function BoardRow({
           {position}
         </span>
       )}
-      <span className="font-mono text-[13px] font-bold text-muted-ink">#{entry.id_prefix}</span>
+      <span className="font-mono text-[13px] font-bold text-muted-ink">
+        #{entry.id_prefix}
+      </span>
       <span className="font-heading text-[15px] font-extrabold text-ink">
         {TOOL_LABELS[entry.tool] ?? entry.tool}
       </span>
       <span className="text-[13px] font-semibold text-muted-ink">
-        {entry.file_count} file{entry.file_count > 1 ? "s" : ""} · {formatBytes(entry.total_bytes)}
+        {entry.file_count} file{entry.file_count > 1 ? "s" : ""} ·{" "}
+        {formatBytes(entry.total_bytes)}
       </span>
       {mine && (
-        <span className="ml-auto rounded-full bg-ink px-3 py-1 text-[12px] font-extrabold uppercase tracking-wide text-cream">
+        <span className="ml-auto rounded-full bg-ink px-3 py-1 text-[12px] font-extrabold tracking-wide text-cream uppercase">
           Yours
         </span>
       )}
@@ -81,25 +93,34 @@ function QueuePage() {
     }
   }, [])
 
-  const isMine = (entry: QueueBoardEntry) => myIds.some((id) => id.startsWith(entry.id_prefix))
+  const isMine = (entry: QueueBoardEntry) =>
+    myIds.some((id) => id.startsWith(entry.id_prefix))
 
   return (
-    <div className="pb-4">
-      <div className="mt-8">
+    <div className="page-stack pb-4">
+      <div>
         <Link
           to="/"
-          className="press inline-flex items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold uppercase tracking-wide text-ink shadow-block-sm"
+          className="press inline-flex items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold tracking-wide text-ink uppercase shadow-block-sm"
         >
-          <HugeiconsIcon icon={ArrowLeft01Icon} className="size-3.5" strokeWidth={2.6} />
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            className="size-3.5"
+            strokeWidth={2.6}
+          />
           Workspace
         </Link>
 
         <div className="mt-5 flex items-center gap-4 sm:gap-[18px]">
           <span className="flex size-14 shrink-0 items-center justify-center rounded-[15px] border-2 border-ink bg-amber text-ink shadow-block-sm sm:size-[60px]">
-            <HugeiconsIcon icon={Image01Icon} className="size-7 sm:size-[30px]" strokeWidth={2.2} />
+            <HugeiconsIcon
+              icon={Image01Icon}
+              className="size-7 sm:size-[30px]"
+              strokeWidth={2.2}
+            />
           </span>
           <div>
-            <h1 className="font-heading text-3xl font-extrabold uppercase leading-none tracking-tight text-ink sm:text-[44px]">
+            <h1 className="font-heading text-3xl leading-none font-extrabold tracking-tight text-ink uppercase sm:text-[44px]">
               Queue
             </h1>
             <p className="mt-1.5 text-[15px] font-semibold text-subtext sm:text-base">
@@ -109,7 +130,7 @@ function QueuePage() {
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col gap-7">
+      <div className="flex flex-col gap-7">
         {error && (
           <p className="rounded-[12px] border-2 border-destructive bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
             Couldn't reach the queue. Retrying…
@@ -117,8 +138,11 @@ function QueuePage() {
         )}
 
         {!board && !error && (
-          <div className="flex items-center gap-2 text-[13px] font-extrabold uppercase tracking-wide text-muted-ink">
-            <HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
+          <div className="flex items-center gap-2 text-[13px] font-extrabold tracking-wide text-muted-ink uppercase">
+            <HugeiconsIcon
+              icon={Loading03Icon}
+              className="size-4 animate-spin"
+            />
             Loading queue
           </div>
         )}
@@ -126,7 +150,7 @@ function QueuePage() {
         {board && (
           <>
             <section className="rounded-[20px] border-2 border-ink bg-card p-[22px] shadow-block-lg">
-              <div className="mb-4 text-[13px] font-extrabold uppercase tracking-wide text-ink">
+              <div className="mb-4 text-[13px] font-extrabold tracking-wide text-ink uppercase">
                 Processing now ({board.processing.length}/{board.concurrency})
               </div>
               {board.processing.length === 0 ? (
@@ -136,18 +160,24 @@ function QueuePage() {
               ) : (
                 <div className="flex flex-col gap-2.5">
                   {board.processing.map((entry) => (
-                    <BoardRow key={entry.id_prefix} entry={entry} mine={isMine(entry)} />
+                    <BoardRow
+                      key={entry.id_prefix}
+                      entry={entry}
+                      mine={isMine(entry)}
+                    />
                   ))}
                 </div>
               )}
             </section>
 
             <section className="rounded-[20px] border-2 border-ink bg-card p-[22px] shadow-block-lg">
-              <div className="mb-4 text-[13px] font-extrabold uppercase tracking-wide text-ink">
+              <div className="mb-4 text-[13px] font-extrabold tracking-wide text-ink uppercase">
                 Waiting ({board.waiting.length})
               </div>
               {board.waiting.length === 0 ? (
-                <p className="text-[14px] font-semibold text-muted-ink">The line is empty.</p>
+                <p className="text-[14px] font-semibold text-muted-ink">
+                  The line is empty.
+                </p>
               ) : (
                 <div className="flex flex-col gap-2.5">
                   {board.waiting.map((entry, index) => (

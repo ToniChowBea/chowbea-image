@@ -9,6 +9,11 @@ def test_defaults():
     assert s.result_ttl_minutes == 60
     assert s.job_concurrency == 3
     assert s.commit_sha == "dev"
+    assert s.fix_max_files == 20
+    assert s.fix_max_upload_mb == 50
+    assert s.fix_free_rate_per_minute == 10
+    assert s.run_worker is True
+    assert s.posthog_api_key == ""
 
 
 def test_cors_origin_list_splits_and_strips():

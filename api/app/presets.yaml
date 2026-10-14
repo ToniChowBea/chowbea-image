@@ -1,6 +1,7 @@
 # Portal upload-limit presets for the fix job.
 # last_checked dates are ISO dates of the last human/source review.
 # Target encode size is ~10% under max_bytes (see TARGET_RATIO in fix.py).
+# verified=true only when an official page states the limit (see notes).
 
 presets:
   - id: uk-passport-online
@@ -14,9 +15,9 @@ presets:
     colour: true
     do_not_crop: true
     source_url: https://www.gov.uk/photos-for-passports
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
-    notes: "Must be colour. Do not crop — GOV.UK crops the photo for you."
+    notes: "GOV.UK digital photos: colour, 600×750 min, 50KB–10MB, do not crop. JPEG is required by the photo-code service (https://www.passport.service.gov.uk/help/photo-codes)."
 
   - id: uk-visa-face
     name: UK visa face photo
@@ -29,20 +30,20 @@ presets:
     colour: true
     do_not_crop: true
     source_url: https://www.gov.uk/guidance/how-to-take-a-photo-for-a-visa-application-or-permission
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
-    notes: "JPEG only, colour, portrait (taller than wide)."
+    notes: "Official guidance: JPG/JPEG, colour, vertically orientated, 50KB–6MB, at least 600×750."
 
   - id: ucas-documents
     name: UCAS documents
-    accepted_types: [pdf, jpeg, png, doc, docx]
+    accepted_types: [pdf, jpeg, odt]
     max_bytes: 5242880        # 5 MB per file
     orientation: any
     no_password: true
     source_url: https://www.ucas.com/applying/applying-to-university/uploading-documents-to-your-application
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
-    notes: "5 MB per file. Password-protected files are rejected. HEIC is not accepted."
+    notes: "Official applicant FAQ: PDF, JPEG/JPG or ODT, 5MB per file, no password, no HEIC. PNG/DOC/DOCX appear in a 2025 UCAS proposal but not on the live FAQ, so they are converted to PDF here rather than listed as accepted."
 
   - id: saas-documents
     name: SAAS document upload
@@ -50,10 +51,10 @@ presets:
     max_bytes: 5242880        # 5 MB
     orientation: any
     no_password: true
-    source_url: https://www.saas.gov.uk/
-    last_checked: "2026-10-12"
+    source_url: https://www.edocs.saas.gov.uk/help/document_upload_guide.pdf
+    last_checked: "2026-10-13"
     verified: true
-    notes: "JPG, TIFF or PDF, 5 MB maximum."
+    notes: "Official SAAS Document Upload Service guide: JPG/JPEG, TIFF/TIF or PDF, 5MB per file (max 5 files per transaction)."
 
   - id: ukvcas
     name: UKVCAS
@@ -62,10 +63,10 @@ presets:
     max_bytes: 6291456        # 6 MB
     orientation: any
     no_password: true
-    source_url: https://www.ukvcas.co.uk/
-    last_checked: "2026-10-12"
-    verified: false
-    notes: "PDF preferred; JPG and PNG also accepted. Limit not independently re-checked."
+    source_url: https://www.ukvcas.co.uk/help-support/ourinfo/prepareDocuments
+    last_checked: "2026-10-13"
+    verified: true
+    notes: "UKVCAS 'Preparing your documents': PDF preferred, JPG or PNG, not password-protected, no larger than 6MB."
 
   - id: vfs-global
     name: VFS Global
@@ -74,9 +75,9 @@ presets:
     orientation: any
     no_password: true
     source_url: https://www.vfsglobal.com/
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: false
-    notes: "PDF, JPG or PNG, 2 MB. Limit not independently re-checked."
+    notes: "VFS file-size caps vary by country VAC and programme. No single official UK-wide byte limit is published on vfsglobal.com. 2MB is a conservative target, not an official figure — check the country page before relying on it."
 
   - id: nhs-jobs
     name: NHS Jobs
@@ -85,10 +86,10 @@ presets:
     max_bytes: 1048576        # 1 MB
     orientation: any
     no_password: true
-    source_url: https://www.jobs.nhs.uk/
-    last_checked: "2026-10-12"
-    verified: false
-    notes: "PDF, DOC or DOCX, 1 MB. Word files over the limit cannot be compressed here — export to PDF first."
+    source_url: https://faq.nhsbsa.nhs.uk/knowledgebase/article/KA-25732/en-us
+    last_checked: "2026-10-13"
+    verified: true
+    notes: "Official NHSBSA FAQ for supporting documents on a job listing: DOC, DOCX or PDF, 1MB each (up to 4 files). This is the employer supporting-document limit, not an applicant CV upload — NHS Jobs applicants cannot upload a CV file and must paste text."
 
   # Generic size targets (JPG and PDF). Aim ~10% under each max.
   - id: jpg-100kb
@@ -97,7 +98,7 @@ presets:
     max_bytes: 102400
     orientation: any
     source_url: null
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
 
   - id: jpg-200kb
@@ -106,7 +107,7 @@ presets:
     max_bytes: 204800
     orientation: any
     source_url: null
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
 
   - id: jpg-500kb
@@ -115,7 +116,7 @@ presets:
     max_bytes: 512000
     orientation: any
     source_url: null
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
 
   - id: jpg-1mb
@@ -124,7 +125,7 @@ presets:
     max_bytes: 1048576
     orientation: any
     source_url: null
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
 
   - id: jpg-2mb
@@ -133,7 +134,7 @@ presets:
     max_bytes: 2097152
     orientation: any
     source_url: null
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
 
   - id: pdf-100kb
@@ -143,7 +144,7 @@ presets:
     orientation: any
     no_password: true
     source_url: null
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
 
   - id: pdf-200kb
@@ -153,7 +154,7 @@ presets:
     orientation: any
     no_password: true
     source_url: null
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
 
   - id: pdf-500kb
@@ -163,7 +164,7 @@ presets:
     orientation: any
     no_password: true
     source_url: null
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
 
   - id: pdf-1mb
@@ -173,7 +174,7 @@ presets:
     orientation: any
     no_password: true
     source_url: null
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true
 
   - id: pdf-2mb
@@ -183,5 +184,5 @@ presets:
     orientation: any
     no_password: true
     source_url: null
-    last_checked: "2026-10-12"
+    last_checked: "2026-10-13"
     verified: true

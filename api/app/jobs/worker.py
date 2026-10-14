@@ -16,10 +16,12 @@ from pathlib import Path
 from app.jobs.registry import JobRecord, JobRegistry, JobStatus
 from app.jobs.stats import CounterStore
 from app.services import imaging
+from app.services.analytics import capture
 from app.services.compress import CompressError, compress_image
 from app.services.convert import ConvertError, convert_image
 from app.services.crop import CropError, crop_image
 from app.services.fix import FixError, fix_files
+from app.services.office import OfficeError
 from app.services.presets import get_preset
 from app.services.resize import ResizeError, resize_image
 from app.services.rotate import RotateError, rotate_image
@@ -33,6 +35,7 @@ _KNOWN_ERRORS = (
     RotateError,
     CropError,
     FixError,
+    OfficeError,
     imaging.ImageError,
 )
 
@@ -181,13 +184,33 @@ async def execute_job(registry: JobRegistry, job_id: str, counter: CounterStore 
     except _KNOWN_ERRORS as exc:
         record.status = JobStatus.failed
         record.error = str(exc)
+        _track_fix(record, succeeded=False)
     except Exception:
         logger.exception("Job %s crashed", job_id)
         record.status = JobStatus.failed
         record.error = "Something went wrong while processing this image."
+        _track_fix(record, succeeded=False)
     else:
         record.status = JobStatus.done
         if counter is not None:
             counter.increment()
+        _track_fix(record, succeeded=True)
     finally:
         record.finished_at = time.time()
+
+
+def _track_fix(record: JobRecord, *, succeeded: bool) -> None:
+    """Emit an optional PostHog event for fixer jobs. Never includes file names."""
+    if record.tool != "fix":
+        return
+    exts: list[str] = record.params.get("exts") or []
+    file_type = (exts[0].lstrip(".").lower() if exts else "unknown")
+    capture(
+        "fix_succeeded" if succeeded else "fix_failed",
+        {
+            "preset": str(record.params.get("preset") or ""),
+            "file_type": file_type,
+            "file_count": record.file_count,
+            "passed": bool(record.report and record.report.get("passed")) if succeeded else False,
+        },
+    )

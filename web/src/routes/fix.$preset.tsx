@@ -29,7 +29,12 @@ import {
 } from "@/lib/billing"
 import { isBrowserRenderable, objectUrlFor, revokeUrl } from "@/lib/images"
 import type { JobProgress } from "@/lib/jobs"
-import { appJsonLd, faqJsonLd, fallbackFaq, seoForPreset } from "@/lib/preset-seo"
+import {
+  appJsonLd,
+  faqJsonLd,
+  fallbackFaq,
+  seoForPreset,
+} from "@/lib/preset-seo"
 
 export const Route = createFileRoute("/fix/$preset")({
   head: ({ params }) => {
@@ -47,7 +52,19 @@ export const Route = createFileRoute("/fix/$preset")({
 })
 
 /** Image formats we can always decode, plus whatever the portal accepts. */
-const DECODE_EXTS = ["png", "jpg", "jpeg", "webp", "avif", "heic", "heif", "gif", "tif", "tiff", "bmp"]
+const DECODE_EXTS = [
+  "png",
+  "jpg",
+  "jpeg",
+  "webp",
+  "avif",
+  "heic",
+  "heif",
+  "gif",
+  "tif",
+  "tiff",
+  "bmp",
+]
 const TYPE_EXTS: Record<string, string[]> = {
   jpeg: ["jpg", "jpeg"],
   png: ["png"],
@@ -55,19 +72,30 @@ const TYPE_EXTS: Record<string, string[]> = {
   pdf: ["pdf"],
   doc: ["doc"],
   docx: ["docx"],
+  odt: ["odt"],
   gif: ["gif"],
   webp: ["webp"],
 }
 
 /** File picker accept list: every image we can decode, plus portal types. */
 function acceptFor(preset: Preset): string {
-  const extras = preset.accepted_types.flatMap((type) => TYPE_EXTS[type] ?? [type])
-  return [...new Set([...DECODE_EXTS, ...extras])].map((ext) => `.${ext}`).join(",")
+  const extras = preset.accepted_types.flatMap(
+    (type) => TYPE_EXTS[type] ?? [type]
+  )
+  // Presets that accept PDF can take Word input; the worker converts to PDF.
+  const office = preset.accepted_types.includes("pdf")
+    ? ["doc", "docx", "odt"]
+    : []
+  return [...new Set([...DECODE_EXTS, ...extras, ...office])]
+    .map((ext) => `.${ext}`)
+    .join(",")
 }
 
 /** Short dropzone subtitle listing the portal's accepted types. */
 function hintFor(preset: Preset): string {
-  const types = preset.accepted_types.map((type) => (type === "jpeg" ? "JPG" : type.toUpperCase()))
+  const types = preset.accepted_types.map((type) =>
+    type === "jpeg" ? "JPG" : type.toUpperCase()
+  )
   return `One file free · packs paid · ${types.join(" / ")}`
 }
 
@@ -75,7 +103,9 @@ function hintFor(preset: Preset): string {
 function FixPresetPage() {
   const { preset: presetId } = Route.useParams()
   const seo = seoForPreset(presetId)
-  const [preset, setPreset] = React.useState<Preset | null | undefined>(undefined)
+  const [preset, setPreset] = React.useState<Preset | null | undefined>(
+    undefined
+  )
   const [files, setFiles] = React.useState<File[]>([])
   const [merge, setMerge] = React.useState(false)
   const [progress, setProgress] = React.useState<JobProgress | null>(null)
@@ -107,7 +137,13 @@ function FixPresetPage() {
         if (!cancelled) setBilling(config)
       })
       .catch(() => {
-        if (!cancelled) setBilling({ paywall: false, batch_price: "£1.99", pass_price: "£4.99", currency: "gbp" })
+        if (!cancelled)
+          setBilling({
+            paywall: false,
+            batch_price: "£1.99",
+            pass_price: "£4.99",
+            currency: "gbp",
+          })
       })
     return () => {
       cancelled = true
@@ -177,9 +213,13 @@ function FixPresetPage() {
         }
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Something went wrong."
+      const message =
+        err instanceof Error ? err.message : "Something went wrong."
       setError(message)
-      if (message.toLowerCase().includes("payment") || message.toLowerCase().includes("token")) {
+      if (
+        message.toLowerCase().includes("payment") ||
+        message.toLowerCase().includes("token")
+      ) {
         clearFixToken()
         setTokenOk(false)
       }
@@ -191,22 +231,24 @@ function FixPresetPage() {
 
   if (preset === undefined) {
     return (
-      <div className="pb-10">
-        <h1 className="mt-10 font-heading text-3xl font-extrabold uppercase tracking-tight text-ink">
+      <div className="page-stack pb-10">
+        <h1 className="font-heading text-3xl font-extrabold tracking-tight text-ink uppercase">
           {seo.h1}
         </h1>
-        <p className="mt-4 text-sm font-semibold text-muted-ink">Loading preset…</p>
+        <p className="text-sm font-semibold text-muted-ink">Loading preset…</p>
       </div>
     )
   }
 
   if (preset === null) {
     return (
-      <div className="mt-16 text-center">
-        <p className="font-heading text-2xl font-extrabold text-ink">Unknown preset</p>
+      <div className="page-stack items-center text-center">
+        <p className="font-heading text-2xl font-extrabold text-ink">
+          Unknown preset
+        </p>
         <Link
           to="/fix"
-          className="press mt-4 inline-flex items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold uppercase tracking-wide text-ink shadow-block-sm"
+          className="press inline-flex items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold tracking-wide text-ink uppercase shadow-block-sm"
         >
           All presets
         </Link>
@@ -220,41 +262,57 @@ function FixPresetPage() {
   const origin = typeof window !== "undefined" ? window.location.origin : ""
 
   return (
-    <div className="pb-10">
+    <div className="page-stack pb-10">
       <JsonLd payload={faqJsonLd(faq)} />
-      <JsonLd payload={appJsonLd(`${origin}/fix/${preset.id}`, heading, preset.seo_description || seo.description)} />
+      <JsonLd
+        payload={appJsonLd(
+          `${origin}/fix/${preset.id}`,
+          heading,
+          preset.seo_description || seo.description
+        )}
+      />
 
-      <Link
-        to="/fix"
-        className="press mt-8 inline-flex items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold uppercase tracking-wide text-ink shadow-block-sm"
-      >
-        <HugeiconsIcon icon={ArrowLeft01Icon} className="size-3.5" strokeWidth={2.6} />
-        All presets
-      </Link>
+      <div className="flex flex-col gap-5">
+        <Link
+          to="/fix"
+          className="press inline-flex w-fit items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold tracking-wide text-ink uppercase shadow-block-sm"
+        >
+          <HugeiconsIcon
+            icon={ArrowLeft01Icon}
+            className="size-3.5"
+            strokeWidth={2.6}
+          />
+          All presets
+        </Link>
 
-      <div className="mt-5 flex items-start gap-4">
-        <span className="flex size-14 shrink-0 items-center justify-center rounded-[15px] border-2 border-ink bg-amber text-ink shadow-block-sm">
-          <HugeiconsIcon icon={Image01Icon} className="size-7" strokeWidth={2.2} />
-        </span>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="font-heading text-3xl font-extrabold uppercase leading-none tracking-tight text-ink">
-              {heading}
-            </h1>
-            <Badge variant={preset.verified ? "amber" : "outline"}>
-              {preset.verified ? "Verified" : "Unverified"}
-            </Badge>
+        <div className="flex items-start gap-4">
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-[15px] border-2 border-ink bg-amber text-ink shadow-block-sm">
+            <HugeiconsIcon
+              icon={Image01Icon}
+              className="size-7"
+              strokeWidth={2.2}
+            />
+          </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="font-heading text-3xl leading-none font-extrabold tracking-tight text-ink uppercase">
+                {heading}
+              </h1>
+              <Badge variant={preset.verified ? "amber" : "outline"}>
+                {preset.verified ? "Verified" : "Unverified"}
+              </Badge>
+            </div>
+            {preset.last_checked && (
+              <p className="mt-2 text-[13px] font-semibold text-muted-ink">
+                Rules last checked {preset.last_checked}
+              </p>
+            )}
           </div>
-          {preset.last_checked && (
-            <p className="mt-2 text-[13px] font-semibold text-muted-ink">
-              Rules last checked {preset.last_checked}
-            </p>
-          )}
         </div>
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_minmax(280px,340px)]">
-        <div className="flex flex-col gap-4">
+      <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24.5rem)] lg:items-start">
+        <div className="flex flex-col gap-5">
           {files.length === 0 ? (
             <Dropzone
               accept={acceptFor(preset)}
@@ -278,18 +336,26 @@ function FixPresetPage() {
           )}
 
           {isBatch && (
-            <label className="flex items-center justify-between gap-3 rounded-[16px] border-2 border-ink bg-card px-4 py-3 shadow-block-sm">
+            <label className="flex items-center justify-between gap-3 rounded-[20px] border-2 border-ink bg-card px-5 py-3.5 shadow-block-sm">
               <span className="text-[13px] font-extrabold text-ink">
                 Merge into one PDF under this limit
               </span>
-              <ToggleSwitch checked={merge} onChange={setMerge} label="Merge into one PDF" />
+              <ToggleSwitch
+                checked={merge}
+                onChange={setMerge}
+                label="Merge into one PDF"
+              />
             </label>
           )}
 
-          {needsPay && billing && <PaywallCard config={billing} onError={setError} />}
+          {needsPay && billing && (
+            <PaywallCard config={billing} onError={setError} />
+          )}
 
           {tokenOk && isBatch && (
-            <p className="text-[13px] font-semibold text-ink">Payment token ready — this pack is covered.</p>
+            <p className="text-[13px] font-semibold text-ink">
+              Payment token ready — this pack is covered.
+            </p>
           )}
 
           <Button
@@ -299,11 +365,15 @@ function FixPresetPage() {
             onClick={() => void handleFix()}
             className="bg-amber text-ink shadow-block hover:bg-amber"
           >
-            {submitting ? "Fixing…" : isBatch ? "Fix evidence pack" : "Fix this file"}
+            {submitting
+              ? "Fixing…"
+              : isBatch
+                ? "Fix evidence pack"
+                : "Fix this file"}
           </Button>
 
           {error && (
-            <p className="rounded-[12px] border-2 border-destructive bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
+            <p className="rounded-[16px] border-2 border-destructive bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
               {error}
             </p>
           )}
@@ -336,11 +406,12 @@ function FixPresetPage() {
           )}
         </div>
 
-        <aside className="flex flex-col gap-4">
+        <aside className="flex flex-col gap-5 lg:sticky lg:top-7">
           <RulesCard preset={preset} />
-          <p className="rounded-[16px] border-2 border-ink bg-soft-amber px-4 py-3 text-[13px] font-semibold text-ink">
-            This tool only fixes file format, size and pixels. It does not check faces, backgrounds
-            or content, and it does not guarantee a portal will accept the file.
+          <p className="rounded-[20px] border-2 border-ink bg-soft-amber px-5 py-4 text-[13px] font-semibold text-ink">
+            This tool only fixes file format, size and pixels. It does not check
+            faces, backgrounds or content, and it does not guarantee a portal
+            will accept the file.
           </p>
           {result?.report && <FixReportCard report={result.report} />}
           <PresetFaq items={faq} />
@@ -352,16 +423,29 @@ function FixPresetPage() {
 
 function FileList({ files, onClear }: { files: File[]; onClear: () => void }) {
   return (
-    <div className="rounded-[16px] border-2 border-ink bg-card px-4 py-3 shadow-block-sm">
+    <div className="block-card">
       <ul className="flex flex-col gap-2">
         {files.map((file) => (
-          <li key={`${file.name}-${file.size}`} className="flex items-center justify-between gap-3">
-            <p className="min-w-0 truncate font-heading text-sm font-extrabold text-ink">{file.name}</p>
-            <p className="shrink-0 text-[12px] font-semibold text-muted-ink">{formatBytes(file.size)}</p>
+          <li
+            key={`${file.name}-${file.size}`}
+            className="flex items-center justify-between gap-3"
+          >
+            <p className="min-w-0 truncate font-heading text-sm font-extrabold text-ink">
+              {file.name}
+            </p>
+            <p className="shrink-0 text-[12px] font-semibold text-muted-ink">
+              {formatBytes(file.size)}
+            </p>
           </li>
         ))}
       </ul>
-      <Button type="button" variant="ghost" size="sm" className="mt-3" onClick={onClear}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="mt-3"
+        onClick={onClear}
+      >
         Remove
       </Button>
     </div>
@@ -369,7 +453,9 @@ function FileList({ files, onClear }: { files: File[]; onClear: () => void }) {
 }
 
 function RulesCard({ preset }: { preset: Preset }) {
-  const types = preset.accepted_types.map((type) => (type === "jpeg" ? "JPG" : type.toUpperCase()))
+  const types = preset.accepted_types.map((type) =>
+    type === "jpeg" ? "JPG" : type.toUpperCase()
+  )
   const size =
     preset.min_bytes && preset.max_bytes
       ? `${formatBytes(preset.min_bytes)} – ${formatBytes(preset.max_bytes)}`
@@ -378,8 +464,8 @@ function RulesCard({ preset }: { preset: Preset }) {
         : null
 
   return (
-    <div className="rounded-[16px] border-2 border-ink bg-card p-4 shadow-block-sm">
-      <p className="mb-3 font-heading text-sm font-extrabold uppercase tracking-wide text-ink">
+    <div className="block-card">
+      <p className="mb-3 font-heading text-sm font-extrabold tracking-wide text-ink uppercase">
         Official rules
       </p>
       <ul className="flex flex-col gap-1.5 text-[13px] font-semibold text-ink">
@@ -387,18 +473,30 @@ function RulesCard({ preset }: { preset: Preset }) {
         {size && <li>Size: {size}</li>}
         {(preset.min_width || preset.min_height) && (
           <li>
-            Minimum pixels: {preset.min_width ?? "—"} × {preset.min_height ?? "—"}
+            Minimum pixels: {preset.min_width ?? "—"} ×{" "}
+            {preset.min_height ?? "—"}
           </li>
         )}
-        {preset.orientation !== "any" && <li>Orientation: {preset.orientation}</li>}
+        {preset.orientation !== "any" && (
+          <li>Orientation: {preset.orientation}</li>
+        )}
         {preset.colour && <li>Colour</li>}
         {preset.do_not_crop && <li>Do not crop — the portal crops</li>}
         {preset.no_password && <li>No password protection</li>}
         {preset.preferred_type && (
-          <li>Preferred: {preset.preferred_type === "jpeg" ? "JPG" : preset.preferred_type.toUpperCase()}</li>
+          <li>
+            Preferred:{" "}
+            {preset.preferred_type === "jpeg"
+              ? "JPG"
+              : preset.preferred_type.toUpperCase()}
+          </li>
         )}
       </ul>
-      {preset.notes && <p className="mt-3 text-[13px] font-medium text-subtext">{preset.notes}</p>}
+      {preset.notes && (
+        <p className="mt-3 text-[13px] font-medium text-subtext">
+          {preset.notes}
+        </p>
+      )}
       {preset.source_url && (
         <a
           href={preset.source_url}

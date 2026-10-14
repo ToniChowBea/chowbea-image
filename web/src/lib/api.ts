@@ -8,6 +8,7 @@
 
 import axios from "axios"
 
+import { capture } from "./analytics"
 import type { FixReport, JobAccepted, JobProgress, JobStatusResponse } from "./jobs"
 import {
   API_BASE_URL,
@@ -281,6 +282,13 @@ export async function cropImages(
  * Convert/resize/compress files to a portal preset and return the file plus
  * the per-rule report from the job status payload. `merge` builds one PDF pack.
  */
+function fileTypeOf(file: File | undefined): string {
+  if (!file) return "unknown"
+  if (file.type) return file.type
+  const dot = file.name.lastIndexOf(".")
+  return dot >= 0 ? file.name.slice(dot + 1).toLowerCase() : "unknown"
+}
+
 export async function fixFiles(
   files: File[],
   presetId: string,
@@ -292,6 +300,13 @@ export async function fixFiles(
   form.append("preset", presetId)
   form.append("merge", String(Boolean(opts.merge)))
   if (opts.token) form.append("token", opts.token)
+  const fileType = fileTypeOf(files[0])
+  capture("fix_started", {
+    preset: presetId,
+    file_type: fileType,
+    file_count: files.length,
+    merge: Boolean(opts.merge),
+  })
   try {
     const accepted = await submitForm("/img/fix", form, onProgress)
     rememberJob(accepted.job_id, "fix")
@@ -303,17 +318,29 @@ export async function fixFiles(
     })
     const status: JobStatusResponse = await waitForJob(accepted.job_id, { onProgress })
     const download = await downloadJobResult(accepted.job_id, onProgress)
+    const report = status.report ?? {
+      preset_id: presetId,
+      preset_name: "",
+      passed: false,
+      files: [],
+    }
+    capture("fix_succeeded", {
+      preset: presetId,
+      file_type: fileType,
+      file_count: files.length,
+      passed: report.passed,
+    })
     return {
       blob: download.blob,
       filename: download.filename ?? batchFilename(files, "fixed-", "fixed-files.zip"),
-      report: status.report ?? {
-        preset_id: presetId,
-        preset_name: "",
-        passed: false,
-        files: [],
-      },
+      report,
     }
   } catch (err) {
+    capture("fix_failed", {
+      preset: presetId,
+      file_type: fileType,
+      file_count: files.length,
+    })
     throw await toApiError(err)
   }
 }

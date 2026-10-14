@@ -59,27 +59,38 @@ function FixIndexPage() {
   const origin = typeof window !== "undefined" ? window.location.origin : ""
 
   return (
-    <div className="pb-8">
+    <div className="page-stack pb-8">
       <JsonLd payload={faqJsonLd(INDEX_FAQ)} />
-      <JsonLd payload={appJsonLd(origin, "Chowbea upload fixer", INDEX_SEO.description)} />
+      <JsonLd
+        payload={appJsonLd(
+          origin,
+          "Chowbea upload fixer",
+          INDEX_SEO.description
+        )}
+      />
 
-      <div className="mt-8 flex items-center gap-4">
+      <div className="flex items-start gap-4">
         <span className="flex size-14 shrink-0 items-center justify-center rounded-[15px] border-2 border-ink bg-amber text-ink shadow-block-sm">
-          <HugeiconsIcon icon={Image01Icon} className="size-7" strokeWidth={2.2} />
+          <HugeiconsIcon
+            icon={Image01Icon}
+            className="size-7"
+            strokeWidth={2.2}
+          />
         </span>
-        <div>
-          <h1 className="font-heading text-3xl font-extrabold uppercase leading-none tracking-tight text-ink sm:text-[44px]">
+        <div className="min-w-0">
+          <h1 className="font-heading text-3xl leading-none font-extrabold tracking-tight text-ink uppercase sm:text-[44px]">
             {INDEX_SEO.h1}
           </h1>
           <p className="mt-1.5 max-w-xl text-[15px] font-semibold text-subtext">
-            Pick a UK portal, drop a file, and we convert / resize / compress it to that
-            portal&apos;s rules. One file is free. Format only — not a guarantee of acceptance.
+            Pick a UK portal, drop a file, and we convert / resize / compress it
+            to that portal&apos;s rules. One file is free. Format only — not a
+            guarantee of acceptance.
           </p>
         </div>
       </div>
 
       {error && (
-        <p className="mt-8 rounded-[12px] border-2 border-destructive bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
+        <p className="rounded-[16px] border-2 border-destructive bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
           Couldn&apos;t load presets. Is the API running?
         </p>
       )}
@@ -91,14 +102,14 @@ function FixIndexPage() {
         </>
       )}
 
-      {!presets && !error && (
-        <ul className="mt-10 grid gap-3 sm:grid-cols-2">
+      {!presets && (
+        <ul className="grid gap-4 sm:grid-cols-2">
           {PRESET_IDS.map((id) => (
             <li key={id}>
               <Link
                 to="/fix/$preset"
                 params={{ preset: id }}
-                className="press flex rounded-[16px] border-2 border-ink bg-card p-4 font-heading text-sm font-extrabold text-ink shadow-block-sm"
+                className="press flex rounded-[20px] border-2 border-ink bg-card p-5 font-heading text-sm font-extrabold text-ink shadow-block-sm"
               >
                 {id}
               </Link>
@@ -113,25 +124,33 @@ function FixIndexPage() {
 function PresetGroup({ title, items }: { title: string; items: Preset[] }) {
   if (items.length === 0) return null
   return (
-    <section className="mt-10">
-      <h2 className="mb-4 font-heading text-sm font-extrabold uppercase tracking-wide text-ink">
+    <section>
+      <h2 className="mb-4 font-heading text-sm font-extrabold tracking-wide text-ink uppercase">
         {title}
       </h2>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         {items.map((preset) => (
           <Link
             key={preset.id}
             to="/fix/$preset"
             params={{ preset: preset.id }}
-            className="press group flex flex-col gap-2 rounded-[16px] border-2 border-ink bg-card p-4 shadow-block-sm hover:bg-surface"
+            className="press group flex flex-col gap-2 rounded-[20px] border-2 border-ink bg-card p-5 shadow-block-sm hover:bg-surface"
           >
             <div className="flex items-start justify-between gap-2">
-              <p className="font-heading text-base font-extrabold text-ink">{preset.h1 || preset.name}</p>
-              <span className="font-heading text-lg font-extrabold text-ink">→</span>
+              <p className="font-heading text-base font-extrabold text-ink">
+                {preset.h1 || preset.name}
+              </p>
+              <span className="font-heading text-lg font-extrabold text-ink">
+                →
+              </span>
             </div>
             <p className="text-[13px] font-semibold text-muted-ink">
-              {preset.accepted_types.map((type) => (type === "jpeg" ? "JPG" : type.toUpperCase())).join(" · ")}
-              {preset.max_bytes ? ` · max ${formatBytes(preset.max_bytes)}` : ""}
+              {preset.accepted_types
+                .map((type) => (type === "jpeg" ? "JPG" : type.toUpperCase()))
+                .join(" · ")}
+              {preset.max_bytes
+                ? ` · max ${formatBytes(preset.max_bytes)}`
+                : ""}
             </p>
             <Badge variant={preset.verified ? "amber" : "outline"}>
               {preset.verified ? "Verified" : "Unverified"}

@@ -17,20 +17,28 @@ export function RotatePanel() {
   const images = useWorkspace((state) => state.images)
   const selectedIds = useWorkspace((state) => state.selectedIds)
   const previewImage =
-    images.find((img) => selectedIds.has(img.id) && img.previewable && img.url) ??
-    images.find((img) => img.previewable && img.url)
+    images.find(
+      (img) => selectedIds.has(img.id) && img.previewable && img.url
+    ) ?? images.find((img) => img.previewable && img.url)
 
   const transform = `rotate(${rotation}deg) scaleX(${flip === "horizontal" ? -1 : 1}) scaleY(${
     flip === "vertical" ? -1 : 1
   })`
 
   return (
-    <div className="flex flex-col gap-4 rounded-[14px] border-2 border-dashed border-line p-4">
+    <div className="options-well">
       <div className="flex flex-col gap-2">
-        <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">Rotate</p>
+        <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">
+          Rotate
+        </p>
         <Segmented
           value={String(rotation)}
-          onValueChange={(value) => setOption("rotate", { rotation: Number(value) as 0 | 90 | 180 | 270 })}
+          onValueChange={(value) =>
+            setOption("rotate", {
+              rotation: Number(value) as 0 | 90 | 180 | 270,
+            })
+          }
+          className="flex w-full rounded-2xl"
           aria-label="Rotation"
         >
           {ROTATIONS.map((r) => (
@@ -42,10 +50,15 @@ export function RotatePanel() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">Flip</p>
+        <p className="text-[11px] font-extrabold tracking-wide text-muted-ink uppercase">
+          Flip
+        </p>
         <Segmented
           value={flip}
-          onValueChange={(value) => setOption("rotate", { flip: value as FlipDirection })}
+          onValueChange={(value) =>
+            setOption("rotate", { flip: value as FlipDirection })
+          }
+          className="flex w-full rounded-2xl"
           aria-label="Flip direction"
         >
           {FLIPS.map((f) => (
