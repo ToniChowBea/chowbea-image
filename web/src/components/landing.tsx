@@ -48,7 +48,11 @@ function hasFileDrag(event: React.DragEvent) {
   return Array.from(event.dataTransfer.types).includes("Files")
 }
 
-/** Amber tool tile: sets the workspace tool so a following drop opens that panel. */
+/**
+ * Amber tool tile. Always selects the workspace tool. With no images yet,
+ * also opens the native file picker so choosing files lands in that panel —
+ * Image has one workspace rather than PDF-style per-tool routes.
+ */
 function ToolTile({
   id,
   label,
@@ -56,6 +60,7 @@ function ToolTile({
   icon,
   index,
   selected,
+  onPick,
 }: {
   id: ToolName
   label: string
@@ -63,11 +68,20 @@ function ToolTile({
   icon: (typeof TOOLS)[number]["icon"]
   index: number
   selected: boolean
+  onPick: () => void
 }) {
   return (
     <button
       type="button"
-      onClick={() => useWorkspace.getState().setActiveTool(id)}
+      onClick={() => {
+        const store = useWorkspace.getState()
+        store.setActiveTool(id)
+        // Empty landing only: files already in the store mean the parent
+        // route will swap to the workspace with this tool active.
+        if (store.images.length === 0) {
+          onPick()
+        }
+      }}
       aria-pressed={selected}
       className={cn(
         "group flex flex-col rounded-[18px] border-2 border-ink bg-amber p-6 text-left shadow-block transition-[transform,box-shadow]",
@@ -179,14 +193,20 @@ function FixFeature() {
 
 /**
  * Empty-state homepage: hero, featured UK-portal fixer, five image-tool tiles,
- * then the coffee ask. Dropping files (button or anywhere on this surface)
- * adds them to the workspace store so the index route can swap in the
- * existing workspace.
+ * then the coffee ask. A tile click opens the native picker (or selects the
+ * tool if images are already loaded). Dropping files (button or anywhere on
+ * this surface) adds them to the workspace store so the index route can swap
+ * in the existing workspace.
  */
 export function Landing() {
   const activeTool = useWorkspace((state) => state.activeTool)
   const [dragDepth, setDragDepth] = React.useState(0)
   const inputRef = React.useRef<HTMLInputElement>(null)
+
+  // Shared opener for the Upload button and tool tiles.
+  function openPicker() {
+    inputRef.current?.click()
+  }
 
   // A drag can end without a paired dragleave at this root (released outside
   // the window, focus loss). Reset the counter on any global drag end/drop.
@@ -252,7 +272,7 @@ export function Landing() {
           </p>
           <button
             type="button"
-            onClick={() => inputRef.current?.click()}
+            onClick={openPicker}
             className="press inline-flex items-center gap-2.5 rounded-full border-2 border-ink bg-ink px-7 py-3.5 font-heading text-base font-extrabold tracking-wide text-cream uppercase shadow-amber-sm active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
           >
             <HugeiconsIcon
@@ -289,6 +309,7 @@ export function Landing() {
             icon={tool.icon}
             index={index}
             selected={activeTool === tool.id}
+            onPick={openPicker}
           />
         ))}
       </div>
