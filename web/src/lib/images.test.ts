@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest"
 
-import { SUPPORTED_EXTS, extOf, isBrowserRenderable, kindLabel, objectUrlFor, revokeUrl } from "./images"
+import {
+  SUPPORTED_ACCEPT,
+  SUPPORTED_EXTS,
+  extOf,
+  isBrowserRenderable,
+  isSupportedImage,
+  kindLabel,
+  objectUrlFor,
+  revokeUrl,
+} from "./images"
 
 describe("SUPPORTED_EXTS", () => {
   it("contains all supported image extensions", () => {
@@ -19,6 +28,23 @@ describe("SUPPORTED_EXTS", () => {
 
   it("is a Set", () => {
     expect(SUPPORTED_EXTS instanceof Set).toBe(true)
+  })
+})
+
+describe("SUPPORTED_ACCEPT", () => {
+  it("lists every supported extension as a dotted accept token", () => {
+    for (const ext of SUPPORTED_EXTS) {
+      expect(SUPPORTED_ACCEPT).toContain(`.${ext}`)
+    }
+  })
+})
+
+describe("isSupportedImage", () => {
+  it("accepts a known image extension and rejects others", () => {
+    const png = new File(["a"], "photo.PNG", { type: "image/png" })
+    const pdf = new File(["b"], "doc.pdf", { type: "application/pdf" })
+    expect(isSupportedImage(png)).toBe(true)
+    expect(isSupportedImage(pdf)).toBe(false)
   })
 })
 
