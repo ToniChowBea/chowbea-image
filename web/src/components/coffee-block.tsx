@@ -5,7 +5,8 @@ import { Coffee02Icon } from "@hugeicons/core-free-icons"
 // param, so every control just opens the page.)
 const BMC_URL = "https://buymeacoffee.com/alawodeemmd"
 
-const PRESETS = ["$3", "$5", "$10"]
+// Suggested amounts in GBP — Chowbea is a UK product.
+const PRESETS = ["£3", "£5", "£10"]
 
 /**
  * The footer ask on a free, ad-free tool: an ink panel on an amber shadow with
