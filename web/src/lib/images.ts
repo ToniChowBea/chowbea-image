@@ -12,8 +12,21 @@ export const SUPPORTED_EXTS = new Set([
   "bmp",
 ])
 
+/** `accept` value for file pickers that feed the image workspace. */
+export const SUPPORTED_ACCEPT = [...SUPPORTED_EXTS]
+  .map((ext) => `.${ext}`)
+  .join(",")
+
 /** Browser-renderable formats. */
-const BROWSER_RENDERABLE = new Set(["png", "jpg", "jpeg", "webp", "gif", "bmp", "avif"])
+const BROWSER_RENDERABLE = new Set([
+  "png",
+  "jpg",
+  "jpeg",
+  "webp",
+  "gif",
+  "bmp",
+  "avif",
+])
 
 /**
  * Extract file extension (lowercase, with dot).
@@ -22,6 +35,11 @@ export function extOf(name: string): string {
   const lastDot = name.lastIndexOf(".")
   if (lastDot === -1 || lastDot === name.length - 1) return ""
   return name.slice(lastDot).toLowerCase()
+}
+
+/** True when the file's extension is in the supported image set. */
+export function isSupportedImage(file: File): boolean {
+  return SUPPORTED_EXTS.has(extOf(file.name).slice(1))
 }
 
 /**
