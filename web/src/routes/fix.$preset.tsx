@@ -33,20 +33,15 @@ import {
   appJsonLd,
   faqJsonLd,
   fallbackFaq,
+  pageSeoHead,
+  publicUrl,
   seoForPreset,
 } from "@/lib/preset-seo"
 
 export const Route = createFileRoute("/fix/$preset")({
   head: ({ params }) => {
     const seo = seoForPreset(params.preset)
-    return {
-      meta: [
-        { title: seo.title },
-        { name: "description", content: seo.description },
-        { property: "og:title", content: seo.title },
-        { property: "og:description", content: seo.description },
-      ],
-    }
+    return pageSeoHead(seo.title, seo.description, `/fix/${params.preset}`)
   },
   component: FixPresetPage,
 })
@@ -259,14 +254,13 @@ function FixPresetPage() {
   const originalBytes = files.reduce((sum, file) => sum + file.size, 0)
   const heading = preset.h1 || seo.h1
   const faq = preset.faq?.length ? preset.faq : fallbackFaq(preset.name)
-  const origin = typeof window !== "undefined" ? window.location.origin : ""
 
   return (
     <div className="page-stack pb-10">
       <JsonLd payload={faqJsonLd(faq)} />
       <JsonLd
         payload={appJsonLd(
-          `${origin}/fix/${preset.id}`,
+          publicUrl(`/fix/${preset.id}`),
           heading,
           preset.seo_description || seo.description
         )}

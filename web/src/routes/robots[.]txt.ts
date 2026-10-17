@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-import { robotsTxt } from "@/lib/preset-seo"
+import { publicSiteOrigin, robotsTxt } from "@/lib/preset-seo"
 
-/** Points crawlers at /sitemap.xml using this request's origin. */
+/** Points crawlers at /sitemap.xml on the public https origin. */
 export const Route = createFileRoute("/robots.txt")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        const origin = new URL(request.url).origin
-        return new Response(robotsTxt(origin), {
+      GET: async () => {
+        // Use the configured public origin, not request.url — TLS is terminated
+        // at Cloudflare/Railway, so the inbound protocol is http.
+        return new Response(robotsTxt(publicSiteOrigin()), {
           headers: {
             "Content-Type": "text/plain; charset=utf-8",
             "Cache-Control": "public, max-age=3600",

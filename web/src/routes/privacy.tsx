@@ -1,14 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 
-import { PRIVACY_SEO } from "@/lib/preset-seo"
+import { PRIVACY_SEO, pageSeoHead } from "@/lib/preset-seo"
 
 export const Route = createFileRoute("/privacy")({
-  head: () => ({
-    meta: [
-      { title: PRIVACY_SEO.title },
-      { name: "description", content: PRIVACY_SEO.description },
-    ],
-  }),
+  head: () =>
+    pageSeoHead(PRIVACY_SEO.title, PRIVACY_SEO.description, "/privacy"),
   component: PrivacyPage,
 })
 

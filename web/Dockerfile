@@ -9,6 +9,10 @@ WORKDIR /app
 # Railway passes VITE_API_URL=https://chowbea-image-production.up.railway.app at build.
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
+# Public origin for sitemap, canonical, and Open Graph. Defaults in code to
+# https://img.chowbea.com so http-behind-proxy requests still emit https URLs.
+ARG VITE_PUBLIC_SITE_URL=https://img.chowbea.com
+ENV VITE_PUBLIC_SITE_URL=$VITE_PUBLIC_SITE_URL
 
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
