@@ -6,7 +6,14 @@ import { Image01Icon } from "@hugeicons/core-free-icons"
 import { JsonLd } from "@/components/fix/json-ld"
 import { Badge } from "@/components/ui/badge"
 import { fetchPresets, formatBytes, type Preset } from "@/lib/api"
-import { INDEX_SEO, PRESET_IDS, appJsonLd, faqJsonLd } from "@/lib/preset-seo"
+import {
+  INDEX_SEO,
+  PRESET_IDS,
+  appJsonLd,
+  faqJsonLd,
+  pageSeoHead,
+  publicUrl,
+} from "@/lib/preset-seo"
 
 const INDEX_FAQ = [
   {
@@ -24,14 +31,7 @@ const INDEX_FAQ = [
 ]
 
 export const Route = createFileRoute("/fix/")({
-  head: () => ({
-    meta: [
-      { title: INDEX_SEO.title },
-      { name: "description", content: INDEX_SEO.description },
-      { property: "og:title", content: INDEX_SEO.title },
-      { property: "og:description", content: INDEX_SEO.description },
-    ],
-  }),
+  head: () => pageSeoHead(INDEX_SEO.title, INDEX_SEO.description, "/fix"),
   component: FixIndexPage,
 })
 
@@ -56,14 +56,13 @@ function FixIndexPage() {
 
   const portals = presets?.filter((item) => item.source_url) ?? []
   const generics = presets?.filter((item) => !item.source_url) ?? []
-  const origin = typeof window !== "undefined" ? window.location.origin : ""
 
   return (
     <div className="page-stack pb-8">
       <JsonLd payload={faqJsonLd(INDEX_FAQ)} />
       <JsonLd
         payload={appJsonLd(
-          origin,
+          publicUrl("/fix"),
           "Chowbea upload fixer",
           INDEX_SEO.description
         )}

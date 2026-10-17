@@ -3,6 +3,55 @@
  * `head()` and the sitemap work without calling the API at request time.
  */
 
+/** Production origin used when VITE_PUBLIC_SITE_URL is unset. */
+const DEFAULT_PUBLIC_ORIGIN = "https://img.chowbea.com"
+
+/** Canonical public origin for sitemap, robots, canonical, Open Graph, and JSON-LD. */
+export function publicSiteOrigin(): string {
+  const raw = import.meta.env.VITE_PUBLIC_SITE_URL
+  const value = (
+    typeof raw === "string" && raw.trim() ? raw.trim() : DEFAULT_PUBLIC_ORIGIN
+  ).replace(/\/$/, "")
+  try {
+    const url = new URL(value)
+    const local = url.hostname === "localhost" || url.hostname === "127.0.0.1"
+    // Railway/Cloudflare terminate TLS, so inbound URLs are http://. Force https
+    // for any public host; leave localhost alone for `bun dev`.
+    if (!local && url.protocol === "http:") {
+      url.protocol = "https:"
+    }
+    return url.origin
+  } catch {
+    return DEFAULT_PUBLIC_ORIGIN
+  }
+}
+
+/** Absolute URL on the public origin, e.g. `/fix` → `https://img.chowbea.com/fix`. */
+export function publicUrl(path: string): string {
+  const suffix = path.startsWith("/") ? path : `/${path}`
+  return `${publicSiteOrigin()}${suffix}`
+}
+
+/** Title, description, self-referencing canonical, and basic social tags. */
+export function pageSeoHead(title: string, description: string, path: string) {
+  const url = publicUrl(path)
+  return {
+    meta: [
+      { title },
+      { name: "description", content: description },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:url", content: url },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+      { name: "twitter:url", content: url },
+    ],
+    links: [{ rel: "canonical", href: url }],
+  }
+}
+
 export interface FaqItem {
   q: string
   a: string
@@ -95,27 +144,32 @@ const COPY: Record<string, Omit<PresetSeo, "id">> = {
   "jpg-100kb": {
     h1: "Compress a JPG to under 100 KB",
     title: "Compress JPG to 100 KB | Chowbea Image",
-    description: "Shrink a JPEG to under 100 KB for tight portal limits. No account. Files deleted after 1 hour.",
+    description:
+      "Shrink a JPEG to under 100 KB for tight portal limits. No account. Files deleted after 1 hour.",
   },
   "jpg-200kb": {
     h1: "Compress a JPG to under 200 KB",
     title: "Compress JPG to 200 KB | Chowbea Image",
-    description: "Shrink a JPEG to under 200 KB. No account. Files deleted after 1 hour.",
+    description:
+      "Shrink a JPEG to under 200 KB. No account. Files deleted after 1 hour.",
   },
   "jpg-500kb": {
     h1: "Compress a JPG to under 500 KB",
     title: "Compress JPG to 500 KB | Chowbea Image",
-    description: "Shrink a JPEG to under 500 KB. No account. Files deleted after 1 hour.",
+    description:
+      "Shrink a JPEG to under 500 KB. No account. Files deleted after 1 hour.",
   },
   "jpg-1mb": {
     h1: "Compress a JPG to under 1 MB",
     title: "Compress JPG to 1 MB | Chowbea Image",
-    description: "Shrink a JPEG to under 1 MB for portal uploads. No account. Files deleted after 1 hour.",
+    description:
+      "Shrink a JPEG to under 1 MB for portal uploads. No account. Files deleted after 1 hour.",
   },
   "jpg-2mb": {
     h1: "Compress a JPG to under 2 MB",
     title: "Compress JPG to 2 MB | Chowbea Image",
-    description: "Shrink a JPEG to under 2 MB. No account. Files deleted after 1 hour.",
+    description:
+      "Shrink a JPEG to under 2 MB. No account. Files deleted after 1 hour.",
   },
   "pdf-100kb": {
     h1: "Compress a PDF to under 100 KB",
@@ -136,13 +190,21 @@ const COPY: Record<string, Omit<PresetSeo, "id">> = {
   "pdf-1mb": {
     h1: "Compress a PDF to under 1 MB",
     title: "Compress PDF to 1 MB | Chowbea Image",
-    description: "Distill a PDF to under 1 MB for portal uploads. Files deleted after 1 hour.",
+    description:
+      "Distill a PDF to under 1 MB for portal uploads. Files deleted after 1 hour.",
   },
   "pdf-2mb": {
     h1: "Compress a PDF to under 2 MB",
     title: "Compress PDF to 2 MB | Chowbea Image",
     description: "Distill a PDF to under 2 MB. Files deleted after 1 hour.",
   },
+}
+
+/** Title and description for the image-toolkit landing page. */
+export const HOME_SEO = {
+  title: "Chowbea Image",
+  description:
+    "Bold, free image tools. Convert, compress, resize, rotate, crop, or fix a file to a UK portal's upload rules — no accounts, files deleted 1 hour after processing.",
 }
 
 export const INDEX_SEO = {
@@ -227,7 +289,11 @@ export function faqJsonLd(faq: FaqItem[]): Record<string, unknown> {
 }
 
 /** SoftwareApplication JSON-LD describing the free fixer. */
-export function appJsonLd(origin: string, name: string, description: string): Record<string, unknown> {
+export function appJsonLd(
+  origin: string,
+  name: string,
+  description: string
+): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",

@@ -73,6 +73,7 @@ See [`.env.example`](.env.example) for every variable (no real values). Summary:
 | `PUBLIC_WEB_URL` | API | Checkout redirects |
 | `POSTHOG_API_KEY` `POSTHOG_HOST` | API | Optional server events; off when empty |
 | `VITE_API_URL` | Web **build** | Browser origin of the API |
+| `VITE_PUBLIC_SITE_URL` | Web **build** | Public https origin for sitemap, robots, canonical, OG. Defaults to `https://img.chowbea.com` |
 | `VITE_PUBLIC_POSTHOG_KEY` `VITE_PUBLIC_POSTHOG_HOST` | Web **build** | Optional browser events; off when empty |
 
 Do not commit live secrets. Stripe: use **test-mode** keys and two one-time GBP Prices (£1.99 pack, £4.99 24h pass). Webhook: `POST https://<api-host>/billing/webhook`.
@@ -83,7 +84,7 @@ Nothing in this milestone deploys or creates cloud resources. A typical Railway 
 
 1. **RabbitMQ** — Railway plugin / template, then set `CHOWBEA_RABBITMQ_URL`.
 2. **API** — Dockerfile at `api/Dockerfile`. Health check `GET /health`. Volume on `CHOWBEA_DATA_DIR=/data`. Default `CHOWBEA_RUN_WORKER=true` so one service both serves HTTP and consumes jobs. Set `CHOWBEA_TRUST_FORWARDED_IP=true`, `CHOWBEA_CORS_ORIGINS` to the web origin, `PUBLIC_WEB_URL` to the same.
-3. **Web** — Dockerfile at `web/Dockerfile`. Build arg / env `VITE_API_URL=https://<api-host>` (Vite inlines this at build time).
+3. **Web** — Dockerfile at `web/Dockerfile`. Build arg / env `VITE_API_URL=https://<api-host>` (Vite inlines this at build time). Optional `VITE_PUBLIC_SITE_URL=https://img.chowbea.com` for sitemap/canonical URLs; that https origin is the code default.
 4. Optional **worker replica** of the API image with `CHOWBEA_RUN_WORKER=true` if you set the HTTP service to `CHOWBEA_RUN_WORKER=false`.
 
 Ghostscript and LibreOffice are already in the API image. You still need to supply Stripe (and optionally PostHog) keys yourself.
