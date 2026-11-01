@@ -33,11 +33,11 @@ uv sync --group dev
 uv run pytest
 uv run uvicorn app.main:app --reload   # needs RabbitMQ at CHOWBEA_RABBITMQ_URL
 
-# Web
-cd web
+# Web (from the repo root, in a second terminal)
+cd ../web
 bun install
 bun run test
-bun dev   # VITE_API_URL=http://localhost:8000
+bun dev   # http://localhost:3000; set VITE_API_URL=http://localhost:8000
 ```
 
 Open `/fix`, pick a preset. One file → Fix. Several files → evidence pack (merge toggle). `/privacy` for the retention policy. `GET /health` on the API is the liveness check.
@@ -92,8 +92,8 @@ Ghostscript and LibreOffice are already in the API image. You still need to supp
 ## Tests
 
 ```bash
-cd api && uv run pytest
-cd web && bun run test
+(cd api && uv run pytest)
+(cd web && bun run test)
 ```
 
 CI (GitHub Actions) runs both on every push and pull request, with Ghostscript installed for the API job.
