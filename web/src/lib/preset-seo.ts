@@ -37,9 +37,18 @@ export function publicUrl(path: string): string {
   return `${publicSiteOrigin()}${suffix}`
 }
 
-/** Title, description, self-referencing canonical, and basic social tags. */
-export function pageSeoHead(title: string, description: string, path: string) {
+/**
+ * Title, description, canonical, and social tags. `imagePath` is the
+ * per-page Open Graph PNG (`/og/{slug}.png`); default is the site card.
+ */
+export function pageSeoHead(
+  title: string,
+  description: string,
+  path: string,
+  imagePath = "/og/default.png"
+) {
   const url = publicUrl(path)
+  const image = publicUrl(imagePath)
   return {
     meta: [
       { title },
@@ -48,9 +57,16 @@ export function pageSeoHead(title: string, description: string, path: string) {
       { property: "og:title", content: title },
       { property: "og:description", content: description },
       { property: "og:url", content: url },
-      { name: "twitter:card", content: "summary" },
+      { property: "og:image", content: image },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:type", content: "image/png" },
+      { property: "og:image:alt", content: title },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: title },
       { name: "twitter:description", content: description },
+      { name: "twitter:image", content: image },
+      { name: "twitter:image:alt", content: title },
       { name: "twitter:url", content: url },
     ],
     links: [{ rel: "canonical", href: url }],
@@ -382,6 +398,7 @@ export function fallbackFaq(name = "this portal"): FaqItem[] {
 /** Absolute URLs for every public fixer page. */
 export function sitemapPaths(): string[] {
   return [
+    "/",
     "/fix",
     "/portals",
     "/privacy",
@@ -426,7 +443,7 @@ export function faqJsonLd(faq: FaqItem[]): Record<string, unknown> {
   }
 }
 
-/** SoftwareApplication JSON-LD describing the free fixer. */
+/** WebApplication + SoftwareApplication JSON-LD describing the free fixer. */
 export function appJsonLd(
   origin: string,
   name: string,
@@ -434,9 +451,10 @@ export function appJsonLd(
 ): Record<string, unknown> {
   return {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
+    "@type": ["WebApplication", "SoftwareApplication"],
     name,
     applicationCategory: "MultimediaApplication",
+    operatingSystem: "Web",
     offers: { "@type": "Offer", price: "0", priceCurrency: "GBP" },
     description,
     url: origin,

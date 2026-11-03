@@ -7,6 +7,7 @@ import { PresetFaq } from "@/components/fix/faq"
 import { FixReportCard } from "@/components/fix/fix-report"
 import { JsonLd } from "@/components/fix/json-ld"
 import { PaywallCard } from "@/components/fix/paywall"
+import { RelatedPresets } from "@/components/fix/related-presets"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ToggleSwitch } from "@/components/ui/toggle-switch"
@@ -29,12 +30,11 @@ import {
 } from "@/lib/billing"
 import { isBrowserRenderable, objectUrlFor, revokeUrl } from "@/lib/images"
 import type { JobProgress } from "@/lib/jobs"
+import { breadcrumbJsonLd } from "@/lib/json-ld"
 import {
-  appJsonLd,
   faqJsonLd,
   fallbackFaq,
   pageSeoHead,
-  publicUrl,
   seoForPreset,
   stepsForPreset,
 } from "@/lib/preset-seo"
@@ -42,7 +42,12 @@ import {
 export const Route = createFileRoute("/fix/$preset")({
   head: ({ params }) => {
     const seo = seoForPreset(params.preset)
-    return pageSeoHead(seo.title, seo.description, `/fix/${params.preset}`)
+    return pageSeoHead(
+      seo.title,
+      seo.description,
+      `/fix/${params.preset}`,
+      `/og/${params.preset}.png`
+    )
   },
   component: FixPresetPage,
 })
@@ -252,13 +257,7 @@ function FixPresetPage() {
   return (
     <div className="page-stack pb-10">
       <JsonLd payload={faqJsonLd(faq)} />
-      <JsonLd
-        payload={appJsonLd(
-          publicUrl(`/fix/${presetId}`),
-          heading,
-          preset?.seo_description || seo.description
-        )}
-      />
+      <JsonLd payload={breadcrumbJsonLd(presetId)} />
 
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap gap-2">
@@ -432,6 +431,8 @@ function FixPresetPage() {
           <PresetFaq items={faq} />
         </aside>
       </div>
+
+      <RelatedPresets presetId={presetId} />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react"
 import { CursorPointer01Icon } from "@hugeicons/core-free-icons"
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence, motion, MotionConfig } from "motion/react"
 
 import { formatBytes } from "@/lib/api"
 import { useWorkspace, type ToolName } from "@/stores/workspace"
@@ -129,24 +129,26 @@ export function Workspace() {
   const totalBytes = images.reduce((sum, image) => sum + image.size, 0)
 
   return (
-    <div className="page-stack">
-      <Toolbar />
+    <MotionConfig reducedMotion="user">
+      <div className="page-stack">
+        <Toolbar />
 
-      <div className="workspace-grid">
-        <section className="block-card">
-          <p className="mb-4 text-[13px] font-extrabold tracking-wide text-ink uppercase">
-            {images.length} image{images.length === 1 ? "" : "s"} ·{" "}
-            {formatBytes(totalBytes)}
-          </p>
-          <ImageGrid />
-        </section>
+        <div className="workspace-grid">
+          <section className="block-card">
+            <p className="mb-4 text-[13px] font-extrabold tracking-wide text-ink uppercase">
+              {images.length} image{images.length === 1 ? "" : "s"} ·{" "}
+              {formatBytes(totalBytes)}
+            </p>
+            <ImageGrid />
+          </section>
 
-        <aside className="block-card lg:sticky lg:top-7">
-          <ToolPanelSlot tool={activeTool} />
-        </aside>
+          <aside className="block-card lg:sticky lg:top-7">
+            <ToolPanelSlot tool={activeTool} />
+          </aside>
+        </div>
+
+        <ProgressRow />
       </div>
-
-      <ProgressRow />
-    </div>
+    </MotionConfig>
   )
 }

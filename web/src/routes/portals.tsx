@@ -5,12 +5,11 @@ import {
   PORTAL_CATEGORIES,
   PORTAL_IDS_BY_CATEGORY,
 } from "@/lib/portal-catalogue"
+import { portalsItemListJsonLd } from "@/lib/json-ld"
 import {
   PORTALS_SEO,
-  appJsonLd,
   faqJsonLd,
   pageSeoHead,
-  publicUrl,
   seoForPreset,
 } from "@/lib/preset-seo"
 
@@ -31,7 +30,12 @@ const PORTALS_FAQ = [
 
 export const Route = createFileRoute("/portals")({
   head: () =>
-    pageSeoHead(PORTALS_SEO.title, PORTALS_SEO.description, "/portals"),
+    pageSeoHead(
+      PORTALS_SEO.title,
+      PORTALS_SEO.description,
+      "/portals",
+      "/og/portals.png"
+    ),
   component: PortalsIndexPage,
 })
 
@@ -40,13 +44,7 @@ function PortalsIndexPage() {
   return (
     <div className="page-stack pb-8">
       <JsonLd payload={faqJsonLd(PORTALS_FAQ)} />
-      <JsonLd
-        payload={appJsonLd(
-          publicUrl("/portals"),
-          "Chowbea UK portal upload fixer",
-          PORTALS_SEO.description
-        )}
-      />
+      <JsonLd payload={portalsItemListJsonLd()} />
 
       <div className="flex flex-col gap-5">
         <div className="min-w-0">

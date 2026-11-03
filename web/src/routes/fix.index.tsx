@@ -6,10 +6,10 @@ import { Image01Icon } from "@hugeicons/core-free-icons"
 import { JsonLd } from "@/components/fix/json-ld"
 import { Badge } from "@/components/ui/badge"
 import { fetchPresets, formatBytes, type Preset } from "@/lib/api"
+import { webAppJsonLd } from "@/lib/json-ld"
 import {
   INDEX_SEO,
   PRESET_IDS,
-  appJsonLd,
   faqJsonLd,
   pageSeoHead,
   publicUrl,
@@ -31,7 +31,13 @@ const INDEX_FAQ = [
 ]
 
 export const Route = createFileRoute("/fix/")({
-  head: () => pageSeoHead(INDEX_SEO.title, INDEX_SEO.description, "/fix"),
+  head: () =>
+    pageSeoHead(
+      INDEX_SEO.title,
+      INDEX_SEO.description,
+      "/fix",
+      "/og/default.png"
+    ),
   component: FixIndexPage,
 })
 
@@ -61,7 +67,7 @@ function FixIndexPage() {
     <div className="page-stack pb-8">
       <JsonLd payload={faqJsonLd(INDEX_FAQ)} />
       <JsonLd
-        payload={appJsonLd(
+        payload={webAppJsonLd(
           publicUrl("/fix"),
           "Chowbea upload fixer",
           INDEX_SEO.description
