@@ -3,6 +3,11 @@
  * `head()` and the sitemap work without calling the API at request time.
  */
 
+import { PRESET_IDS } from "./portal-catalogue"
+
+export { PRESET_IDS, stepsForPreset } from "./portal-catalogue"
+export type { PresetId } from "./portal-catalogue"
+
 /** Production origin used when VITE_PUBLIC_SITE_URL is unset. */
 const DEFAULT_PUBLIC_ORIGIN = "https://img.chowbea.com"
 
@@ -75,29 +80,6 @@ const PRIVACY_FAQ: FaqItem[] = [
   },
 ]
 
-/** Catalogue ids in the order they appear on /fix. */
-export const PRESET_IDS = [
-  "uk-passport-online",
-  "uk-visa-face",
-  "ucas-documents",
-  "saas-documents",
-  "ukvcas",
-  "vfs-global",
-  "nhs-jobs",
-  "jpg-100kb",
-  "jpg-200kb",
-  "jpg-500kb",
-  "jpg-1mb",
-  "jpg-2mb",
-  "pdf-100kb",
-  "pdf-200kb",
-  "pdf-500kb",
-  "pdf-1mb",
-  "pdf-2mb",
-] as const
-
-export type PresetId = (typeof PRESET_IDS)[number]
-
 const COPY: Record<string, Omit<PresetSeo, "id">> = {
   "uk-passport-online": {
     h1: "Resize a UK passport photo for GOV.UK (10MB limit)",
@@ -140,6 +122,150 @@ const COPY: Record<string, Omit<PresetSeo, "id">> = {
     title: "Compress PDF or Word for NHS Jobs (1MB) | Chowbea",
     description:
       "Fit a supporting document under NHS Jobs' 1MB DOC/DOCX/PDF limit. Oversize Word files are converted to PDF. Files deleted after 1 hour.",
+  },
+  "ukvi-evidence": {
+    h1: "Compress files for a UKVI visa application (6MB, commonly reported)",
+    title: "UKVI visa upload size limit — compress PDF or photos | Chowbea",
+    description:
+      "Shrink a PDF, JPG or PNG for UKVI self-upload. GOV.UK lists formats, not a byte cap — 6MB is commonly reported. Files deleted after 1 hour.",
+  },
+  "eu-settlement": {
+    h1: "Compress files for the EU Settlement Scheme (6MB limit)",
+    title: "EU Settlement Scheme upload size limit (6MB) | Chowbea",
+    description:
+      "Fit residence evidence under GOV.UK's 6MB-per-document cap (max 10 files). PDF, JPG or PNG. Files deleted after 1 hour.",
+  },
+  "student-visa-cas": {
+    h1: "Reduce file size for a Student visa / CAS evidence pack",
+    title: "Student visa file too large — compress CAS evidence | Chowbea",
+    description:
+      "Shrink finance, TB or guardian documents for a UK Student visa. CAS is a number, not a file. 6MB is commonly reported. Files deleted after 1 hour.",
+  },
+  "dvla-photo": {
+    h1: "Resize a DVLA driving licence photo (10MB, commonly reported)",
+    title: "DVLA photo upload size limit — JPEG resizer | Chowbea",
+    description:
+      "Turn a phone photo into a JPEG for a DVLA licence photo change. 50KB–10MB and 600×750 are commonly reported, not a DVLA-published figure. Files deleted after 1 hour.",
+  },
+  "hmrc-compliance": {
+    h1: "Compress documents for an HMRC compliance check (15MB limit)",
+    title: "HMRC compliance check upload size limit (15MB) | Chowbea",
+    description:
+      "Fit PDF, JPEG, Word or ODT under HMRC's 15MB-per-file compliance-check cap. Up to 10 files at a time. Files deleted after 1 hour.",
+  },
+  "hmrc-cds": {
+    h1: "Compress files for HMRC Customs Declaration Service (10MB limit)",
+    title: "HMRC CDS upload size limit (10MB) | Chowbea",
+    description:
+      "Shrink a PDF, JPG or PNG to HMRC's 10MB CDS supporting-document limit. Up to 10 files at a time. Files deleted after 1 hour.",
+  },
+  "student-finance-england": {
+    h1: "Compress evidence for Student Finance England (16MB limit)",
+    title: "Student Finance England file too large (16MB) | Chowbea",
+    description:
+      "Fit identity or household-income evidence under SFE's 16MB upload limit. PDF, JPG or PNG. Files deleted after 1 hour.",
+  },
+  "trac-jobs": {
+    h1: "Compress a document for Trac jobs (2MB, commonly reported)",
+    title: "Trac jobs upload size limit — compress PDF or Word | Chowbea",
+    description:
+      "Shrink a supporting document for a Trac vacancy. No official nationwide cap — 2MB is commonly reported. Files deleted after 1 hour.",
+  },
+  "civil-service-jobs": {
+    h1: "Compress a CV for Civil Service Jobs (5MB, commonly reported)",
+    title: "Civil Service Jobs file too large — compress CV | Chowbea",
+    description:
+      "Fit a CV or personal statement for Civil Service Jobs. GOV.UK lists no byte cap — 5MB is commonly reported. Files deleted after 1 hour.",
+  },
+  "universal-credit": {
+    h1: "Compress files for Universal Credit (10MB, commonly reported)",
+    title: "Universal Credit upload size limit — compress PDF | Chowbea",
+    description:
+      "Shrink bank statements or evidence for a Universal Credit to-do. DWP prefers PDF statements. 10MB is commonly reported. Files deleted after 1 hour.",
+  },
+  "council-housing-benefits": {
+    h1: "Reduce file size for council housing and benefits uploads",
+    title: "Council housing file too large — compress evidence | Chowbea",
+    description:
+      "Fit proof for a housing register or council tax reduction claim. Councils vary; 5MB is a conservative commonly reported default. Files deleted after 1 hour.",
+  },
+  "land-registry": {
+    h1: "Compress plans for the HM Land Registry portal (40MB limit)",
+    title: "Land Registry upload size limit (40MB) | Chowbea",
+    description:
+      "Fit a GIF, JPEG, PDF or TIFF plan under HM Land Registry's 40MB portal cap. Files deleted after 1 hour.",
+  },
+  "companies-house": {
+    h1: "Compress a PDF for Companies House (4MB limit)",
+    title: "Companies House file too large (4MB PDF) | Chowbea",
+    description:
+      "Shrink a Companies House upload-service PDF to under 4MB. One document at a time. Files deleted after 1 hour.",
+  },
+  ofsted: {
+    h1: "Compress files for the Ofsted provider portal (5MB, commonly reported)",
+    title: "Ofsted portal upload size limit — compress PDF | Chowbea",
+    description:
+      "Shrink pre-inspection documents for Ofsted's provider portal. No official byte cap — 5MB is commonly reported. Files deleted after 1 hour.",
+  },
+  sra: {
+    h1: "Compress documents for SRA mySRA (5MB, commonly reported)",
+    title: "SRA mySRA file too large — compress PDF | Chowbea",
+    description:
+      "Fit a name-change certificate or supporting PDF for mySRA. No official byte cap — 5MB is commonly reported. Files deleted after 1 hour.",
+  },
+  gmc: {
+    h1: "Compress evidence for GMC registration (5MB, commonly reported)",
+    title: "GMC registration file too large — compress PDF | Chowbea",
+    description:
+      "Shrink PDF evidence for a GMC Online application. No applicant byte cap is published — 5MB is commonly reported. Files deleted after 1 hour.",
+  },
+  nmc: {
+    h1: "Compress documents for NMC registration (2MB, commonly reported)",
+    title: "NMC registration upload size limit — compress PDF | Chowbea",
+    description:
+      "Fit identity or qualification scans for an NMC online account. No official byte cap — 2MB is commonly reported. Files deleted after 1 hour.",
+  },
+  dbs: {
+    h1: "Compress files for a DBS document upload (10MB limit)",
+    title: "DBS upload size limit (10MB) | Chowbea",
+    description:
+      "Fit evidence under DBS's published 10MB-per-file online upload cap. Unlock password-protected PDFs first. Files deleted after 1 hour.",
+  },
+  "indeed-cv": {
+    h1: "Compress a CV for Indeed (2MB, commonly reported)",
+    title: "Indeed CV file too large — compress PDF | Chowbea",
+    description:
+      "Shrink a CV for Indeed. Help pages list no megabyte cap — 2MB is commonly reported. Indeed converts uploads to PDF. Files deleted after 1 hour.",
+  },
+  "linkedin-cv": {
+    h1: "Compress a CV for LinkedIn (2MB recommended)",
+    title: "LinkedIn resume upload size limit (2MB) | Chowbea",
+    description:
+      "Fit a Word or PDF resume under LinkedIn's published 2MB recommendation for Easy Apply. Files deleted after 1 hour.",
+  },
+  rightmove: {
+    h1: "Reduce file size for Rightmove document uploads",
+    title: "Rightmove file too large — compress PDF or photos | Chowbea",
+    description:
+      "Shrink ID or proof-of-address scans for Rightmove. No official tenant-document cap — 5MB is commonly reported. Files deleted after 1 hour.",
+  },
+  openrent: {
+    h1: "Compress ID for OpenRent referencing (5MB, commonly reported)",
+    title: "OpenRent referencing file too large — compress ID | Chowbea",
+    description:
+      "Fit a passport or driving-licence scan for OpenRent referencing. No official byte cap — 5MB is commonly reported. Files deleted after 1 hour.",
+  },
+  "hmcts-efiling": {
+    h1: "Compress a PDF for HMCTS e-Filing (50MB limit)",
+    title: "HMCTS e-Filing upload size limit (50MB) | Chowbea",
+    description:
+      "Fit a court PDF under the official 50MB-per-document e-Filing cap (up to 10 files). Files deleted after 1 hour.",
+  },
+  "pip-evidence": {
+    h1: "Compress PIP supporting evidence (10MB, commonly reported)",
+    title: "PIP evidence file too large — compress PDF | Chowbea",
+    description:
+      "Shrink medical letters or a diary for a PIP claim. GOV.UK lists no byte cap — 10MB is commonly reported. Files deleted after 1 hour.",
   },
   "jpg-100kb": {
     h1: "Compress a JPG to under 100 KB",
@@ -211,7 +337,14 @@ export const INDEX_SEO = {
   h1: "Fix a file to a UK portal's upload limit",
   title: "Compress PDF and photos for UK portal upload limits | Chowbea",
   description:
-    "Pick UCAS, GOV.UK passport, SAAS, NHS Jobs or a size target. Convert, resize and compress one file for free. Evidence packs are a one-off payment. Files deleted after 1 hour.",
+    "Pick UCAS, GOV.UK passport, HMRC, Student Finance, NHS Jobs or a size target. Convert, resize and compress one file for free. Files deleted after 1 hour.",
+}
+
+export const PORTALS_SEO = {
+  h1: "UK portal upload limits",
+  title: "UK portal upload size limits — compress a file to fit | Chowbea",
+  description:
+    "Fix a PDF or photo for UKVI, HMRC, DVLA, UCAS, Student Finance, NHS Jobs, Land Registry, Companies House and more. One file is free. Files deleted after 1 hour.",
 }
 
 export const PRIVACY_SEO = {
@@ -248,7 +381,12 @@ export function fallbackFaq(name = "this portal"): FaqItem[] {
 
 /** Absolute URLs for every public fixer page. */
 export function sitemapPaths(): string[] {
-  return ["/fix", "/privacy", ...PRESET_IDS.map((id) => `/fix/${id}`)]
+  return [
+    "/fix",
+    "/portals",
+    "/privacy",
+    ...PRESET_IDS.map((id) => `/fix/${id}`),
+  ]
 }
 
 /** XML sitemap body for the given origin. */

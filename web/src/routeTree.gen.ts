@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FixRouteImport } from './routes/fix'
+import { Route as PortalsRouteImport } from './routes/portals'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as QueueRouteImport } from './routes/queue'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
@@ -26,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
 const FixRoute = FixRouteImport.update({
   id: '/fix',
   path: '/fix',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalsRoute = PortalsRouteImport.update({
+  id: '/portals',
+  path: '/portals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -62,6 +68,7 @@ const FixPresetRoute = FixPresetRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/fix': typeof FixRouteWithChildren
+  '/portals': typeof PortalsRoute
   '/privacy': typeof PrivacyRoute
   '/queue': typeof QueueRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/portals': typeof PortalsRoute
   '/privacy': typeof PrivacyRoute
   '/queue': typeof QueueRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/fix': typeof FixRouteWithChildren
+  '/portals': typeof PortalsRoute
   '/privacy': typeof PrivacyRoute
   '/queue': typeof QueueRoute
   '/robots.txt': typeof RobotsDottxtRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/fix'
+    | '/portals'
     | '/privacy'
     | '/queue'
     | '/robots.txt'
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/portals'
     | '/privacy'
     | '/queue'
     | '/robots.txt'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/fix'
+    | '/portals'
     | '/privacy'
     | '/queue'
     | '/robots.txt'
@@ -124,6 +136,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FixRoute: typeof FixRouteWithChildren
+  PortalsRoute: typeof PortalsRoute
   PrivacyRoute: typeof PrivacyRoute
   QueueRoute: typeof QueueRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
@@ -144,6 +157,13 @@ declare module '@tanstack/react-router' {
       path: '/fix'
       fullPath: '/fix'
       preLoaderRoute: typeof FixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portals': {
+      id: '/portals'
+      path: '/portals'
+      fullPath: '/portals'
+      preLoaderRoute: typeof PortalsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -206,6 +226,7 @@ const FixRouteWithChildren = FixRoute._addFileChildren(FixRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FixRoute: FixRouteWithChildren,
+  PortalsRoute: PortalsRoute,
   PrivacyRoute: PrivacyRoute,
   QueueRoute: QueueRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,

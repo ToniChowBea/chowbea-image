@@ -2,10 +2,13 @@
 # last_checked dates are ISO dates of the last human/source review.
 # Target encode size is ~10% under max_bytes (see TARGET_RATIO in fix.py).
 # verified=true only when an official page states the limit (see notes).
+# category groups /portals: immigration, tax-government, jobs, education,
+# housing, health. Generic size targets use category=generic.
 
 presets:
   - id: uk-passport-online
     name: UK passport online photo
+    category: immigration
     accepted_types: [jpeg]
     min_bytes: 51200          # 50 KB
     max_bytes: 10485760       # 10 MB
@@ -15,12 +18,13 @@ presets:
     colour: true
     do_not_crop: true
     source_url: https://www.gov.uk/photos-for-passports
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
     notes: "GOV.UK digital photos: colour, 600×750 min, 50KB–10MB, do not crop. JPEG is required by the photo-code service (https://www.passport.service.gov.uk/help/photo-codes)."
 
   - id: uk-visa-face
     name: UK visa face photo
+    category: immigration
     accepted_types: [jpeg]
     min_bytes: 51200          # 50 KB
     max_bytes: 6291456        # 6 MB
@@ -30,159 +34,487 @@ presets:
     colour: true
     do_not_crop: true
     source_url: https://www.gov.uk/guidance/how-to-take-a-photo-for-a-visa-application-or-permission
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
     notes: "Official guidance: JPG/JPEG, colour, vertically orientated, 50KB–6MB, at least 600×750."
 
   - id: ucas-documents
     name: UCAS documents
+    category: education
     accepted_types: [pdf, jpeg, odt]
     max_bytes: 5242880        # 5 MB per file
     orientation: any
     no_password: true
     source_url: https://www.ucas.com/applying/applying-to-university/uploading-documents-to-your-application
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
     notes: "Official applicant FAQ: PDF, JPEG/JPG or ODT, 5MB per file, no password, no HEIC. PNG/DOC/DOCX appear in a 2025 UCAS proposal but not on the live FAQ, so they are converted to PDF here rather than listed as accepted."
 
   - id: saas-documents
     name: SAAS document upload
+    category: education
     accepted_types: [jpeg, tiff, pdf]
     max_bytes: 5242880        # 5 MB
     orientation: any
     no_password: true
     source_url: https://www.edocs.saas.gov.uk/help/document_upload_guide.pdf
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
     notes: "Official SAAS Document Upload Service guide: JPG/JPEG, TIFF/TIF or PDF, 5MB per file (max 5 files per transaction)."
 
   - id: ukvcas
     name: UKVCAS
+    category: immigration
     accepted_types: [pdf, jpeg, png]
     preferred_type: pdf
     max_bytes: 6291456        # 6 MB
     orientation: any
     no_password: true
     source_url: https://www.ukvcas.co.uk/help-support/ourinfo/prepareDocuments
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
     notes: "UKVCAS 'Preparing your documents': PDF preferred, JPG or PNG, not password-protected, no larger than 6MB."
 
   - id: vfs-global
     name: VFS Global
+    category: immigration
     accepted_types: [pdf, jpeg, png]
     max_bytes: 2097152        # 2 MB
     orientation: any
     no_password: true
     source_url: https://www.vfsglobal.com/
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: false
-    notes: "VFS file-size caps vary by country VAC and programme. No single official UK-wide byte limit is published on vfsglobal.com. 2MB is a conservative target, not an official figure — check the country page before relying on it."
+    notes: "VFS file-size caps vary by country VAC and programme. No single official UK-wide byte limit is published on vfsglobal.com. 2MB is a conservative target, not an official figure — check the portal. Commonly reported."
 
   - id: nhs-jobs
     name: NHS Jobs
+    category: jobs
     accepted_types: [pdf, doc, docx]
     preferred_type: pdf
     max_bytes: 1048576        # 1 MB
     orientation: any
     no_password: true
     source_url: https://faq.nhsbsa.nhs.uk/knowledgebase/article/KA-25732/en-us
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
     notes: "Official NHSBSA FAQ for supporting documents on a job listing: DOC, DOCX or PDF, 1MB each (up to 4 files). This is the employer supporting-document limit, not an applicant CV upload — NHS Jobs applicants cannot upload a CV file and must paste text."
+
+  - id: ukvi-evidence
+    name: UKVI visa evidence
+    category: immigration
+    accepted_types: [pdf, jpeg, png]
+    preferred_type: pdf
+    max_bytes: 6291456        # 6 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/guidance/uploading-evidence-as-part-of-your-visa-application
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "GOV.UK self-upload guidance states PDF, PNG, JPG or JPEG and describes how to scan, but does not publish a per-file byte limit. 6MB is a conservative commonly reported target, matching UKVCAS and EU Settlement Scheme figures on official pages. Check the upload screen on your application."
+
+  - id: eu-settlement
+    name: EU Settlement Scheme
+    category: immigration
+    accepted_types: [pdf, jpeg, png]
+    preferred_type: pdf
+    max_bytes: 6291456        # 6 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/guidance/eu-settlement-scheme-evidence-of-uk-residence
+    last_checked: "2026-11-03"
+    verified: true
+    notes: "GOV.UK EU Settlement Scheme residence evidence: maximum 10 documents, each no more than 6MB. Photos or scans — do not post originals. Formats are not listed on that page; PDF/JPG/PNG match the Home Office self-upload types."
+
+  - id: student-visa-cas
+    name: Student visa / CAS evidence
+    category: immigration
+    accepted_types: [pdf, jpeg, png]
+    preferred_type: pdf
+    max_bytes: 6291456        # 6 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/student-visa/documents-you-must-provide
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "A CAS is a virtual record, not a PDF. Supporting evidence (finance, TB, ATAS, guardian consent) is uploaded through the visa self-upload service. GOV.UK lists required documents but not a byte limit. 6MB is a conservative commonly reported target. Formats follow the self-upload page: PDF, PNG, JPG, JPEG."
+
+  - id: dvla-photo
+    name: DVLA driving licence photo
+    category: tax-government
+    accepted_types: [jpeg]
+    min_bytes: 51200          # 50 KB — commonly reported
+    max_bytes: 10485760       # 10 MB — commonly reported
+    min_width: 600
+    min_height: 750
+    orientation: any
+    colour: true
+    do_not_crop: true
+    source_url: https://www.gov.uk/renew-photo-driving-licence
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "GOV.UK says you can upload a new photo when changing a driving-licence photo, but does not publish a byte or pixel limit on that page. 50KB–10MB and 600×750 are the GOV.UK digital-photo rules used for passports (https://www.gov.uk/photos-for-passports), commonly reported for DVLA online uploads. Not an official DVLA figure — check the application screen."
+
+  - id: hmrc-compliance
+    name: HMRC compliance check
+    category: tax-government
+    accepted_types: [pdf, jpeg, docx, odt]
+    preferred_type: pdf
+    max_bytes: 15728640       # 15 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/guidance/send-documents-or-information-to-hmrc-for-a-compliance-check
+    last_checked: "2026-11-03"
+    verified: true
+    notes: "Official GOV.UK compliance-check upload: each file 15MB or less. Formats PDF, JPEG, XLSX, ODS, DOCX, ODT, PPTX, ODP; up to 10 files at a time. Spreadsheets and slides are listed by HMRC but this tool converts images and Word to PDF/JPEG rather than emitting XLSX or PPTX."
+
+  - id: hmrc-cds
+    name: HMRC Customs Declaration Service
+    category: tax-government
+    accepted_types: [pdf, jpeg, png]
+    preferred_type: pdf
+    max_bytes: 10485760       # 10 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/guidance/send-documents-to-support-declarations-for-the-customs-declaration-service
+    last_checked: "2026-11-03"
+    verified: true
+    notes: "Official GOV.UK CDS supporting-document upload: JPG, PNG, TXT or PDF; up to 10 files at a time; each file up to 10MB. TXT is listed by HMRC but this tool outputs PDF or an image."
+
+  - id: student-finance-england
+    name: Student Finance England
+    category: education
+    accepted_types: [pdf, jpeg, png]
+    preferred_type: pdf
+    max_bytes: 16777216       # 16 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/guidance/student-finance-england-how-to-guide
+    last_checked: "2026-11-03"
+    verified: true
+    notes: "Official Student Finance England how-to guide: an evidence file cannot be larger than 16MB. The same 16MB figure is repeated for household-income evidence. GOV.UK does not list accepted formats on that page; PDF, JPG and PNG are the types this tool emits."
+
+  - id: trac-jobs
+    name: Trac jobs
+    category: jobs
+    accepted_types: [pdf, doc, docx]
+    preferred_type: pdf
+    max_bytes: 2097152        # 2 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://faq-hrss.nhsbsa.nhs.uk/knowledgebase/article/KA-23577/en-us
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "NHSBSA confirms Trac does not accept zip files. Most Trac vacancies ask you to paste a supporting statement rather than attach a CV. No official nationwide byte limit is published. 2MB is a conservative commonly reported target for vacancies that do show an upload field — check that vacancy."
+
+  - id: civil-service-jobs
+    name: Civil Service Jobs
+    category: jobs
+    accepted_types: [pdf, doc, docx]
+    preferred_type: pdf
+    max_bytes: 5242880        # 5 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/guidance/using-the-civil-service-jobs-website
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "Official GOV.UK candidate guidance: upload a CV or personal statement only when the form asks, one file per question, and do not upload a password-protected file. No byte limit is published. 5MB is a conservative commonly reported target — check the vacancy upload field."
+
+  - id: universal-credit
+    name: Universal Credit
+    category: tax-government
+    accepted_types: [pdf, jpeg, png]
+    preferred_type: pdf
+    max_bytes: 10485760       # 10 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/universal-credit-reviews
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "GOV.UK claim-review guidance asks for bank statements and other evidence through the Universal Credit account. An official DWP video says to upload bank statements as PDF. No per-file byte limit is published on GOV.UK. 10MB is a conservative commonly reported target. To-do lists often cap the number of files (commonly 16) rather than a published megabyte figure."
+
+  - id: council-housing-benefits
+    name: Council housing and benefits
+    category: housing
+    accepted_types: [pdf, jpeg, png, doc]
+    preferred_type: pdf
+    max_bytes: 5242880        # 5 MB — conservative default
+    orientation: any
+    no_password: true
+    source_url: https://www.wolverhampton.gov.uk/benefits/housing-benefit-and-council-tax-support/upload-proof-your-benefits-claim
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "There is no single national council portal. Limits vary: Wolverhampton publishes 5MB per document; Harrow 10MB (BMP, GIF, JPG, PDF, PNG, DOC); Merton 30MB; Chelmsford a 35MB combined cap. 5MB is a conservative commonly reported default, not a UK-wide official figure. Check your own council's upload form."
+
+  - id: land-registry
+    name: HM Land Registry portal
+    category: housing
+    accepted_types: [pdf, jpeg, tiff, gif]
+    preferred_type: pdf
+    max_bytes: 41943040       # 40 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/guidance/land-registry-portal-official-search-of-part-with-priority
+    last_checked: "2026-11-03"
+    verified: true
+    notes: "Official GOV.UK Land Registry portal guidance for attaching a plan: file must not exceed 40MB and must be GIF, JPEG, PDF or TIFF. A 2024 GOV.UK news item confirms the portal file-size limit was raised from 20MB to 40MB."
+
+  - id: companies-house
+    name: Companies House upload
+    category: tax-government
+    accepted_types: [pdf]
+    max_bytes: 4194304        # 4 MB
+    orientation: any
+    no_password: true
+    source_url: https://find-and-update.company-information.service.gov.uk/efs-submission/guidance
+    last_checked: "2026-11-03"
+    verified: true
+    notes: "Official Companies House 'Upload a document' guidance: save as PDF; the file must be less than 4MB. One document at a time. Compatible PDF is defined in the Registrar's (Upload Service) Rules 2020 as up to 4MB."
+
+  - id: ofsted
+    name: Ofsted provider portal
+    category: education
+    accepted_types: [pdf, jpeg, docx]
+    preferred_type: pdf
+    max_bytes: 5242880        # 5 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/government/publications/ofsted-provider-portal-guidance-for-providers
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "The Ofsted provider portal lets providers upload pre-inspection material. Official GOV.UK portal guidance does not state a byte limit. 5MB is a conservative commonly reported target — check the portal when you upload."
+
+  - id: sra
+    name: SRA mySRA
+    category: tax-government
+    accepted_types: [pdf, jpeg, docx]
+    preferred_type: pdf
+    max_bytes: 5242880        # 5 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://www.sra.org.uk/mysra/manage-account/individual-account/
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "SRA mySRA asks for a supporting document (for example a marriage certificate) when you change your name. No official byte limit is published. 5MB is a conservative commonly reported target — check the upload field in mySRA."
+
+  - id: gmc
+    name: GMC registration
+    category: health
+    accepted_types: [pdf, doc]
+    preferred_type: pdf
+    max_bytes: 5242880        # 5 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://www.gmc-uk.org/registration-and-licensing/join-our-registers/registration-applications/attaching-your-documents-to-your-application
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "GMC asks for PDF copies of evidence on the application. No per-file byte limit is published for applicant uploads. GMC Connect (medical schools) states a 20MB upload limit, and some GMC email-evidence guidance states 20MB per email — those are different channels. 5MB is a conservative commonly reported target for the application form."
+
+  - id: nmc
+    name: NMC registration
+    category: health
+    accepted_types: [pdf, jpeg, png]
+    preferred_type: pdf
+    max_bytes: 2097152        # 2 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://www.nmc.org.uk/registration/joining-the-register/supplying-documents/
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "NMC registration guidance covers certified copies and ID checks. It does not publish a per-file byte limit for the online account. 2MB is a conservative commonly reported target — check the NMC online upload screen."
+
+  - id: dbs
+    name: DBS document upload
+    category: tax-government
+    accepted_types: [pdf, jpeg, png, docx]
+    preferred_type: pdf
+    max_bytes: 10485760       # 10 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/government/publications/dbs-guidance-leaflets/dbs-online-barring-referral-service-guidance
+    last_checked: "2026-11-03"
+    verified: true
+    notes: "Official DBS online barring-referral guidance: upload up to 35 files, each up to 10MB, clear, readable and not password-protected. Standard DBS identity checks often go through an employer or umbrella body with their own limits — those portals may differ. This preset follows DBS's own published 10MB upload service."
+
+  - id: indeed-cv
+    name: Indeed CV
+    category: jobs
+    accepted_types: [pdf, doc, docx]
+    preferred_type: pdf
+    max_bytes: 2097152        # 2 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://indeed.zendesk.com/hc/en-gb/articles/11314976176141-FAQs-Creating-uploading-and-managing-a-CV-file
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "Indeed Help says you can upload one CV at a time and that the file is converted to PDF. It does not publish a megabyte limit. 2MB is a conservative commonly reported target, not an official Indeed figure."
+
+  - id: linkedin-cv
+    name: LinkedIn CV
+    category: jobs
+    accepted_types: [pdf, doc, docx]
+    preferred_type: pdf
+    max_bytes: 2097152        # 2 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.linkedin.com/help/linkedin/answer/a510363/upload-your-resume-to-linkedin
+    last_checked: "2026-11-03"
+    verified: true
+    notes: "LinkedIn Help: Easy Apply resume must be Microsoft Word or PDF, and LinkedIn recommends a file size less than 2MB. That 2MB figure is a published recommendation rather than a hard error message."
+
+  - id: rightmove
+    name: Rightmove documents
+    category: housing
+    accepted_types: [pdf, jpeg, png]
+    preferred_type: pdf
+    max_bytes: 5242880        # 5 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://www.rightmove.co.uk/
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "Rightmove does not publish a tenant-referencing document byte limit on a public help page we could verify. 5MB is a conservative commonly reported target for ID and proof-of-address scans. Check the referencing or listing upload screen in front of you."
+
+  - id: openrent
+    name: OpenRent referencing ID
+    category: housing
+    accepted_types: [pdf, jpeg, png]
+    preferred_type: jpeg
+    max_bytes: 5242880        # 5 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://help.openrent.co.uk/hc/en-gb/articles/11461385143313-Which-proof-of-identity-documents-do-you-accept
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "OpenRent referencing accepts a copy of an identity document (passport preferred). It does not accept tenant-uploaded bank statements, payslips or employment contracts for the assessment, and it does not publish a byte limit. 5MB is a conservative commonly reported target for the ID scan."
+
+  - id: hmcts-efiling
+    name: HMCTS e-Filing
+    category: tax-government
+    accepted_types: [pdf]
+    max_bytes: 52428800       # 50 MB
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/government/publications/how-to-use-the-hmcts-e-filing-service/submit-and-manage-your-filings
+    last_checked: "2026-11-03"
+    verified: true
+    notes: "Official GOV.UK HMCTS e-Filing guide: maximum file size for each document is 50MB; up to 10 documents per filing. Some courts also ask for a 20MB core bundle for urgent applications — this preset follows the e-Filing 50MB figure."
+
+  - id: pip-evidence
+    name: PIP evidence
+    category: health
+    accepted_types: [pdf, jpeg, png]
+    preferred_type: pdf
+    max_bytes: 10485760       # 10 MB — commonly reported
+    orientation: any
+    no_password: true
+    source_url: https://www.gov.uk/pip/how-to-claim
+    last_checked: "2026-11-03"
+    verified: false
+    notes: "GOV.UK explains how to claim PIP and that you can send supporting evidence. It does not publish a per-file byte limit. 10MB is a conservative commonly reported target for the online evidence upload. If a file is still too large, split pages rather than dropping evidence."
 
   # Generic size targets (JPG and PDF). Aim ~10% under each max.
   - id: jpg-100kb
     name: JPG under 100 KB
+    category: generic
     accepted_types: [jpeg]
     max_bytes: 102400
     orientation: any
     source_url: null
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
 
   - id: jpg-200kb
     name: JPG under 200 KB
+    category: generic
     accepted_types: [jpeg]
     max_bytes: 204800
     orientation: any
     source_url: null
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
 
   - id: jpg-500kb
     name: JPG under 500 KB
+    category: generic
     accepted_types: [jpeg]
     max_bytes: 512000
     orientation: any
     source_url: null
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
 
   - id: jpg-1mb
     name: JPG under 1 MB
+    category: generic
     accepted_types: [jpeg]
     max_bytes: 1048576
     orientation: any
     source_url: null
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
 
   - id: jpg-2mb
     name: JPG under 2 MB
+    category: generic
     accepted_types: [jpeg]
     max_bytes: 2097152
     orientation: any
     source_url: null
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
 
   - id: pdf-100kb
     name: PDF under 100 KB
+    category: generic
     accepted_types: [pdf]
     max_bytes: 102400
     orientation: any
     no_password: true
     source_url: null
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
 
   - id: pdf-200kb
     name: PDF under 200 KB
+    category: generic
     accepted_types: [pdf]
     max_bytes: 204800
     orientation: any
     no_password: true
     source_url: null
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
 
   - id: pdf-500kb
     name: PDF under 500 KB
+    category: generic
     accepted_types: [pdf]
     max_bytes: 512000
     orientation: any
     no_password: true
     source_url: null
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
 
   - id: pdf-1mb
     name: PDF under 1 MB
+    category: generic
     accepted_types: [pdf]
     max_bytes: 1048576
     orientation: any
     no_password: true
     source_url: null
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
 
   - id: pdf-2mb
     name: PDF under 2 MB
+    category: generic
     accepted_types: [pdf]
     max_bytes: 2097152
     orientation: any
     no_password: true
     source_url: null
-    last_checked: "2026-10-13"
+    last_checked: "2026-11-03"
     verified: true
