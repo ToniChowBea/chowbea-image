@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   HOME_SEO,
   INDEX_SEO,
+  PORTALS_SEO,
   PRESET_IDS,
   fallbackFaq,
   pageSeoHead,
@@ -30,6 +31,7 @@ describe("preset SEO copy", () => {
   it("covers every catalogue id in the sitemap", () => {
     const paths = sitemapPaths()
     expect(paths).toContain("/fix")
+    expect(paths).toContain("/portals")
     expect(paths).toContain("/privacy")
     for (const id of PRESET_IDS) {
       expect(paths).toContain(`/fix/${id}`)
@@ -39,6 +41,8 @@ describe("preset SEO copy", () => {
   it("emits xml and robots with the request origin", () => {
     const xml = sitemapXml("https://example.test")
     expect(xml).toContain("<loc>https://example.test/fix/ucas-documents</loc>")
+    expect(xml).toContain("<loc>https://example.test/portals</loc>")
+    expect(xml).toContain("<loc>https://example.test/fix/eu-settlement</loc>")
     expect(robotsTxt("https://example.test")).toContain(
       "Sitemap: https://example.test/sitemap.xml"
     )
@@ -104,5 +108,25 @@ describe("preset SEO copy", () => {
   it("keeps the /fix index title and H1", () => {
     expect(INDEX_SEO.h1).toMatch(/upload limit/i)
     expect(INDEX_SEO.title).toMatch(/Chowbea/)
+    expect(PORTALS_SEO.h1).toMatch(/portal/i)
+    expect(PORTALS_SEO.title).toMatch(/Chowbea/)
+  })
+
+  it("builds https canonical and OG tags for a new portal page", () => {
+    const seo = seoForPreset("student-finance-england")
+    const head = pageSeoHead(
+      seo.title,
+      seo.description,
+      "/fix/student-finance-england"
+    )
+    expect(head.links).toContainEqual({
+      rel: "canonical",
+      href: "https://img.chowbea.com/fix/student-finance-england",
+    })
+    expect(head.meta).toContainEqual({
+      property: "og:url",
+      content: "https://img.chowbea.com/fix/student-finance-england",
+    })
+    expect(seo.h1).toMatch(/Student Finance England/)
   })
 })

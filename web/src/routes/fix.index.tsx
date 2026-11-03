@@ -18,7 +18,7 @@ import {
 const INDEX_FAQ = [
   {
     q: "Which portals can I target?",
-    a: "UK passport photos, UK visa photos, UCAS, SAAS, UKVCAS, VFS Global, NHS Jobs, plus generic JPG and PDF size caps from 100 KB to 2 MB.",
+    a: "UK passport and visa photos, UKVI, EU Settlement, UCAS, SAAS, Student Finance England, HMRC, DVLA, NHS Jobs, Trac, Civil Service Jobs, Land Registry, Companies House, and more — plus generic JPG and PDF size caps from 100 KB to 2 MB.",
   },
   {
     q: "Is it free?",
@@ -83,7 +83,14 @@ function FixIndexPage() {
           <p className="mt-1.5 max-w-xl text-[15px] font-semibold text-subtext">
             Pick a UK portal, drop a file, and we convert / resize / compress it
             to that portal&apos;s rules. One file is free. Format only — not a
-            guarantee of acceptance.
+            guarantee of acceptance.{" "}
+            <Link
+              to="/portals"
+              className="font-extrabold text-ink underline decoration-2 underline-offset-2"
+            >
+              Browse portals by category
+            </Link>
+            .
           </p>
         </div>
       </div>

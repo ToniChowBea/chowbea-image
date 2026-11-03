@@ -28,12 +28,13 @@ const TOOL_BLURBS: Record<ToolName, string> = {
 }
 
 const PORTAL_CHIPS = [
-  "UK passport",
+  "UKVI",
+  "HMRC",
+  "DVLA",
   "UCAS",
-  "SAAS",
-  "UKVCAS",
-  "VFS",
+  "Student Finance",
   "NHS Jobs",
+  "Land Registry",
 ]
 
 /** Collect supported images from a picker or a drop and add them to the workspace. */
@@ -164,8 +165,9 @@ function FixFeature() {
           Fix for a UK portal
         </h2>
         <p className="mt-2 max-w-xl text-[15px] font-semibold text-[#c9b89c]">
-          Passport photos, UCAS, SAAS, UKVCAS, VFS, NHS Jobs — convert, resize
-          and compress to that portal&apos;s rules. One file is free.
+          Passport photos, UKVI, HMRC, UCAS, Student Finance, NHS Jobs —
+          convert, resize and compress to that portal&apos;s rules. One file is
+          free.
         </p>
         <ul className="mt-3 flex flex-wrap gap-1.5">
           {PORTAL_CHIPS.map((chip) => (
@@ -297,6 +299,17 @@ export function Landing() {
       </div>
 
       <FixFeature />
+      {/* Categorized catalogue — kept outside the /fix card so tool tiles stay a picker. */}
+      <p className="mt-4 text-[15px] font-semibold text-muted-ink">
+        Or{" "}
+        <Link
+          to="/portals"
+          className="font-extrabold text-ink underline decoration-2 underline-offset-2"
+        >
+          browse every UK portal
+        </Link>{" "}
+        grouped by immigration, tax, jobs, education, housing and health.
+      </p>
 
       {/* Image toolkit — same five tools as the workspace toolbar. */}
       <div className="mt-11 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

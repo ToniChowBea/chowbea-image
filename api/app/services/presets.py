@@ -14,6 +14,16 @@ _PRESETS_PATH = Path(__file__).resolve().parent.parent / "presets.yaml"
 
 # Canonical type names used in YAML and throughout the fix pipeline.
 Orientation = Literal["portrait", "landscape", "any"]
+# /portals grouping. Generic size targets are not listed as UK portals.
+Category = Literal[
+    "immigration",
+    "tax-government",
+    "jobs",
+    "education",
+    "housing",
+    "health",
+    "generic",
+]
 
 # Map aliases so "jpg" in YAML or user input still matches "jpeg".
 _TYPE_ALIASES = {"jpg": "jpeg", "tif": "tiff"}
@@ -31,6 +41,7 @@ class Preset(BaseModel):
     id: str
     name: str
     accepted_types: list[str]
+    category: Category = "generic"
     min_bytes: int | None = None
     max_bytes: int | None = None
     min_width: int | None = None
@@ -78,6 +89,7 @@ class PresetPublic(BaseModel):
     id: str
     name: str
     accepted_types: list[str]
+    category: Category
     min_bytes: int | None = None
     max_bytes: int | None = None
     min_width: int | None = None

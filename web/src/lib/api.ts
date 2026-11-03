@@ -9,7 +9,12 @@
 import axios from "axios"
 
 import { capture } from "./analytics"
-import type { FixReport, JobAccepted, JobProgress, JobStatusResponse } from "./jobs"
+import type {
+  FixReport,
+  JobAccepted,
+  JobProgress,
+  JobStatusResponse,
+} from "./jobs"
 import {
   API_BASE_URL,
   downloadJobResult,
@@ -30,6 +35,14 @@ export interface Preset {
   id: string
   name: string
   accepted_types: string[]
+  category:
+    | "immigration"
+    | "tax-government"
+    | "jobs"
+    | "education"
+    | "housing"
+    | "health"
+    | "generic"
   min_bytes: number | null
   max_bytes: number | null
   min_width: number | null
@@ -316,7 +329,9 @@ export async function fixFiles(
       position: accepted.position,
       queueSize: accepted.queue_size,
     })
-    const status: JobStatusResponse = await waitForJob(accepted.job_id, { onProgress })
+    const status: JobStatusResponse = await waitForJob(accepted.job_id, {
+      onProgress,
+    })
     const download = await downloadJobResult(accepted.job_id, onProgress)
     const report = status.report ?? {
       preset_id: presetId,
@@ -332,7 +347,8 @@ export async function fixFiles(
     })
     return {
       blob: download.blob,
-      filename: download.filename ?? batchFilename(files, "fixed-", "fixed-files.zip"),
+      filename:
+        download.filename ?? batchFilename(files, "fixed-", "fixed-files.zip"),
       report,
     }
   } catch (err) {
@@ -347,7 +363,9 @@ export async function fixFiles(
 
 /** Fetch the full preset catalogue. */
 export async function fetchPresets(): Promise<Preset[]> {
-  const response = await axios.get<{ presets: Preset[] }>(`${API_BASE_URL}/presets`)
+  const response = await axios.get<{ presets: Preset[] }>(
+    `${API_BASE_URL}/presets`
+  )
   return response.data.presets
 }
 

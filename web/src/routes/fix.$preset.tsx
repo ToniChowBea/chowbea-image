@@ -36,6 +36,7 @@ import {
   pageSeoHead,
   publicUrl,
   seoForPreset,
+  stepsForPreset,
 } from "@/lib/preset-seo"
 
 export const Route = createFileRoute("/fix/$preset")({
@@ -224,17 +225,6 @@ function FixPresetPage() {
     }
   }
 
-  if (preset === undefined) {
-    return (
-      <div className="page-stack pb-10">
-        <h1 className="font-heading text-3xl font-extrabold tracking-tight text-ink uppercase">
-          {seo.h1}
-        </h1>
-        <p className="text-sm font-semibold text-muted-ink">Loading preset…</p>
-      </div>
-    )
-  }
-
   if (preset === null) {
     return (
       <div className="page-stack items-center text-center">
@@ -252,32 +242,44 @@ function FixPresetPage() {
   }
 
   const originalBytes = files.reduce((sum, file) => sum + file.size, 0)
-  const heading = preset.h1 || seo.h1
-  const faq = preset.faq?.length ? preset.faq : fallbackFaq(preset.name)
+  const heading = preset?.h1 || seo.h1
+  const faq = preset?.faq?.length
+    ? preset.faq
+    : fallbackFaq(preset?.name || heading)
+  const steps = stepsForPreset(presetId, preset?.name || heading)
+  const loading = preset === undefined
 
   return (
     <div className="page-stack pb-10">
       <JsonLd payload={faqJsonLd(faq)} />
       <JsonLd
         payload={appJsonLd(
-          publicUrl(`/fix/${preset.id}`),
+          publicUrl(`/fix/${presetId}`),
           heading,
-          preset.seo_description || seo.description
+          preset?.seo_description || seo.description
         )}
       />
 
       <div className="flex flex-col gap-5">
-        <Link
-          to="/fix"
-          className="press inline-flex w-fit items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold tracking-wide text-ink uppercase shadow-block-sm"
-        >
-          <HugeiconsIcon
-            icon={ArrowLeft01Icon}
-            className="size-3.5"
-            strokeWidth={2.6}
-          />
-          All presets
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/portals"
+            className="press inline-flex w-fit items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold tracking-wide text-ink uppercase shadow-block-sm"
+          >
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              className="size-3.5"
+              strokeWidth={2.6}
+            />
+            All portals
+          </Link>
+          <Link
+            to="/fix"
+            className="press inline-flex w-fit items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold tracking-wide text-ink uppercase shadow-block-sm"
+          >
+            All presets
+          </Link>
+        </div>
 
         <div className="flex items-start gap-4">
           <span className="flex size-14 shrink-0 items-center justify-center rounded-[15px] border-2 border-ink bg-amber text-ink shadow-block-sm">
@@ -292,11 +294,13 @@ function FixPresetPage() {
               <h1 className="font-heading text-3xl leading-none font-extrabold tracking-tight text-ink uppercase">
                 {heading}
               </h1>
-              <Badge variant={preset.verified ? "amber" : "outline"}>
-                {preset.verified ? "Verified" : "Unverified"}
-              </Badge>
+              {preset && (
+                <Badge variant={preset.verified ? "amber" : "outline"}>
+                  {preset.verified ? "Verified" : "Unverified"}
+                </Badge>
+              )}
             </div>
-            {preset.last_checked && (
+            {preset?.last_checked && (
               <p className="mt-2 text-[13px] font-semibold text-muted-ink">
                 Rules last checked {preset.last_checked}
               </p>
@@ -305,13 +309,19 @@ function FixPresetPage() {
         </div>
       </div>
 
+      <StepsCard steps={steps} />
+
       <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24.5rem)] lg:items-start">
         <div className="flex flex-col gap-5">
           {files.length === 0 ? (
             <Dropzone
-              accept={acceptFor(preset)}
-              title="Drop files here"
-              hint={hintFor(preset)}
+              accept={
+                preset
+                  ? acceptFor(preset)
+                  : DECODE_EXTS.map((ext) => `.${ext}`).join(",")
+              }
+              title="Fix my file"
+              hint={preset ? hintFor(preset) : "One file free · packs paid"}
               multiple
               onFiles={(picked) => {
                 setFiles(picked)
@@ -355,7 +365,7 @@ function FixPresetPage() {
           <Button
             type="button"
             size="lg"
-            disabled={files.length === 0 || submitting || needsPay}
+            disabled={files.length === 0 || submitting || needsPay || !preset}
             onClick={() => void handleFix()}
             className="bg-amber text-ink shadow-block hover:bg-amber"
           >
@@ -401,7 +411,18 @@ function FixPresetPage() {
         </div>
 
         <aside className="flex flex-col gap-5 lg:sticky lg:top-7">
-          <RulesCard preset={preset} />
+          {preset ? (
+            <RulesCard preset={preset} />
+          ) : (
+            <div className="block-card">
+              <p className="font-heading text-sm font-extrabold tracking-wide text-ink uppercase">
+                Official rules
+              </p>
+              <p className="mt-2 text-[13px] font-semibold text-muted-ink">
+                {loading ? "Loading this portal's limits…" : "Unknown preset."}
+              </p>
+            </div>
+          )}
           <p className="rounded-[20px] border-2 border-ink bg-soft-amber px-5 py-4 text-[13px] font-semibold text-ink">
             This tool only fixes file format, size and pixels. It does not check
             faces, backgrounds or content, and it does not guarantee a portal
@@ -412,6 +433,30 @@ function FixPresetPage() {
         </aside>
       </div>
     </div>
+  )
+}
+
+/** Numbered how-to for this portal, rendered on first HTML for crawlers. */
+function StepsCard({ steps }: { steps: string[] }) {
+  return (
+    <section className="block-card">
+      <h2 className="mb-3 font-heading text-sm font-extrabold tracking-wide text-ink uppercase">
+        How to fix this file
+      </h2>
+      <ol className="flex flex-col gap-2">
+        {steps.map((step, index) => (
+          <li
+            key={step}
+            className="flex gap-3 text-[13px] font-semibold text-ink"
+          >
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-ink bg-amber font-heading text-[12px] font-extrabold">
+              {index + 1}
+            </span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
 

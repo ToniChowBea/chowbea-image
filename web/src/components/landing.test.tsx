@@ -67,6 +67,10 @@ describe("Landing", () => {
 
     const fixLink = screen.getByRole("link", { name: /fix for a uk portal/i })
     expect(fixLink.getAttribute("href")).toBe("/fix")
+    const portalsLink = screen.getByRole("link", {
+      name: /browse every uk portal/i,
+    })
+    expect(portalsLink.getAttribute("href")).toBe("/portals")
   })
 
   it("opens the file picker and pre-selects the tool when a tile is clicked with no images", () => {
