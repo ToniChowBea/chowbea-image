@@ -10,11 +10,13 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Image01Icon, GithubIcon } from "@hugeicons/core-free-icons"
-import { MotionConfig } from "motion/react"
 
 import { FixTokenClaimer } from "@/components/fix/token-claimer"
 import { JobsCounter } from "@/components/jobs-counter"
 import { resolveQueueToggle } from "@/lib/queue-toggle"
+// Self-hosted latin faces — preloaded so the H1 is not blocked on Google Fonts.
+import bricolageLatin from "@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2?url"
+import hankenLatin from "@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-wght-normal.woff2?url"
 import appCss from "../styles.css?url"
 
 export const Route = createRootRoute({
@@ -31,16 +33,24 @@ export const Route = createRootRoute({
       { title: "Chowbea Image" },
     ],
     links: [
-      // Bold Blocks type: Bricolage Grotesque (display) + Hanken Grotesk (body).
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
-        rel: "preconnect",
-        href: "https://fonts.gstatic.com",
+        rel: "icon",
+        href: "/favicon.svg",
+        type: "image/svg+xml",
+      },
+      {
+        rel: "preload",
+        href: bricolageLatin,
+        as: "font",
+        type: "font/woff2",
         crossOrigin: "anonymous",
       },
       {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap",
+        rel: "preload",
+        href: hankenLatin,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
       },
       { rel: "stylesheet", href: appCss },
     ],
@@ -148,14 +158,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               </div>
             </header>
 
-            {/* Every `motion`-driven transition in the app inherits this
-            policy from one place: `reducedMotion="user"` collapses all of
-            them to instant when the OS "reduce motion" setting is on,
-            mirroring how styles.css zeroes its own --duration-* tokens. */}
-            <MotionConfig reducedMotion="user">
-              <FixTokenClaimer />
-              <main className="flex-1">{children}</main>
-            </MotionConfig>
+            {/* Workspace pages wrap their own MotionConfig; the landing
+            shell stays free of that runtime so first paint stays light. */}
+            <FixTokenClaimer />
+            <main className="flex-1">{children}</main>
 
             {/* Footer line, echoing the design-system footer. */}
             <footer className="mt-14 flex flex-col items-center justify-between gap-3 border-t-[3px] border-ink pt-6 sm:flex-row">
@@ -189,15 +195,17 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <TanStackDevtools
-          config={{ position: "bottom-right" }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        {import.meta.env.DEV ? (
+          <TanStackDevtools
+            config={{ position: "bottom-right" }}
+            plugins={[
+              {
+                name: "Tanstack Router",
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+        ) : null}
         <Scripts />
       </body>
     </html>

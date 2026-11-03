@@ -7,6 +7,7 @@ import {
   PORTAL_IDS_BY_CATEGORY,
   PRESET_IDS,
   categoryForPreset,
+  relatedPresetIds,
   stepsForPreset,
 } from "./portal-catalogue"
 import { seoForPreset, sitemapPaths } from "./preset-seo"
@@ -55,5 +56,23 @@ describe("portal catalogue", () => {
       expect(stepsForPreset(id).length).toBeGreaterThanOrEqual(3)
       expect(paths).toContain(`/fix/${id}`)
     }
+  })
+
+  it("points each preset at 3–4 siblings in the same category", () => {
+    for (const id of PORTAL_IDS) {
+      const related = relatedPresetIds(id)
+      expect(related).not.toContain(id)
+      expect(related.length).toBeGreaterThanOrEqual(2)
+      expect(related.length).toBeLessThanOrEqual(4)
+      const category = categoryForPreset(id)
+      for (const other of related) {
+        expect(categoryForPreset(other)).toBe(category)
+      }
+    }
+    const jpgs = relatedPresetIds("jpg-1mb")
+    expect(jpgs.length).toBe(4)
+    expect(jpgs.every((id) => id.startsWith("jpg-"))).toBe(true)
+    const pdfs = relatedPresetIds("pdf-100kb")
+    expect(pdfs.every((id) => id.startsWith("pdf-"))).toBe(true)
   })
 })

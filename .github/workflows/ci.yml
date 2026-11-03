@@ -40,3 +40,36 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Run vitest
         run: bun run test
+
+  indexnow:
+    name: Ping IndexNow
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install JavaScript dependencies
+        run: bun install --frozen-lockfile
+      - name: Wait until the live IndexNow key file is served
+        continue-on-error: true
+        run: |
+          key_url="https://img.chowbea.com/chowbea-img-indexnow-c7e41b8a.txt"
+          for i in $(seq 1 24); do
+            if curl -fsS "$key_url" | grep -q "chowbea-img-indexnow-c7e41b8a"; then
+              echo "Key file is live"
+              exit 0
+            fi
+            echo "Waiting for Railway deploy ($i/24)"
+            sleep 15
+          done
+          echo "Key file not live yet; pinging anyway (idempotent)"
+      - name: Notify Bing and Yandex
+        run: bun scripts/ping-indexnow.ts
+        env:
+          INDEXNOW_ORIGIN: https://img.chowbea.com
+          INDEXNOW_RETRIES: "6"
+          INDEXNOW_RETRY_MS: "10000"

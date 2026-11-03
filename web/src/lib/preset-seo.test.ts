@@ -30,6 +30,7 @@ describe("preset SEO copy", () => {
 
   it("covers every catalogue id in the sitemap", () => {
     const paths = sitemapPaths()
+    expect(paths).toContain("/")
     expect(paths).toContain("/fix")
     expect(paths).toContain("/portals")
     expect(paths).toContain("/privacy")
@@ -80,7 +81,8 @@ describe("preset SEO copy", () => {
     const head = pageSeoHead(
       seoForPreset("uk-passport-online").title,
       seoForPreset("uk-passport-online").description,
-      "/fix/uk-passport-online"
+      "/fix/uk-passport-online",
+      "/og/uk-passport-online.png"
     )
     expect(publicUrl("/fix/uk-passport-online")).toBe(
       "https://img.chowbea.com/fix/uk-passport-online"
@@ -96,6 +98,14 @@ describe("preset SEO copy", () => {
     expect(head.meta).toContainEqual({
       name: "twitter:title",
       content: seoForPreset("uk-passport-online").title,
+    })
+    expect(head.meta).toContainEqual({
+      name: "twitter:card",
+      content: "summary_large_image",
+    })
+    expect(head.meta).toContainEqual({
+      property: "og:image",
+      content: "https://img.chowbea.com/og/uk-passport-online.png",
     })
     expect(HOME_SEO.title).toBe("Chowbea Image")
   })

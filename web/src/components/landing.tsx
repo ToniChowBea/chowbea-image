@@ -1,6 +1,5 @@
 import * as React from "react"
 import { Link } from "@tanstack/react-router"
-import { motion } from "motion/react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   ArrowRight02Icon,
@@ -14,9 +13,6 @@ import { SUPPORTED_ACCEPT, isSupportedImage } from "@/lib/images"
 import { cn } from "@/lib/utils"
 import { useWorkspace } from "@/stores/workspace"
 import type { ToolName } from "@/stores/workspace"
-
-// A crisp ease-out-quart for the tile entrance.
-const EASE_OUT_QUART = [0.22, 1, 0.36, 1] as [number, number, number, number]
 
 /** One-line pitch for each workspace tool, shown on the landing tiles. */
 const TOOL_BLURBS: Record<ToolName, string> = {
@@ -59,7 +55,6 @@ function ToolTile({
   label,
   description,
   icon,
-  index,
   selected,
   onPick,
 }: {
@@ -67,7 +62,6 @@ function ToolTile({
   label: string
   description: string
   icon: (typeof TOOLS)[number]["icon"]
-  index: number
   selected: boolean
   onPick: () => void
 }) {
@@ -91,16 +85,7 @@ function ToolTile({
         selected && "ring-4 ring-ink/15"
       )}
     >
-      <motion.div
-        className="flex h-full flex-col gap-4"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{
-          duration: 0.4,
-          delay: 0.1 + index * 0.05,
-          ease: EASE_OUT_QUART,
-        }}
-      >
+      <div className="flex h-full flex-col gap-4">
         <div className="flex items-start justify-between">
           <span className="flex size-[52px] items-center justify-center rounded-[13px] border-2 border-ink bg-surface text-ink">
             <HugeiconsIcon
@@ -130,7 +115,7 @@ function ToolTile({
             {description}
           </p>
         </div>
-      </motion.div>
+      </div>
     </button>
   )
 }
@@ -313,14 +298,13 @@ export function Landing() {
 
       {/* Image toolkit — same five tools as the workspace toolbar. */}
       <div className="mt-11 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {TOOLS.map((tool, index) => (
+        {TOOLS.map((tool) => (
           <ToolTile
             key={tool.id}
             id={tool.id}
             label={tool.label}
             description={TOOL_BLURBS[tool.id]}
             icon={tool.icon}
-            index={index}
             selected={activeTool === tool.id}
             onPick={openPicker}
           />

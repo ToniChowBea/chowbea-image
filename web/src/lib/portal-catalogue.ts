@@ -267,3 +267,20 @@ export function categoryForPreset(id: string): PortalCategoryId | "generic" {
   }
   return "generic"
 }
+
+/**
+ * 3–4 neighbouring presets in the same category. Generic JPG/PDF targets
+ * stay inside their own family so a 100 KB JPEG page does not link to PDFs.
+ */
+export function relatedPresetIds(id: string, count = 4): string[] {
+  const category = categoryForPreset(id)
+  const pool: readonly string[] =
+    category === "generic"
+      ? GENERIC_IDS.filter((other) =>
+          other.startsWith(id.startsWith("pdf-") ? "pdf-" : "jpg-")
+        )
+      : PORTAL_IDS_BY_CATEGORY[category]
+  const index = pool.indexOf(id)
+  if (index < 0) return []
+  return [...pool.slice(index + 1), ...pool.slice(0, index)].slice(0, count)
+}

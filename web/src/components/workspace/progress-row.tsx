@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence, motion, MotionConfig } from "motion/react"
 
 import {
   Progress,
@@ -61,45 +61,47 @@ export function ProgressRow({
   const progress = progressProp !== undefined ? progressProp : storeProgress
 
   return (
-    <div role="status" aria-live="polite" className="block-card">
-      <AnimatePresence mode="wait" initial={false}>
-        {progress ? (
-          <motion.div key={progress.phase} {...FADE}>
-            {progress.percent !== null ? (
-              <Progress value={progress.percent}>
-                <div className="flex w-full items-center justify-between">
-                  <ProgressLabel>{phaseLabel(progress)}</ProgressLabel>
-                  <ProgressValue />
+    <MotionConfig reducedMotion="user">
+      <div role="status" aria-live="polite" className="block-card">
+        <AnimatePresence mode="wait" initial={false}>
+          {progress ? (
+            <motion.div key={progress.phase} {...FADE}>
+              {progress.percent !== null ? (
+                <Progress value={progress.percent}>
+                  <div className="flex w-full items-center justify-between">
+                    <ProgressLabel>{phaseLabel(progress)}</ProgressLabel>
+                    <ProgressValue />
+                  </div>
+                </Progress>
+              ) : (
+                // Base UI's ProgressLabel/ProgressValue need a <Progress> (Root)
+                // ancestor for context — indeterminate phases skip that
+                // primitive entirely, so this is a plain <p> matching its
+                // styling instead of the compound component.
+                <div className="flex w-full flex-col gap-2">
+                  <p className="font-heading text-sm font-bold text-ink">
+                    {phaseLabel(progress)}
+                  </p>
+                  {progress.phase === "processing" ? (
+                    <IndeterminateTrack />
+                  ) : (
+                    <div className="h-2.5 w-full rounded-full border-2 border-dashed border-line" />
+                  )}
                 </div>
-              </Progress>
-            ) : (
-              // Base UI's ProgressLabel/ProgressValue need a <Progress> (Root)
-              // ancestor for context — indeterminate phases skip that
-              // primitive entirely, so this is a plain <p> matching its
-              // styling instead of the compound component.
-              <div className="flex w-full flex-col gap-2">
-                <p className="font-heading text-sm font-bold text-ink">
-                  {phaseLabel(progress)}
-                </p>
-                {progress.phase === "processing" ? (
-                  <IndeterminateTrack />
-                ) : (
-                  <div className="h-2.5 w-full rounded-full border-2 border-dashed border-line" />
-                )}
-              </div>
-            )}
-          </motion.div>
-        ) : (
-          <motion.p
-            key="idle"
-            {...FADE}
-            className="text-[13px] font-semibold text-muted-ink"
-          >
-            {idleLabel ??
-              "Nothing running yet — pick a tool, set your options, and go."}
-          </motion.p>
-        )}
-      </AnimatePresence>
-    </div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.p
+              key="idle"
+              {...FADE}
+              className="text-[13px] font-semibold text-muted-ink"
+            >
+              {idleLabel ??
+                "Nothing running yet — pick a tool, set your options, and go."}
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+    </MotionConfig>
   )
 }
