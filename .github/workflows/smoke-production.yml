@@ -1,0 +1,182 @@
+# Daily production smoke test: verify img.chowbea.com is live and working.
+# Runs Monday-Friday at 9 AM UTC. No secrets required; skips gracefully if unreachable.
+name: Production Smoke Test
+
+on:
+  schedule:
+    # 9 AM UTC on weekdays (cron: minute hour day-of-month month day-of-week)
+    - cron: "0 9 * * 1-5"
+  workflow_dispatch: # Allow manual runs
+
+jobs:
+  smoke-test:
+    name: Smoke test production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check API health endpoint
+        run: |
+          echo "Testing GET /health on API..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://img.chowbea.com/api/health || echo "000")
+          if [ "$response" = "200" ]; then
+            echo "✓ API health check passed (HTTP $response)"
+          elif [ "$response" = "000" ]; then
+            echo "✗ API is unreachable (network error)"
+            exit 1
+          else
+            echo "✗ API health check failed (HTTP $response)"
+            exit 1
+          fi
+
+      - name: Check web homepage
+        run: |
+          echo "Testing GET /fix on web..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://img.chowbea.com/fix || echo "000")
+          if [ "$response" = "200" ]; then
+            echo "✓ Web homepage (/fix) loaded (HTTP $response)"
+          elif [ "$response" = "000" ]; then
+            echo "✗ Web homepage unreachable (network error)"
+            exit 1
+          else
+            echo "✗ Web homepage failed (HTTP $response)"
+            exit 1
+          fi
+
+      - name: Check portals listing page
+        run: |
+          echo "Testing GET /portals on web..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://img.chowbea.com/portals || echo "000")
+          if [ "$response" = "200" ]; then
+            echo "✓ Portals page loaded (HTTP $response)"
+          elif [ "$response" = "000" ]; then
+            echo "✗ Portals page unreachable (network error)"
+            exit 1
+          else
+            echo "✗ Portals page failed (HTTP $response)"
+            exit 1
+          fi
+
+      - name: Test API presets endpoint
+        run: |
+          echo "Testing GET /api/presets..."
+          response=$(curl -s https://img.chowbea.com/api/presets)
+          http_code=$(curl -s -o /dev/null -w "%{http_code}" https://img.chowbea.com/api/presets || echo "000")
+          
+          if [ "$http_code" != "200" ]; then
+            echo "✗ Presets API failed (HTTP $http_code)"
+            exit 1
+          fi
+          
+          # Check JSON structure
+          preset_count=$(echo "$response" | jq -r '.presets | length' 2>/dev/null || echo "0")
+          if [ "$preset_count" -ge "31" ]; then
+            echo "✓ Presets API returned $preset_count presets (expected ≥31)"
+          else
+            echo "✗ Presets API returned only $preset_count presets (expected ≥31)"
+            exit 1
+          fi
+
+      - name: Install dependencies for end-to-end test
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends imagemagick jq
+
+      - name: Run end-to-end fix job
+        run: |
+          echo "Creating a small test JPEG..."
+          # Create a 100x100 red square JPEG (should be under 10KB)
+          convert -size 100x100 xc:red -quality 85 test-input.jpg
+          input_size=$(stat -f%z test-input.jpg 2>/dev/null || stat -c%s test-input.jpg)
+          echo "Created test-input.jpg ($input_size bytes)"
+          
+          echo "Submitting fix job to API..."
+          # Submit to jpg-100kb preset (generic 100KB target)
+          submit_response=$(curl -s -X POST \
+            "https://img.chowbea.com/api/fix" \
+            -F "files=@test-input.jpg" \
+            -F "preset=jpg-100kb" \
+            -w "\n%{http_code}")
+          
+          http_code=$(echo "$submit_response" | tail -n1)
+          response_body=$(echo "$submit_response" | head -n-1)
+          
+          if [ "$http_code" != "200" ] && [ "$http_code" != "201" ]; then
+            echo "✗ Fix job submission failed (HTTP $http_code)"
+            echo "Response: $response_body"
+            exit 1
+          fi
+          
+          job_id=$(echo "$response_body" | jq -r '.job_id' 2>/dev/null || echo "")
+          if [ -z "$job_id" ] || [ "$job_id" = "null" ]; then
+            echo "✗ No job_id in response"
+            echo "Response: $response_body"
+            exit 1
+          fi
+          
+          echo "✓ Job submitted: $job_id"
+          
+          # Poll for completion (max 30 seconds)
+          echo "Polling job status..."
+          for i in $(seq 1 30); do
+            status_response=$(curl -s "https://img.chowbea.com/api/jobs/$job_id")
+            status=$(echo "$status_response" | jq -r '.status' 2>/dev/null || echo "unknown")
+            
+            if [ "$status" = "completed" ]; then
+              echo "✓ Job completed successfully"
+              
+              # Check that report exists and passed
+              passed=$(echo "$status_response" | jq -r '.report.passed' 2>/dev/null || echo "false")
+              if [ "$passed" = "true" ]; then
+                echo "✓ Fix job passed all rules"
+              else
+                echo "✗ Fix job failed rules"
+                echo "Report: $(echo "$status_response" | jq -r '.report' 2>/dev/null)"
+                exit 1
+              fi
+              
+              # Try to download the result
+              download_url=$(echo "$status_response" | jq -r '.download_url' 2>/dev/null || echo "")
+              if [ -n "$download_url" ] && [ "$download_url" != "null" ]; then
+                download_code=$(curl -s -o /dev/null -w "%{http_code}" "$download_url")
+                if [ "$download_code" = "200" ]; then
+                  echo "✓ Result file is downloadable"
+                else
+                  echo "⚠ Result file returned HTTP $download_code (may be expired)"
+                fi
+              fi
+              
+              exit 0
+            elif [ "$status" = "failed" ]; then
+              echo "✗ Job failed"
+              echo "Error: $(echo "$status_response" | jq -r '.error' 2>/dev/null)"
+              exit 1
+            fi
+            
+            echo "  Status: $status (attempt $i/30)"
+            sleep 1
+          done
+          
+          echo "✗ Job did not complete within 30 seconds"
+          exit 1
+
+      - name: Report success
+        if: success()
+        run: |
+          echo "════════════════════════════════════════"
+          echo "✓ All production smoke tests passed"
+          echo "  - API health endpoint: OK"
+          echo "  - Web homepage (/fix): OK"
+          echo "  - Web portals page: OK"
+          echo "  - API presets endpoint: OK"
+          echo "  - End-to-end fix job: OK"
+          echo "════════════════════════════════════════"
+
+      - name: Report failure
+        if: failure()
+        run: |
+          echo "════════════════════════════════════════"
+          echo "✗ Production smoke test FAILED"
+          echo "  Check the logs above for details"
+          echo "════════════════════════════════════════"
+          exit 1

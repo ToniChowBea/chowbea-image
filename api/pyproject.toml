@@ -27,3 +27,6 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = [
+    "heavy: marks tests that require heavy dependencies like LibreOffice (run in CI, but may be slow)",
+]
