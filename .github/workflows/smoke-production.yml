@@ -1,5 +1,7 @@
 # Daily production smoke test: verify img.chowbea.com is live and working.
-# Runs Monday-Friday at 9 AM UTC. No secrets required; skips gracefully if unreachable.
+# Runs Monday-Friday at 9 AM UTC. No secrets required.
+# The web app (img.chowbea.com) and the API (a separate Railway service) live on
+# different hosts, and the API routes have no /api prefix.
 name: Production Smoke Test
 
 on:
@@ -7,6 +9,10 @@ on:
     # 9 AM UTC on weekdays (cron: minute hour day-of-month month day-of-week)
     - cron: "0 9 * * 1-5"
   workflow_dispatch: # Allow manual runs
+
+env:
+  WEB_URL: https://img.chowbea.com
+  API_URL: https://chowbea-image-production.up.railway.app
 
 jobs:
   smoke-test:
@@ -18,7 +24,7 @@ jobs:
       - name: Check API health endpoint
         run: |
           echo "Testing GET /health on API..."
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://img.chowbea.com/api/health || echo "000")
+          response=$(curl -s -o /dev/null -w "%{http_code}" $API_URL/health || echo "000")
           if [ "$response" = "200" ]; then
             echo "✓ API health check passed (HTTP $response)"
           elif [ "$response" = "000" ]; then
@@ -32,7 +38,7 @@ jobs:
       - name: Check web homepage
         run: |
           echo "Testing GET /fix on web..."
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://img.chowbea.com/fix || echo "000")
+          response=$(curl -s -o /dev/null -w "%{http_code}" $WEB_URL/fix || echo "000")
           if [ "$response" = "200" ]; then
             echo "✓ Web homepage (/fix) loaded (HTTP $response)"
           elif [ "$response" = "000" ]; then
@@ -46,7 +52,7 @@ jobs:
       - name: Check portals listing page
         run: |
           echo "Testing GET /portals on web..."
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://img.chowbea.com/portals || echo "000")
+          response=$(curl -s -o /dev/null -w "%{http_code}" $WEB_URL/portals || echo "000")
           if [ "$response" = "200" ]; then
             echo "✓ Portals page loaded (HTTP $response)"
           elif [ "$response" = "000" ]; then
@@ -59,9 +65,9 @@ jobs:
 
       - name: Test API presets endpoint
         run: |
-          echo "Testing GET /api/presets..."
-          response=$(curl -s https://img.chowbea.com/api/presets)
-          http_code=$(curl -s -o /dev/null -w "%{http_code}" https://img.chowbea.com/api/presets || echo "000")
+          echo "Testing GET /presets on API..."
+          response=$(curl -s $API_URL/presets)
+          http_code=$(curl -s -o /dev/null -w "%{http_code}" $API_URL/presets || echo "000")
           
           if [ "$http_code" != "200" ]; then
             echo "✗ Presets API failed (HTTP $http_code)"
@@ -93,7 +99,7 @@ jobs:
           echo "Submitting fix job to API..."
           # Submit to jpg-100kb preset (generic 100KB target)
           submit_response=$(curl -s -X POST \
-            "https://img.chowbea.com/api/fix" \
+            "$API_URL/img/fix" \
             -F "files=@test-input.jpg" \
             -F "preset=jpg-100kb" \
             -w "\n%{http_code}")
@@ -101,7 +107,7 @@ jobs:
           http_code=$(echo "$submit_response" | tail -n1)
           response_body=$(echo "$submit_response" | head -n-1)
           
-          if [ "$http_code" != "200" ] && [ "$http_code" != "201" ]; then
+          if [ "$http_code" != "202" ]; then
             echo "✗ Fix job submission failed (HTTP $http_code)"
             echo "Response: $response_body"
             exit 1
@@ -119,10 +125,10 @@ jobs:
           # Poll for completion (max 30 seconds)
           echo "Polling job status..."
           for i in $(seq 1 30); do
-            status_response=$(curl -s "https://img.chowbea.com/api/jobs/$job_id")
+            status_response=$(curl -s "$API_URL/jobs/$job_id")
             status=$(echo "$status_response" | jq -r '.status' 2>/dev/null || echo "unknown")
             
-            if [ "$status" = "completed" ]; then
+            if [ "$status" = "done" ]; then
               echo "✓ Job completed successfully"
               
               # Check that report exists and passed
@@ -136,14 +142,12 @@ jobs:
               fi
               
               # Try to download the result
-              download_url=$(echo "$status_response" | jq -r '.download_url' 2>/dev/null || echo "")
-              if [ -n "$download_url" ] && [ "$download_url" != "null" ]; then
-                download_code=$(curl -s -o /dev/null -w "%{http_code}" "$download_url")
-                if [ "$download_code" = "200" ]; then
-                  echo "✓ Result file is downloadable"
-                else
-                  echo "⚠ Result file returned HTTP $download_code (may be expired)"
-                fi
+              download_code=$(curl -s -o /dev/null -w "%{http_code}" "$API_URL/jobs/$job_id/download")
+              if [ "$download_code" = "200" ]; then
+                echo "✓ Result file is downloadable"
+              else
+                echo "✗ Result download returned HTTP $download_code"
+                exit 1
               fi
               
               exit 0
