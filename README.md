@@ -92,11 +92,28 @@ Ghostscript and LibreOffice are already in the API image. You still need to supp
 ## Tests
 
 ```bash
+# Run all tests
 (cd api && uv run pytest)
 (cd web && bun run test)
+
+# Comprehensive preset testing (131 tests for all 41 presets)
+(cd api && uv run pytest tests/test_all_presets_comprehensive.py -v)
+
+# Exclude heavy LibreOffice tests (faster, ~2m 30s vs ~3m 14s)
+(cd api && uv run pytest tests/test_all_presets_comprehensive.py -m "not heavy" -v)
+
+# Only heavy tests (Office document conversions)
+(cd api && uv run pytest tests/test_all_presets_comprehensive.py -m heavy -v)
+
+# Test specific preset
+(cd api && uv run pytest tests/test_all_presets_comprehensive.py -k "uk-passport-online" -v)
 ```
 
-CI (GitHub Actions) runs both on every push and pull request, with Ghostscript installed for the API job.
+**CI (GitHub Actions):**
+- **On push/PR:** Runs all API and web tests with Ghostscript
+- **Daily (weekdays 9 AM UTC):** Production smoke test validates live API, web, and end-to-end fix job
+
+Heavy LibreOffice tests are skipped in CI when LibreOffice is unavailable (via `pytest.importorskip`). All 131 preset tests pass.
 
 ## Privacy
 
