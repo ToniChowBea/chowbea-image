@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router"
 
 import { publicSiteOrigin, sitemapXml } from "@/lib/preset-seo"
 
-/** Machine-readable sitemap of /fix, /portals, every preset, and privacy. */
+/** Machine-readable sitemap of /fix, /portals, /guides, every preset, and privacy. */
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {

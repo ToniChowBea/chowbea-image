@@ -33,6 +33,7 @@ describe("preset SEO copy", () => {
     expect(paths).toContain("/")
     expect(paths).toContain("/fix")
     expect(paths).toContain("/portals")
+    expect(paths).toContain("/guides")
     expect(paths).toContain("/privacy")
     for (const id of PRESET_IDS) {
       expect(paths).toContain(`/fix/${id}`)
@@ -43,6 +44,10 @@ describe("preset SEO copy", () => {
     const xml = sitemapXml("https://example.test")
     expect(xml).toContain("<loc>https://example.test/fix/ucas-documents</loc>")
     expect(xml).toContain("<loc>https://example.test/portals</loc>")
+    expect(xml).toContain("<loc>https://example.test/guides</loc>")
+    expect(xml).toContain(
+      "<loc>https://example.test/guides/uk-passport-online</loc>"
+    )
     expect(xml).toContain("<loc>https://example.test/fix/eu-settlement</loc>")
     expect(robotsTxt("https://example.test")).toContain(
       "Sitemap: https://example.test/sitemap.xml"

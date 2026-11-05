@@ -57,12 +57,20 @@ function PortalsIndexPage() {
             guarantee of acceptance.
           </p>
         </div>
-        <Link
-          to="/fix"
-          className="press inline-flex w-fit items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold tracking-wide text-ink uppercase shadow-block-sm"
-        >
-          Generic size targets
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/fix"
+            className="press inline-flex w-fit items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold tracking-wide text-ink uppercase shadow-block-sm"
+          >
+            Generic size targets
+          </Link>
+          <Link
+            to="/guides"
+            className="press inline-flex w-fit items-center gap-2 rounded-full border-2 border-ink bg-card px-4 py-2 text-[13px] font-extrabold tracking-wide text-ink uppercase shadow-block-sm"
+          >
+            How-to guides
+          </Link>
+        </div>
       </div>
 
       {PORTAL_CATEGORIES.map((category) => (
