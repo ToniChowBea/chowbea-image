@@ -90,6 +90,18 @@ describe("schema.org JSON-LD", () => {
     expect(
       items.some((item) => item.url.includes("/guides/ucas-documents"))
     ).toBe(true)
+    expect(
+      items.some((item) => item.url.includes("/guides/saas-documents"))
+    ).toBe(true)
+    expect(items.some((item) => item.url.includes("/guides/linkedin-cv"))).toBe(
+      true
+    )
+    expect(items.some((item) => item.url.includes("/guides/vfs-global"))).toBe(
+      false
+    )
+    expect(items.some((item) => item.url.includes("/guides/rightmove"))).toBe(
+      false
+    )
   })
 
   it("rejects payloads that drop required schema.org fields", () => {

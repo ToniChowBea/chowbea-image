@@ -1,5 +1,5 @@
 /**
- * Short SEO how-to guides for high-intent UK portal upload limits.
+ * Short SEO how-to guides for UK portal upload limits.
  * Limits and source URLs are copied from api/app/presets.yaml — never invented.
  */
 
@@ -42,7 +42,13 @@ const PRIVACY_FAQ: GuideFaq = {
   a: "No. Files are deleted 1 hour after processing. We never log file contents. This tool only fixes format, size and pixels — it does not check faces, backgrounds or content, and it does not guarantee a portal will accept the file.",
 }
 
-/** Highest-intent portals with a published or clearly labelled limit. */
+/**
+ * Portal presets with no verified source/limit on a public guidance page.
+ * Generic JPG/PDF targets are not portals and also have no source URL.
+ */
+export const SKIPPED_GUIDE_IDS = ["vfs-global", "rightmove"] as const
+
+/** Portal how-to pages: official limits, or clearly labelled commonly-reported ones. */
 const GUIDES: Record<string, Omit<Guide, "slug" | "presetId">> = {
   "uk-passport-online": {
     h1: "How to resize a photo for a UK passport online",
@@ -460,6 +466,458 @@ const GUIDES: Record<string, Omit<Guide, "slug" | "presetId">> = {
       PRIVACY_FAQ,
     ],
   },
+  "ukvi-evidence": {
+    h1: "UKVI visa file too large — evidence upload",
+    title: "UKVI visa file too large — compress evidence | Chowbea",
+    description:
+      "GOV.UK self-upload accepts PDF, PNG, JPG or JPEG. It does not publish a per-file byte cap — 6MB is a conservative commonly reported target. Check the upload screen.",
+    intro:
+      "GOV.UK's visa self-upload guidance lists PDF, PNG, JPG or JPEG and describes how to scan, but it does not publish a per-file byte limit. 6MB here is a conservative commonly reported target, matching UKVCAS and EU Settlement Scheme figures on official pages. Check the upload screen on your application.",
+    limit: "6MB per file (commonly reported — not published on GOV.UK)",
+    formats: "PDF, PNG, JPG or JPEG",
+    extras: [
+      "No official per-file byte limit is published on the self-upload page",
+      "Check the upload screen on your application",
+    ],
+    sourceUrl:
+      "https://www.gov.uk/guidance/uploading-evidence-as-part-of-your-visa-application",
+    sourceLabel: "GOV.UK: Uploading evidence as part of your visa application",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my UKVI evidence",
+    faq: [
+      {
+        q: "Is there an official UKVI evidence file size limit?",
+        a: "No. GOV.UK lists PDF, PNG, JPG or JPEG and how to scan, but does not publish a per-file byte limit. 6MB is a conservative commonly reported target. Check the upload screen on your application.",
+      },
+      {
+        q: "What file types does UKVI self-upload accept?",
+        a: "GOV.UK self-upload guidance: PDF, PNG, JPG or JPEG.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  "dvla-photo": {
+    h1: "How to resize a DVLA driving licence photo",
+    title: "How to resize a DVLA driving licence photo | Chowbea",
+    description:
+      "GOV.UK lets you upload a new driving-licence photo but does not publish a byte or pixel limit. 50KB–10MB and 600×750 are commonly reported from passport digital-photo rules — not a DVLA figure.",
+    intro:
+      "GOV.UK says you can upload a new photo when changing a driving-licence photo, but that page does not publish a byte or pixel limit. 50KB–10MB and 600×750 here are the GOV.UK digital-photo rules used for passports, commonly reported for DVLA online uploads. Not an official DVLA figure — check the application screen.",
+    limit: "50KB–10MB (commonly reported — not a DVLA-published figure)",
+    formats: "JPEG (JPG)",
+    extras: [
+      "Colour",
+      "At least 600×750 pixels (commonly reported from GOV.UK digital-photo rules)",
+      "Do not crop — this tool does not crop",
+    ],
+    sourceUrl: "https://www.gov.uk/renew-photo-driving-licence",
+    sourceLabel: "GOV.UK: Renew your photo driving licence",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Resize my DVLA photo",
+    faq: [
+      {
+        q: "What is the DVLA photo upload size limit?",
+        a: "GOV.UK does not publish a byte or pixel limit on the driving-licence photo page. 50KB–10MB and 600×750 are commonly reported from GOV.UK digital-photo rules used for passports. Check the application screen.",
+      },
+      {
+        q: "Will you crop my driving licence photo?",
+        a: "No. We convert HEIC to JPEG and keep the photo uncropped.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  "saas-documents": {
+    h1: "SAAS document size limit — how to get under 5MB",
+    title: "SAAS document size limit (5MB) — how to compress | Chowbea",
+    description:
+      "SAAS Document Upload Service accepts JPG/JPEG, TIFF/TIF or PDF, 5MB per file, and up to 5 files per transaction. Unlock a password-protected PDF first.",
+    intro:
+      "The official SAAS Document Upload Service guide accepts JPG/JPEG, TIFF/TIF or PDF, 5MB per file, and a maximum of 5 files per transaction. Unlock any password first — protected files are rejected.",
+    limit: "5MB per file (max 5 files per transaction)",
+    formats: "JPG/JPEG, TIFF/TIF or PDF",
+    extras: ["Not password-protected", "Maximum 5 files per transaction"],
+    sourceUrl: "https://www.edocs.saas.gov.uk/help/document_upload_guide.pdf",
+    sourceLabel: "SAAS: Document Upload Service guide",
+    verified: true,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my SAAS document",
+    faq: [
+      {
+        q: "What is the SAAS document upload size limit?",
+        a: "The official SAAS Document Upload Service guide: JPG/JPEG, TIFF/TIF or PDF, 5MB per file, and a maximum of 5 files per transaction.",
+      },
+      {
+        q: "Can I upload a password-protected PDF to SAAS?",
+        a: "No. Unlock the PDF first, then keep it under 5MB.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  "trac-jobs": {
+    h1: "Trac jobs file too large — compress a supporting document",
+    title: "Trac jobs file too large — compress PDF or Word | Chowbea",
+    description:
+      "NHSBSA confirms Trac does not accept zip files. No official nationwide byte cap is published — 2MB is a conservative commonly reported target for vacancies that show an upload field.",
+    intro:
+      "Most Trac vacancies ask you to paste a supporting statement rather than attach a CV. NHSBSA confirms Trac does not accept zip files. No official nationwide byte limit is published, so 2MB here is a conservative commonly reported target for vacancies that do show an upload field — check that vacancy.",
+    limit: "2MB per file (commonly reported — no official nationwide cap)",
+    formats: "PDF, DOC or DOCX",
+    extras: [
+      "Trac does not accept zip files",
+      "Many vacancies have no upload field — paste a supporting statement instead",
+    ],
+    sourceUrl:
+      "https://faq-hrss.nhsbsa.nhs.uk/knowledgebase/article/KA-23577/en-us",
+    sourceLabel: "NHSBSA FAQ: Trac supporting documents",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my Trac document",
+    faq: [
+      {
+        q: "What is the Trac jobs upload size limit?",
+        a: "No official nationwide byte limit is published. 2MB is a conservative commonly reported target for vacancies that show an upload field. Check that vacancy. Trac does not accept zip files.",
+      },
+      {
+        q: "Can I upload a CV on every Trac vacancy?",
+        a: "No. Most Trac vacancies ask you to paste a supporting statement rather than attach a CV. Use this fixer only when that vacancy shows an upload field.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  "civil-service-jobs": {
+    h1: "Civil Service Jobs file too large — compress a CV",
+    title: "Civil Service Jobs file too large — compress CV | Chowbea",
+    description:
+      "GOV.UK says upload a CV or personal statement only when the form asks, one file per question, and not password-protected. No byte cap is published — 5MB is commonly reported.",
+    intro:
+      "Official GOV.UK candidate guidance: upload a CV or personal statement only when the form asks, one file per question, and do not upload a password-protected file. No byte limit is published. 5MB is a conservative commonly reported target — check the vacancy upload field.",
+    limit: "5MB per file (commonly reported — not published on GOV.UK)",
+    formats: "PDF, DOC or DOCX",
+    extras: [
+      "One file per question, only when the form asks",
+      "Not password-protected",
+    ],
+    sourceUrl:
+      "https://www.gov.uk/guidance/using-the-civil-service-jobs-website",
+    sourceLabel: "GOV.UK: Using the Civil Service Jobs website",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my Civil Service CV",
+    faq: [
+      {
+        q: "What is the Civil Service Jobs file size limit?",
+        a: "GOV.UK lists no byte cap. Upload a CV or personal statement only when the form asks, one file per question, and do not use a password. 5MB is a conservative commonly reported target — check the vacancy upload field.",
+      },
+      {
+        q: "Can I upload a password-protected CV?",
+        a: "No. Official candidate guidance says do not upload a password-protected file. Unlock it first, then compress it.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  "universal-credit": {
+    h1: "Universal Credit file too large — compress evidence",
+    title: "Universal Credit file too large — compress PDF | Chowbea",
+    description:
+      "GOV.UK asks for bank statements and other evidence through your Universal Credit account. DWP prefers PDF statements. No per-file byte cap is published — 10MB is commonly reported.",
+    intro:
+      "GOV.UK claim-review guidance asks for bank statements and other evidence through the Universal Credit account. An official DWP video says to upload bank statements as PDF. No per-file byte limit is published on GOV.UK, so 10MB here is a conservative commonly reported target. To-do lists often cap the number of files (commonly 16) rather than a published megabyte figure.",
+    limit: "10MB per file (commonly reported — not published on GOV.UK)",
+    formats: "PDF, JPG or PNG (DWP prefers PDF bank statements)",
+    extras: [
+      "To-do lists often cap the number of files (commonly 16) rather than a published megabyte figure",
+    ],
+    sourceUrl: "https://www.gov.uk/universal-credit-reviews",
+    sourceLabel: "GOV.UK: Universal Credit reviews",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my Universal Credit file",
+    faq: [
+      {
+        q: "What is the Universal Credit upload size limit?",
+        a: "GOV.UK does not publish a per-file byte limit. 10MB is a conservative commonly reported target. To-do lists often cap the number of files (commonly 16) rather than a published megabyte figure.",
+      },
+      {
+        q: "Should I upload bank statements as PDF?",
+        a: "An official DWP video says to upload bank statements as PDF. This tool can convert photos of statements to PDF.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  "council-housing-benefits": {
+    h1: "Council housing file too large — compress evidence",
+    title: "Council housing file too large — compress evidence | Chowbea",
+    description:
+      "There is no single national council portal. Wolverhampton publishes 5MB per document; other councils allow more. 5MB is a conservative commonly reported default — check your own form.",
+    intro:
+      "There is no single national council portal. Limits vary: Wolverhampton publishes 5MB per document; Harrow 10MB (BMP, GIF, JPG, PDF, PNG, DOC); Merton 30MB; Chelmsford a 35MB combined cap. 5MB here is a conservative commonly reported default, not a UK-wide official figure. Check your own council's upload form.",
+    limit:
+      "5MB per file (conservative default — councils vary; not a UK-wide official figure)",
+    formats: "PDF, JPG, PNG or DOC",
+    extras: [
+      "Wolverhampton publishes 5MB per document",
+      "Harrow 10MB; Merton 30MB; Chelmsford a 35MB combined cap",
+      "Check your own council's upload form",
+    ],
+    sourceUrl:
+      "https://www.wolverhampton.gov.uk/benefits/housing-benefit-and-council-tax-support/upload-proof-your-benefits-claim",
+    sourceLabel: "Wolverhampton: Upload proof for your benefits claim",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my council evidence",
+    faq: [
+      {
+        q: "What is the UK council housing upload size limit?",
+        a: "There is no single national council portal. Wolverhampton publishes 5MB per document; Harrow 10MB; Merton 30MB; Chelmsford a 35MB combined cap. 5MB is a conservative commonly reported default. Check your own council's upload form.",
+      },
+      {
+        q: "Which file types do councils accept?",
+        a: "They vary. This tool emits PDF, JPG, PNG or DOC. Harrow also lists BMP and GIF. Check the form you were sent.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  ofsted: {
+    h1: "Ofsted provider portal file too large — compress documents",
+    title: "Ofsted portal file too large — compress PDF | Chowbea",
+    description:
+      "The Ofsted provider portal lets providers upload pre-inspection material. Official GOV.UK portal guidance does not state a byte limit — 5MB is commonly reported.",
+    intro:
+      "The Ofsted provider portal lets providers upload pre-inspection material. Official GOV.UK portal guidance does not state a byte limit. 5MB is a conservative commonly reported target — check the portal when you upload.",
+    limit: "5MB per file (commonly reported — not published on GOV.UK)",
+    formats: "PDF, JPEG or DOCX",
+    extras: ["Check the portal when you upload"],
+    sourceUrl:
+      "https://www.gov.uk/government/publications/ofsted-provider-portal-guidance-for-providers",
+    sourceLabel: "GOV.UK: Ofsted provider portal guidance for providers",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my Ofsted document",
+    faq: [
+      {
+        q: "What is the Ofsted provider portal upload size limit?",
+        a: "Official GOV.UK portal guidance does not state a byte limit. 5MB is a conservative commonly reported target — check the portal when you upload.",
+      },
+      {
+        q: "What file types does the Ofsted portal accept?",
+        a: "This tool emits PDF, JPEG or DOCX for pre-inspection material. Check the portal for the types it lists on the day you upload.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  sra: {
+    h1: "SRA mySRA file too large — compress a supporting document",
+    title: "SRA mySRA file too large — compress PDF | Chowbea",
+    description:
+      "mySRA asks for a supporting document when you change your name. No official byte cap is published — 5MB is a conservative commonly reported target.",
+    intro:
+      "SRA mySRA asks for a supporting document (for example a marriage certificate) when you change your name. No official byte limit is published. 5MB is a conservative commonly reported target — check the upload field in mySRA.",
+    limit: "5MB per file (commonly reported — not published by the SRA)",
+    formats: "PDF, JPEG or DOCX",
+    extras: ["Check the upload field in mySRA"],
+    sourceUrl:
+      "https://www.sra.org.uk/mysra/manage-account/individual-account/",
+    sourceLabel: "SRA: Manage your individual mySRA account",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my mySRA document",
+    faq: [
+      {
+        q: "What is the SRA mySRA upload size limit?",
+        a: "No official byte limit is published. 5MB is a conservative commonly reported target — check the upload field in mySRA.",
+      },
+      {
+        q: "When does mySRA ask for a document?",
+        a: "For example when you change your name, mySRA asks for a supporting document such as a marriage certificate.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  gmc: {
+    h1: "GMC registration file too large — compress evidence",
+    title: "GMC registration file too large — compress PDF | Chowbea",
+    description:
+      "GMC asks for PDF copies of evidence. No applicant per-file byte cap is published — 5MB is commonly reported. GMC Connect and email-evidence channels quote 20MB and are different.",
+    intro:
+      "GMC asks for PDF copies of evidence on the application. No per-file byte limit is published for applicant uploads. GMC Connect (medical schools) states a 20MB upload limit, and some GMC email-evidence guidance states 20MB per email — those are different channels. 5MB is a conservative commonly reported target for the application form.",
+    limit:
+      "5MB per file (commonly reported for the application form — not a published applicant cap)",
+    formats: "PDF or DOC (PDF preferred)",
+    extras: [
+      "GMC Connect (medical schools) states a 20MB upload limit — a different channel",
+      "Some GMC email-evidence guidance states 20MB per email — a different channel",
+    ],
+    sourceUrl:
+      "https://www.gmc-uk.org/registration-and-licensing/join-our-registers/registration-applications/attaching-your-documents-to-your-application",
+    sourceLabel: "GMC: Attaching your documents to your application",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my GMC evidence",
+    faq: [
+      {
+        q: "What is the GMC registration upload size limit?",
+        a: "No per-file byte limit is published for applicant uploads. 5MB is a conservative commonly reported target for the application form. GMC Connect (medical schools) and some email-evidence guidance quote 20MB — those are different channels.",
+      },
+      {
+        q: "What file type does GMC ask for?",
+        a: "GMC asks for PDF copies of evidence on the application. This tool also accepts DOC and converts it to PDF.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  nmc: {
+    h1: "NMC registration file too large — compress documents",
+    title: "NMC registration file too large — compress PDF | Chowbea",
+    description:
+      "NMC registration guidance covers certified copies and ID checks. It does not publish a per-file byte cap for the online account — 2MB is commonly reported.",
+    intro:
+      "NMC registration guidance covers certified copies and ID checks. It does not publish a per-file byte limit for the online account. 2MB is a conservative commonly reported target — check the NMC online upload screen.",
+    limit: "2MB per file (commonly reported — not published by the NMC)",
+    formats: "PDF, JPG or PNG",
+    extras: [
+      "Check the NMC online upload screen",
+      "Do not post original passports",
+    ],
+    sourceUrl:
+      "https://www.nmc.org.uk/registration/joining-the-register/supplying-documents/",
+    sourceLabel: "NMC: Supplying documents",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my NMC document",
+    faq: [
+      {
+        q: "What is the NMC registration upload size limit?",
+        a: "NMC registration guidance does not publish a per-file byte limit for the online account. 2MB is a conservative commonly reported target — check the NMC online upload screen.",
+      },
+      {
+        q: "Should I post original documents to the NMC?",
+        a: "No. Upload certified copies through your NMC online account. Do not post original passports.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  "indeed-cv": {
+    h1: "Indeed CV file too large — how to compress under 2MB",
+    title: "Indeed CV file too large — compress PDF | Chowbea",
+    description:
+      "Indeed Help says you can upload one CV at a time and that the file is converted to PDF. It does not publish a megabyte limit — 2MB is commonly reported.",
+    intro:
+      "Indeed Help says you can upload one CV at a time and that the file is converted to PDF. It does not publish a megabyte limit. 2MB is a conservative commonly reported target, not an official Indeed figure.",
+    limit: "2MB (commonly reported — not published by Indeed)",
+    formats: "PDF, DOC or DOCX",
+    extras: [
+      "One CV at a time — Indeed replaces any previous file",
+      "Indeed converts uploads to PDF",
+    ],
+    sourceUrl:
+      "https://indeed.zendesk.com/hc/en-gb/articles/11314976176141-FAQs-Creating-uploading-and-managing-a-CV-file",
+    sourceLabel: "Indeed Help: Creating, uploading and managing a CV file",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my Indeed CV",
+    faq: [
+      {
+        q: "What is the Indeed CV file size limit?",
+        a: "Indeed Help does not publish a megabyte limit. 2MB is a conservative commonly reported target, not an official Indeed figure. Indeed converts uploads to PDF.",
+      },
+      {
+        q: "Can I keep more than one CV on Indeed?",
+        a: "Indeed Help says you can upload one CV at a time. A new file replaces the previous one.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  "linkedin-cv": {
+    h1: "LinkedIn resume file too large (2MB recommended)",
+    title: "LinkedIn resume upload size limit (2MB) | Chowbea",
+    description:
+      "LinkedIn Help: Easy Apply resumes must be Microsoft Word or PDF, and LinkedIn recommends a file size less than 2MB. That figure is a published recommendation rather than a hard error message.",
+    intro:
+      "LinkedIn Help says an Easy Apply resume must be Microsoft Word or PDF, and LinkedIn recommends a file size less than 2MB. That 2MB figure is a published recommendation rather than a hard error message.",
+    limit: "Under 2MB (LinkedIn published recommendation)",
+    formats: "Microsoft Word or PDF",
+    extras: ["2MB is a published recommendation, not a hard error message"],
+    sourceUrl:
+      "https://www.linkedin.com/help/linkedin/answer/a510363/upload-your-resume-to-linkedin",
+    sourceLabel: "LinkedIn Help: Upload your resume to LinkedIn",
+    verified: true,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my LinkedIn resume",
+    faq: [
+      {
+        q: "What is the LinkedIn resume upload size limit?",
+        a: "LinkedIn Help recommends a file size less than 2MB for Easy Apply. That 2MB figure is a published recommendation rather than a hard error message. Resumes must be Microsoft Word or PDF.",
+      },
+      {
+        q: "Where do I upload a LinkedIn resume?",
+        a: "On Easy Apply, or under Jobs → Preferences → Resumes.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  openrent: {
+    h1: "OpenRent referencing file too large — compress ID",
+    title: "OpenRent referencing file too large — compress ID | Chowbea",
+    description:
+      "OpenRent referencing accepts a copy of an identity document (passport preferred). It does not publish a byte limit — 5MB is commonly reported for the ID scan.",
+    intro:
+      "OpenRent referencing accepts a copy of an identity document (passport preferred). It does not accept tenant-uploaded bank statements, payslips or employment contracts for the assessment, and it does not publish a byte limit. 5MB is a conservative commonly reported target for the ID scan.",
+    limit: "5MB (commonly reported — not published by OpenRent)",
+    formats: "PDF, JPG or PNG (JPEG preferred)",
+    extras: [
+      "Passport preferred as the identity document",
+      "OpenRent does not take tenant-uploaded bank statements, payslips or employment contracts for this assessment",
+    ],
+    sourceUrl:
+      "https://help.openrent.co.uk/hc/en-gb/articles/11461385143313-Which-proof-of-identity-documents-do-you-accept",
+    sourceLabel:
+      "OpenRent Help: Which proof of identity documents do you accept",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my OpenRent ID",
+    faq: [
+      {
+        q: "What is the OpenRent referencing file size limit?",
+        a: "OpenRent does not publish a byte limit. 5MB is a conservative commonly reported target for the ID scan.",
+      },
+      {
+        q: "Can I upload bank statements to OpenRent referencing?",
+        a: "No. OpenRent referencing accepts a copy of an identity document (passport preferred). It does not accept tenant-uploaded bank statements, payslips or employment contracts for the assessment.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
+  "pip-evidence": {
+    h1: "PIP evidence file too large — compress supporting documents",
+    title: "PIP evidence file too large — compress PDF | Chowbea",
+    description:
+      "GOV.UK explains how to claim PIP and that you can send supporting evidence. It does not publish a per-file byte cap — 10MB is commonly reported.",
+    intro:
+      "GOV.UK explains how to claim PIP and that you can send supporting evidence. It does not publish a per-file byte limit. 10MB is a conservative commonly reported target for the online evidence upload. If a file is still too large, split pages rather than dropping evidence.",
+    limit: "10MB per file (commonly reported — not published on GOV.UK)",
+    formats: "PDF, JPG or PNG",
+    extras: [
+      "If a file is still too large, split pages rather than dropping evidence",
+    ],
+    sourceUrl: "https://www.gov.uk/pip/how-to-claim",
+    sourceLabel: "GOV.UK: How to claim PIP",
+    verified: false,
+    lastChecked: LAST_CHECKED,
+    ctaLabel: "Fix my PIP evidence",
+    faq: [
+      {
+        q: "What is the PIP evidence upload size limit?",
+        a: "GOV.UK does not publish a per-file byte limit. 10MB is a conservative commonly reported target for the online evidence upload. If a file is still too large, split pages rather than dropping evidence.",
+      },
+      {
+        q: "What can I send as PIP supporting evidence?",
+        a: "Medical letters, prescriptions or a diary as PDF or photos. Upload it with the PIP claim, or send copies to DWP with your National Insurance number.",
+      },
+      PRIVACY_FAQ,
+    ],
+  },
 }
 
 /** Preset ids that have a how-to guide, in /portals category order. */
@@ -472,7 +930,7 @@ export const GUIDES_SEO = {
   h1: "How to fix a file for a UK portal",
   title: "UK portal upload limits — how-to guides | Chowbea",
   description:
-    "Short guides for UK passport photos, HMRC, UCAS, Student Finance, NHS Jobs and more. Each page quotes the official limit with a source link, then a free fixer.",
+    "Short guides for UK passport photos, HMRC, UCAS, Student Finance, SAAS, LinkedIn, DVLA, Universal Credit and more. Each page quotes the official or commonly reported limit with a source link, then a free fixer.",
 }
 
 /** True when /guides/<slug> should render rather than 404. */

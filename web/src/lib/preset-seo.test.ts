@@ -48,6 +48,19 @@ describe("preset SEO copy", () => {
     expect(xml).toContain(
       "<loc>https://example.test/guides/uk-passport-online</loc>"
     )
+    expect(xml).toContain(
+      "<loc>https://example.test/guides/saas-documents</loc>"
+    )
+    expect(xml).toContain("<loc>https://example.test/guides/linkedin-cv</loc>")
+    expect(xml).toContain(
+      "<loc>https://example.test/guides/ukvi-evidence</loc>"
+    )
+    expect(xml).not.toContain(
+      "<loc>https://example.test/guides/vfs-global</loc>"
+    )
+    expect(xml).not.toContain(
+      "<loc>https://example.test/guides/rightmove</loc>"
+    )
     expect(xml).toContain("<loc>https://example.test/fix/eu-settlement</loc>")
     expect(robotsTxt("https://example.test")).toContain(
       "Sitemap: https://example.test/sitemap.xml"

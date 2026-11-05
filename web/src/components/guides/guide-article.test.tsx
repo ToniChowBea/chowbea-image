@@ -93,6 +93,23 @@ describe("GuideArticle", () => {
     })
     expect(cta.getAttribute("href")).toBe("/fix/student-visa-cas")
   })
+
+  it("renders a verified SAAS guide with the official source and fixer CTA", () => {
+    const guide = guideFor("saas-documents")
+    render(<GuideArticle guide={guide!} />)
+    expect(screen.getByText("Verified")).toBeTruthy()
+    expect(
+      screen.getByText("Size: 5MB per file (max 5 files per transaction)")
+    ).toBeTruthy()
+    const source = screen.getByRole("link", {
+      name: /saas: document upload service guide/i,
+    })
+    expect(source.getAttribute("href")).toBe(
+      "https://www.edocs.saas.gov.uk/help/document_upload_guide.pdf"
+    )
+    const cta = screen.getByRole("link", { name: /fix my saas document/i })
+    expect(cta.getAttribute("href")).toBe("/fix/saas-documents")
+  })
 })
 
 describe("GuidesIndex", () => {
@@ -140,5 +157,22 @@ describe("GuideLink", () => {
   it("hides when that preset has no guide", () => {
     const { container } = render(<GuideLink presetId="jpg-1mb" />)
     expect(container.textContent).toBe("")
+  })
+
+  it("points new remaining-portal /fix pages at their guides", () => {
+    render(<GuideLink presetId="linkedin-cv" />)
+    expect(
+      screen
+        .getByRole("link", { name: /need help\? read the guide/i })
+        .getAttribute("href")
+    ).toBe("/guides/linkedin-cv")
+  })
+
+  it("stays hidden for skipped portals without a verified source/limit", () => {
+    const vfs = render(<GuideLink presetId="vfs-global" />)
+    expect(vfs.container.textContent).toBe("")
+    vfs.unmount()
+    const rightmove = render(<GuideLink presetId="rightmove" />)
+    expect(rightmove.container.textContent).toBe("")
   })
 })

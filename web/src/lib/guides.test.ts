@@ -3,13 +3,18 @@ import { describe, expect, it } from "vitest"
 import {
   GUIDE_IDS,
   GUIDES_SEO,
+  SKIPPED_GUIDE_IDS,
   guideCategories,
   guideFor,
   guideSteps,
   guidesInCategory,
   isGuideSlug,
 } from "./guides"
-import { PORTAL_CATEGORIES, categoryForPreset } from "./portal-catalogue"
+import {
+  PORTAL_CATEGORIES,
+  PORTAL_IDS,
+  categoryForPreset,
+} from "./portal-catalogue"
 import { sitemapPaths } from "./preset-seo"
 
 /** Source URLs copied from api/app/presets.yaml — guides must not invent them. */
@@ -38,6 +43,30 @@ const OFFICIAL_SOURCES: Record<string, string> = {
   "hmcts-efiling":
     "https://www.gov.uk/government/publications/how-to-use-the-hmcts-e-filing-service/submit-and-manage-your-filings",
   "nhs-jobs": "https://faq.nhsbsa.nhs.uk/knowledgebase/article/KA-25732/en-us",
+  "ukvi-evidence":
+    "https://www.gov.uk/guidance/uploading-evidence-as-part-of-your-visa-application",
+  "dvla-photo": "https://www.gov.uk/renew-photo-driving-licence",
+  "saas-documents":
+    "https://www.edocs.saas.gov.uk/help/document_upload_guide.pdf",
+  "trac-jobs":
+    "https://faq-hrss.nhsbsa.nhs.uk/knowledgebase/article/KA-23577/en-us",
+  "civil-service-jobs":
+    "https://www.gov.uk/guidance/using-the-civil-service-jobs-website",
+  "universal-credit": "https://www.gov.uk/universal-credit-reviews",
+  "council-housing-benefits":
+    "https://www.wolverhampton.gov.uk/benefits/housing-benefit-and-council-tax-support/upload-proof-your-benefits-claim",
+  ofsted:
+    "https://www.gov.uk/government/publications/ofsted-provider-portal-guidance-for-providers",
+  sra: "https://www.sra.org.uk/mysra/manage-account/individual-account/",
+  gmc: "https://www.gmc-uk.org/registration-and-licensing/join-our-registers/registration-applications/attaching-your-documents-to-your-application",
+  nmc: "https://www.nmc.org.uk/registration/joining-the-register/supplying-documents/",
+  "indeed-cv":
+    "https://indeed.zendesk.com/hc/en-gb/articles/11314976176141-FAQs-Creating-uploading-and-managing-a-CV-file",
+  "linkedin-cv":
+    "https://www.linkedin.com/help/linkedin/answer/a510363/upload-your-resume-to-linkedin",
+  openrent:
+    "https://help.openrent.co.uk/hc/en-gb/articles/11461385143313-Which-proof-of-identity-documents-do-you-accept",
+  "pip-evidence": "https://www.gov.uk/pip/how-to-claim",
 }
 
 describe("how-to guides", () => {
@@ -61,6 +90,21 @@ describe("how-to guides", () => {
     const cas = guideFor("student-visa-cas")
     expect(cas?.verified).toBe(false)
     expect(cas?.limit).toMatch(/commonly reported/i)
+    expect(guideFor("saas-documents")?.verified).toBe(true)
+    expect(guideFor("linkedin-cv")?.verified).toBe(true)
+    expect(guideFor("ukvi-evidence")?.verified).toBe(false)
+    expect(guideFor("ukvi-evidence")?.limit).toMatch(/commonly reported/i)
+  })
+
+  it("covers every portal preset except those skipped for missing verified source/limit", () => {
+    expect([...SKIPPED_GUIDE_IDS].sort()).toEqual(["rightmove", "vfs-global"])
+    for (const id of SKIPPED_GUIDE_IDS) {
+      expect(isGuideSlug(id)).toBe(false)
+      expect(guideFor(id)).toBeNull()
+    }
+    const covered = new Set([...GUIDE_IDS, ...SKIPPED_GUIDE_IDS])
+    expect([...PORTAL_IDS].sort()).toEqual([...covered].sort())
+    expect(isGuideSlug("jpg-1mb")).toBe(false)
   })
 
   it("groups guides in the same categories as /portals", () => {

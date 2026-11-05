@@ -8,7 +8,7 @@ import { faqJsonLd } from "@/lib/preset-seo"
 const GUIDES_FAQ = [
   {
     q: "Which portals have a how-to guide?",
-    a: "The highest-intent UK uploads: passport and visa photos, UKVCAS, EU Settlement, Student visa evidence, Student Finance England, HMRC compliance and CDS, UCAS, Companies House, DBS, Land Registry, HMCTS e-Filing, and NHS Jobs.",
+    a: "UK immigration, tax, jobs, education, housing and health portals that have a source URL and a published or clearly labelled limit in our catalogue. VFS Global and Rightmove are skipped — their public pages do not state a verified file-size limit.",
   },
   {
     q: "Are the file-size limits official?",
