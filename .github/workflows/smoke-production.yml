@@ -35,31 +35,54 @@ jobs:
             exit 1
           fi
 
-      - name: Check web homepage
+      - name: Check key web routes
         run: |
-          echo "Testing GET /fix on web..."
-          response=$(curl -s -o /dev/null -w "%{http_code}" $WEB_URL/fix || echo "000")
-          if [ "$response" = "200" ]; then
-            echo "✓ Web homepage (/fix) loaded (HTTP $response)"
-          elif [ "$response" = "000" ]; then
-            echo "✗ Web homepage unreachable (network error)"
-            exit 1
-          else
-            echo "✗ Web homepage failed (HTTP $response)"
+          # Small sample of public pages. Do not fetch every /guides/<preset>:
+          # uk-passport-online is a photo guide and universal-credit is a document
+          # guide, so the two cover both conversion-CTA shapes without the full set.
+          paths=(
+            /
+            /fix
+            /portals
+            /guides
+            /guides/uk-passport-online
+            /guides/universal-credit
+          )
+          failed=0
+          for path in "${paths[@]}"; do
+            echo "Testing GET $path on web..."
+            response=$(curl -s -o /dev/null -w "%{http_code}" "$WEB_URL$path" || echo "000")
+            if [ "$response" = "200" ]; then
+              echo "✓ $path loaded (HTTP $response)"
+            elif [ "$response" = "000" ]; then
+              echo "✗ $path unreachable (network error)"
+              failed=1
+            else
+              echo "✗ $path failed (HTTP $response)"
+              failed=1
+            fi
+          done
+          if [ "$failed" -ne 0 ]; then
             exit 1
           fi
 
-      - name: Check portals listing page
+      - name: Check sitemap includes guides
         run: |
-          echo "Testing GET /portals on web..."
-          response=$(curl -s -o /dev/null -w "%{http_code}" $WEB_URL/portals || echo "000")
-          if [ "$response" = "200" ]; then
-            echo "✓ Portals page loaded (HTTP $response)"
-          elif [ "$response" = "000" ]; then
-            echo "✗ Portals page unreachable (network error)"
+          echo "Testing GET /sitemap.xml on web..."
+          http_code=$(curl -s -o sitemap-body.xml -w "%{http_code}" "$WEB_URL/sitemap.xml" || echo "000")
+          if [ "$http_code" != "200" ]; then
+            if [ "$http_code" = "000" ]; then
+              echo "✗ sitemap.xml unreachable (network error)"
+            else
+              echo "✗ sitemap.xml failed (HTTP $http_code)"
+            fi
             exit 1
+          fi
+          echo "✓ sitemap.xml loaded (HTTP $http_code)"
+          if grep -q "/guides" sitemap-body.xml; then
+            echo "✓ sitemap.xml contains /guides"
           else
-            echo "✗ Portals page failed (HTTP $response)"
+            echo "✗ sitemap.xml missing /guides"
             exit 1
           fi
 
@@ -170,8 +193,8 @@ jobs:
           echo "════════════════════════════════════════"
           echo "✓ All production smoke tests passed"
           echo "  - API health endpoint: OK"
-          echo "  - Web homepage (/fix): OK"
-          echo "  - Web portals page: OK"
+          echo "  - Web routes (/, /fix, /portals, /guides, sample guides): OK"
+          echo "  - sitemap.xml includes /guides: OK"
           echo "  - API presets endpoint: OK"
           echo "  - End-to-end fix job: OK"
           echo "════════════════════════════════════════"
