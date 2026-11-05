@@ -87,7 +87,13 @@ function acceptFor(preset: Preset): string {
   const office = preset.accepted_types.includes("pdf")
     ? ["doc", "docx", "odt"]
     : []
-  return [...new Set([...DECODE_EXTS, ...extras, ...office])]
+  // Presets that accept image types can take PDF input; the worker converts first page to image.
+  const imageTypes = ["jpeg", "png", "tiff", "webp", "gif"]
+  const acceptsImage = preset.accepted_types.some((type) =>
+    imageTypes.includes(type)
+  )
+  const pdfForImage = acceptsImage ? ["pdf"] : []
+  return [...new Set([...DECODE_EXTS, ...extras, ...office, ...pdfForImage])]
     .map((ext) => `.${ext}`)
     .join(",")
 }

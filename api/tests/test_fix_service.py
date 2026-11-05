@@ -185,3 +185,71 @@ def test_fix_pdf_under_2mb_with_ghostscript(tmp_path):
     result = fix_files([src], ["scan.pdf"], tmp_path, preset)
     out, _name = result.outputs[0]
     assert out.stat().st_size <= 2 * 1024 * 1024
+
+
+@pytest.mark.skipif(not ghostscript_available(), reason="ghostscript (gs) is not installed")
+def test_pdf_to_jpeg_for_photo_preset(tmp_path):
+    """PDF input converts to JPEG for photo presets that want images."""
+    jpeg = pyvips.Image.black(800, 1000, bands=3).add(128).cast("uchar").write_to_buffer(".jpg", Q=95)
+    src = tmp_path / "photo.pdf"
+    wrap_jpeg_as_pdf(jpeg, 800, 1000, src, bands=3)
+    preset = get_preset("uk-passport-online")
+    assert preset is not None
+    result = fix_files([src], ["photo.pdf"], tmp_path, preset)
+    
+    out, name = result.outputs[0]
+    assert name.endswith(".jpg")
+    image = pyvips.Image.new_from_file(str(out))
+    assert image.width >= 600
+    assert image.height >= 750
+    size = out.stat().st_size
+    assert 50 * 1024 <= size <= 10 * 1024 * 1024
+    rules = _rule_map(result.report)
+    assert rules["file_type"].passed
+    assert rules["file_type"].actual == "JPEG"
+    assert rules["file_size"].passed
+    assert rules["min_pixels"].passed
+    assert result.report.passed is True
+
+
+def test_pdf_to_jpeg_rejects_encrypted_pdf(tmp_path):
+    """Encrypted PDFs are rejected with a clear error for image presets."""
+    locked = tmp_path / "locked.pdf"
+    writer = PdfWriter()
+    writer.add_blank_page(width=600, height=750)
+    writer.encrypt("secret")
+    writer.write(str(locked))
+    preset = get_preset("uk-passport-online")
+    assert preset is not None
+    with pytest.raises(FixError, match="password"):
+        fix_files([locked], ["locked.pdf"], tmp_path, preset)
+
+
+@pytest.mark.skipif(not ghostscript_available(), reason="ghostscript (gs) is not installed")
+def test_pdf_to_jpeg_preserves_aspect_ratio(tmp_path):
+    """PDF first page conversion maintains aspect ratio for do_not_crop presets."""
+    jpeg = (
+        pyvips.Image.gaussnoise(900, 1200, sigma=60)
+        .cast("uchar")
+        .bandjoin(
+            [
+                pyvips.Image.gaussnoise(900, 1200, sigma=60).cast("uchar"),
+                pyvips.Image.gaussnoise(900, 1200, sigma=60).cast("uchar"),
+            ]
+        )
+        .write_to_buffer(".jpg", Q=95)
+    )
+    src = tmp_path / "scan.pdf"
+    wrap_jpeg_as_pdf(jpeg, 900, 1200, src, bands=3)
+    preset = get_preset("uk-passport-online")
+    assert preset is not None
+    result = fix_files([src], ["scan.pdf"], tmp_path, preset)
+    
+    out, name = result.outputs[0]
+    assert name.endswith(".jpg")
+    image = pyvips.Image.new_from_file(str(out))
+    expected_ratio = 900 / 1200
+    actual_ratio = image.width / image.height
+    assert abs(expected_ratio - actual_ratio) < 0.02
+    rules = _rule_map(result.report)
+    assert rules["crop"].passed
