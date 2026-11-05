@@ -134,6 +134,15 @@ describe("how-to guides", () => {
     }
   })
 
+  it("keeps weekday production-smoke guide samples in the catalogue", () => {
+    // Smoke hits these two instead of every /guides/<preset>: a photo CTA and a document CTA.
+    const smokeGuideSlugs = ["uk-passport-online", "universal-credit"]
+    for (const slug of smokeGuideSlugs) {
+      expect(isGuideSlug(slug)).toBe(true)
+      expect(sitemapPaths()).toContain(`/guides/${slug}`)
+    }
+  })
+
   it("points each guide at up to 5 siblings in the same /guides category", () => {
     for (const id of GUIDE_IDS) {
       const related = relatedGuideIds(id)
