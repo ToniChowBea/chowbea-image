@@ -9,6 +9,7 @@ import { JsonLd } from "@/components/fix/json-ld"
 import { PaywallCard } from "@/components/fix/paywall"
 import { GuideLink } from "@/components/guides/guide-link"
 import { RelatedPresets } from "@/components/fix/related-presets"
+import { FixTrustNote } from "@/components/fix/trust-note"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ToggleSwitch } from "@/components/ui/toggle-switch"
@@ -345,6 +346,7 @@ function FixPresetPage() {
               }}
             />
           )}
+          <FixTrustNote />
 
           {isBatch && (
             <label className="flex items-center justify-between gap-3 rounded-[20px] border-2 border-ink bg-card px-5 py-3.5 shadow-block-sm">

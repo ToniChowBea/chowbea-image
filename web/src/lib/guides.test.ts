@@ -9,6 +9,7 @@ import {
   guideSteps,
   guidesInCategory,
   isGuideSlug,
+  relatedGuideIds,
 } from "./guides"
 import {
   PORTAL_CATEGORIES,
@@ -131,5 +132,25 @@ describe("how-to guides", () => {
     for (const id of GUIDE_IDS) {
       expect(paths).toContain(`/guides/${id}`)
     }
+  })
+
+  it("points each guide at up to 5 siblings in the same /guides category", () => {
+    for (const id of GUIDE_IDS) {
+      const related = relatedGuideIds(id)
+      expect(related).not.toContain(id)
+      expect(related.length).toBeGreaterThanOrEqual(2)
+      expect(related.length).toBeLessThanOrEqual(5)
+      const category = categoryForPreset(id)
+      for (const other of related) {
+        expect(isGuideSlug(other)).toBe(true)
+        expect(categoryForPreset(other)).toBe(category)
+      }
+    }
+    const passport = relatedGuideIds("uk-passport-online")
+    expect(passport.length).toBe(5)
+    expect(passport).not.toContain("vfs-global")
+    const health = relatedGuideIds("gmc")
+    expect([...health].sort()).toEqual(["nmc", "pip-evidence"])
+    expect(relatedGuideIds("jpg-1mb")).toEqual([])
   })
 })

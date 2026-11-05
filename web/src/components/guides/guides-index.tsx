@@ -33,9 +33,9 @@ export function GuidesIndex() {
             {GUIDES_SEO.h1}
           </h1>
           <p className="mt-1.5 max-w-xl text-[15px] font-semibold text-subtext">
-            Official upload limits with a source link, then a free fixer that
-            converts, resizes and compresses one file. Format only — not a
-            guarantee of acceptance.
+            Pick your portal below, then fix the file — one file is free. Each
+            guide quotes the official or commonly reported limit with a source
+            link. Format only — not a guarantee of acceptance.
           </p>
         </div>
         <Link

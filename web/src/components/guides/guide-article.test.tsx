@@ -6,7 +6,9 @@ import { cleanup, render, screen } from "@testing-library/react"
 import { GuideArticle } from "./guide-article"
 import { GuidesIndex } from "./guides-index"
 import { GuideLink } from "./guide-link"
-import { GUIDE_IDS, guideFor } from "@/lib/guides"
+import { RelatedGuides } from "./related-guides"
+import { FixTrustNote } from "@/components/fix/trust-note"
+import { GUIDE_IDS, guideFor, relatedGuideIds } from "@/lib/guides"
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
@@ -63,8 +65,18 @@ describe("GuideArticle", () => {
     expect(source.getAttribute("href")).toBe(
       "https://www.gov.uk/photos-for-passports"
     )
-    const cta = screen.getByRole("link", { name: /resize my passport photo/i })
-    expect(cta.getAttribute("href")).toBe("/fix/uk-passport-online")
+    const ctas = screen.getAllByRole("link", {
+      name: /resize my passport photo/i,
+    })
+    expect(ctas).toHaveLength(2)
+    expect(
+      ctas.every(
+        (cta) => cta.getAttribute("href") === "/fix/uk-passport-online"
+      )
+    ).toBe(true)
+    expect(
+      screen.getByRole("heading", { name: /related guides/i })
+    ).toBeTruthy()
 
     const payloads = jsonLdPayloads()
     const faq = payloads.find((item) => item["@type"] === "FAQPage")
@@ -87,11 +99,18 @@ describe("GuideArticle", () => {
     const guide = guideFor("student-visa-cas")
     render(<GuideArticle guide={guide!} />)
     expect(screen.getByText("Unverified")).toBeTruthy()
-    expect(screen.getByText(/6MB per file \(commonly reported/i)).toBeTruthy()
-    const cta = screen.getByRole("link", {
+    expect(
+      screen.getByText(
+        "Size: 6MB per file (commonly reported — not published on GOV.UK)"
+      )
+    ).toBeTruthy()
+    const ctas = screen.getAllByRole("link", {
       name: /fix my student visa evidence/i,
     })
-    expect(cta.getAttribute("href")).toBe("/fix/student-visa-cas")
+    expect(ctas).toHaveLength(2)
+    expect(
+      ctas.every((cta) => cta.getAttribute("href") === "/fix/student-visa-cas")
+    ).toBe(true)
   })
 
   it("renders a verified SAAS guide with the official source and fixer CTA", () => {
@@ -107,8 +126,11 @@ describe("GuideArticle", () => {
     expect(source.getAttribute("href")).toBe(
       "https://www.edocs.saas.gov.uk/help/document_upload_guide.pdf"
     )
-    const cta = screen.getByRole("link", { name: /fix my saas document/i })
-    expect(cta.getAttribute("href")).toBe("/fix/saas-documents")
+    const ctas = screen.getAllByRole("link", { name: /fix my saas document/i })
+    expect(ctas).toHaveLength(2)
+    expect(
+      ctas.every((cta) => cta.getAttribute("href") === "/fix/saas-documents")
+    ).toBe(true)
   })
 })
 
@@ -120,6 +142,9 @@ describe("GuidesIndex", () => {
         level: 1,
         name: /how to fix a file for a uk portal/i,
       })
+    ).toBeTruthy()
+    expect(
+      screen.getByText(/pick your portal below, then fix the file/i)
     ).toBeTruthy()
     expect(screen.getByRole("heading", { name: /immigration/i })).toBeTruthy()
     expect(
@@ -142,6 +167,46 @@ describe("GuidesIndex", () => {
     expect(list?.numberOfItems).toBe(GUIDE_IDS.length)
     const faq = payloads.find((item) => item["@type"] === "FAQPage")
     expect(faq).toBeTruthy()
+  })
+})
+
+describe("RelatedGuides", () => {
+  it("links to sibling how-to pages in the same portal group", () => {
+    render(<RelatedGuides slug="uk-passport-online" />)
+    expect(
+      screen.getByRole("heading", { name: /related guides/i })
+    ).toBeTruthy()
+    const links = screen.getAllByRole("link")
+    expect(links.length).toBeGreaterThanOrEqual(3)
+    expect(links.length).toBeLessThanOrEqual(5)
+    expect(
+      links.every((link) => link.getAttribute("href")?.startsWith("/guides/"))
+    ).toBe(true)
+    expect(
+      links.some((link) =>
+        link.getAttribute("href")?.includes("uk-passport-online")
+      )
+    ).toBe(false)
+    expect(
+      links.some((link) => link.getAttribute("href")?.includes("vfs-global"))
+    ).toBe(false)
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(
+      relatedGuideIds("uk-passport-online").map((id) => `/guides/${id}`)
+    )
+  })
+
+  it("hides when a slug has no sibling guides", () => {
+    const { container } = render(<RelatedGuides slug="jpg-1mb" />)
+    expect(container.textContent).toBe("")
+  })
+})
+
+describe("FixTrustNote", () => {
+  it("states no account and a 1-hour deletion without inventing certifications", () => {
+    render(<FixTrustNote />)
+    expect(screen.getByText(/no account needed/i)).toBeTruthy()
+    expect(screen.getByText(/deleted after 1 hour/i)).toBeTruthy()
+    expect(screen.queryByText(/certified|iso|gdpr|ico/i)).toBeNull()
   })
 })
 
