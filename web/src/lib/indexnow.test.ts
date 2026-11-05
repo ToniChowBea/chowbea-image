@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 
+import { GUIDE_IDS } from "./guides"
 import { PRESET_IDS } from "./portal-catalogue"
 import {
   INDEXNOW_ENDPOINTS,
@@ -28,8 +29,12 @@ describe("IndexNow", () => {
     )
     expect(payload.urlList).toContain("https://img.chowbea.com/")
     expect(payload.urlList).toContain("https://img.chowbea.com/portals")
+    expect(payload.urlList).toContain("https://img.chowbea.com/guides")
     for (const id of PRESET_IDS) {
       expect(payload.urlList).toContain(`https://img.chowbea.com/fix/${id}`)
+    }
+    for (const id of GUIDE_IDS) {
+      expect(payload.urlList).toContain(`https://img.chowbea.com/guides/${id}`)
     }
     expect(INDEXNOW_ENDPOINTS).toEqual([
       "https://www.bing.com/indexnow",

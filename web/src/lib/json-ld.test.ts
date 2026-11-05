@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest"
 
+import { GUIDE_IDS } from "./guides"
 import { PORTAL_IDS } from "./portal-catalogue"
 import {
   breadcrumbJsonLd,
   breadcrumbListErrors,
+  guideBreadcrumbJsonLd,
+  guidesItemListJsonLd,
   itemListErrors,
   portalsItemListJsonLd,
   webAppJsonLd,
@@ -18,10 +21,7 @@ describe("schema.org JSON-LD", () => {
       "Fix a file to a UK portal upload limit."
     )
     expect(webApplicationErrors(payload)).toEqual([])
-    expect(payload["@type"]).toEqual([
-      "WebApplication",
-      "SoftwareApplication",
-    ])
+    expect(payload["@type"]).toEqual(["WebApplication", "SoftwareApplication"])
     expect(payload.applicationCategory).toBe("MultimediaApplication")
     const offers = payload.offers as { price: string; priceCurrency: string }
     expect(offers.price).toBe("0")
@@ -67,9 +67,37 @@ describe("schema.org JSON-LD", () => {
     )
   })
 
+  it("emits a BreadcrumbList for a how-to guide", () => {
+    const payload = guideBreadcrumbJsonLd("hmrc-compliance")
+    expect(breadcrumbListErrors(payload)).toEqual([])
+    const items = payload.itemListElement as Array<{
+      name: string
+      item: string
+    }>
+    expect(items.map((item) => item.item)).toEqual([
+      "https://img.chowbea.com/",
+      "https://img.chowbea.com/guides",
+      "https://img.chowbea.com/guides/hmrc-compliance",
+    ])
+    expect(items[1]?.name).toBe("Guides")
+  })
+
+  it("emits an ItemList of every how-to guide for /guides", () => {
+    const payload = guidesItemListJsonLd()
+    expect(itemListErrors(payload)).toEqual([])
+    expect(payload.numberOfItems).toBe(GUIDE_IDS.length)
+    const items = payload.itemListElement as Array<{ url: string }>
+    expect(
+      items.some((item) => item.url.includes("/guides/ucas-documents"))
+    ).toBe(true)
+  })
+
   it("rejects payloads that drop required schema.org fields", () => {
     expect(
-      webApplicationErrors({ "@context": "https://schema.org", "@type": "Thing" })
+      webApplicationErrors({
+        "@context": "https://schema.org",
+        "@type": "Thing",
+      })
     ).not.toEqual([])
     expect(
       breadcrumbListErrors({

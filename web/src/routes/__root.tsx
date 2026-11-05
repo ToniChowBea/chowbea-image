@@ -185,6 +185,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                 </Link>
                 {" · "}
                 <Link
+                  to="/guides"
+                  className="underline decoration-2 underline-offset-2"
+                >
+                  Guides
+                </Link>
+                {" · "}
+                <Link
                   to="/privacy"
                   className="underline decoration-2 underline-offset-2"
                 >

@@ -3,6 +3,7 @@
  * against the properties schema.org and Google Search expect.
  */
 
+import { GUIDE_IDS, GUIDES_SEO, guideFor } from "./guides"
 import { PORTAL_IDS, categoryForPreset } from "./portal-catalogue"
 import { publicUrl, seoForPreset } from "./preset-seo"
 import { ogCard } from "./og-copy"
@@ -66,6 +67,64 @@ export function breadcrumbJsonLd(presetId: string): JsonLdObject {
         item: publicUrl(`/fix/${presetId}`),
       },
     ],
+  }
+}
+
+/** Breadcrumb from Home through /guides to one how-to page. */
+export function guideBreadcrumbJsonLd(slug: string): JsonLdObject {
+  const guide = guideFor(slug)
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: publicUrl("/"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Guides",
+        item: publicUrl("/guides"),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: guide?.h1 ?? slug,
+        item: publicUrl(`/guides/${slug}`),
+      },
+    ],
+  }
+}
+
+/** ItemList of every how-to guide on /guides, in portal-category order. */
+export function guidesItemListJsonLd(): JsonLdObject {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: GUIDES_SEO.h1,
+    description: GUIDES_SEO.description,
+    numberOfItems: GUIDE_IDS.length,
+    itemListOrder: "https://schema.org/ItemListOrderAscending",
+    itemListElement: GUIDE_IDS.map((id, index) => {
+      const guide = guideFor(id)
+      const url = publicUrl(`/guides/${id}`)
+      const name = guide?.h1 ?? id
+      return {
+        "@type": "ListItem",
+        position: index + 1,
+        name,
+        url,
+        item: {
+          "@type": "WebPage",
+          "@id": url,
+          name,
+          url,
+        },
+      }
+    }),
   }
 }
 
@@ -134,7 +193,10 @@ export function webApplicationErrors(payload: JsonLdObject): string[] {
     errors.push("name is required")
   }
   if (!httpsUrl(payload.url)) errors.push("url must be an https URL")
-  if (typeof payload.description !== "string" || payload.description.length < 8) {
+  if (
+    typeof payload.description !== "string" ||
+    payload.description.length < 8
+  ) {
     errors.push("description is required")
   }
   if (typeof payload.applicationCategory !== "string") {
@@ -248,4 +310,3 @@ export function itemListErrors(payload: JsonLdObject): string[] {
   })
   return errors
 }
-

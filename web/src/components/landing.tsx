@@ -293,7 +293,14 @@ export function Landing() {
         >
           browse every UK portal
         </Link>{" "}
-        grouped by immigration, tax, jobs, education, housing and health.
+        grouped by immigration, tax, jobs, education, housing and health.{" "}
+        <Link
+          to="/guides"
+          className="font-extrabold text-ink underline decoration-2 underline-offset-2"
+        >
+          How-to guides
+        </Link>{" "}
+        cover the official limits.
       </p>
 
       {/* Image toolkit — same five tools as the workspace toolbar. */}

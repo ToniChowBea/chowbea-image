@@ -3,6 +3,7 @@
  * `head()` and the sitemap work without calling the API at request time.
  */
 
+import { GUIDE_IDS } from "./guides"
 import { PRESET_IDS } from "./portal-catalogue"
 
 export { PRESET_IDS, stepsForPreset } from "./portal-catalogue"
@@ -395,14 +396,16 @@ export function fallbackFaq(name = "this portal"): FaqItem[] {
   ]
 }
 
-/** Absolute URLs for every public fixer page. */
+/** Absolute URLs for every public fixer, portal, and how-to guide page. */
 export function sitemapPaths(): string[] {
   return [
     "/",
     "/fix",
     "/portals",
+    "/guides",
     "/privacy",
     ...PRESET_IDS.map((id) => `/fix/${id}`),
+    ...GUIDE_IDS.map((id) => `/guides/${id}`),
   ]
 }
 

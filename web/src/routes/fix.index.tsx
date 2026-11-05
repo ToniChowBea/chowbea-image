@@ -96,6 +96,13 @@ function FixIndexPage() {
             >
               Browse portals by category
             </Link>
+            {" · "}
+            <Link
+              to="/guides"
+              className="font-extrabold text-ink underline decoration-2 underline-offset-2"
+            >
+              How-to guides
+            </Link>
             .
           </p>
         </div>

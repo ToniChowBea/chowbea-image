@@ -7,6 +7,7 @@ import { PresetFaq } from "@/components/fix/faq"
 import { FixReportCard } from "@/components/fix/fix-report"
 import { JsonLd } from "@/components/fix/json-ld"
 import { PaywallCard } from "@/components/fix/paywall"
+import { GuideLink } from "@/components/guides/guide-link"
 import { RelatedPresets } from "@/components/fix/related-presets"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -310,6 +311,7 @@ function FixPresetPage() {
                 Rules last checked {preset.last_checked}
               </p>
             )}
+            <GuideLink presetId={presetId} />
           </div>
         </div>
       </div>

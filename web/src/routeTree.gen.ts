@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChowbeaImgIndexnowC7e41b8aDottxtRouteImport } from './routes/chowbea-img-indexnow-c7e41b8a[.]txt'
 import { Route as FixRouteImport } from './routes/fix'
+import { Route as GuidesRouteImport } from './routes/guides'
 import { Route as PortalsRouteImport } from './routes/portals'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as QueueRouteImport } from './routes/queue'
@@ -19,6 +20,8 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as FixIndexRouteImport } from './routes/fix.index'
 import { Route as FixPresetRouteImport } from './routes/fix.$preset'
+import { Route as GuidesIndexRouteImport } from './routes/guides.index'
+import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
 import { Route as OgSlugRouteImport } from './routes/og.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +38,11 @@ const ChowbeaImgIndexnowC7e41b8aDottxtRoute =
 const FixRoute = FixRouteImport.update({
   id: '/fix',
   path: '/fix',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidesRoute = GuidesRouteImport.update({
+  id: '/guides',
+  path: '/guides',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortalsRoute = PortalsRouteImport.update({
@@ -72,6 +80,16 @@ const FixPresetRoute = FixPresetRouteImport.update({
   path: '/$preset',
   getParentRoute: () => FixRoute,
 } as any)
+const GuidesIndexRoute = GuidesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => GuidesRoute,
+} as any)
+const GuidesSlugRoute = GuidesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => GuidesRoute,
+} as any)
 const OgSlugRoute = OgSlugRouteImport.update({
   id: '/og/$slug',
   path: '/og/$slug',
@@ -82,14 +100,17 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/chowbea-img-indexnow-c7e41b8a.txt': typeof ChowbeaImgIndexnowC7e41b8aDottxtRoute
   '/fix': typeof FixRouteWithChildren
+  '/guides': typeof GuidesRouteWithChildren
   '/portals': typeof PortalsRoute
   '/privacy': typeof PrivacyRoute
   '/queue': typeof QueueRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/fix/$preset': typeof FixPresetRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/og/$slug': typeof OgSlugRoute
   '/fix/': typeof FixIndexRoute
+  '/guides/': typeof GuidesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -100,22 +121,27 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/fix/$preset': typeof FixPresetRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/og/$slug': typeof OgSlugRoute
   '/fix': typeof FixIndexRoute
+  '/guides': typeof GuidesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/chowbea-img-indexnow-c7e41b8a.txt': typeof ChowbeaImgIndexnowC7e41b8aDottxtRoute
   '/fix': typeof FixRouteWithChildren
+  '/guides': typeof GuidesRouteWithChildren
   '/portals': typeof PortalsRoute
   '/privacy': typeof PrivacyRoute
   '/queue': typeof QueueRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/fix/$preset': typeof FixPresetRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/og/$slug': typeof OgSlugRoute
   '/fix/': typeof FixIndexRoute
+  '/guides/': typeof GuidesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -123,14 +149,17 @@ export interface FileRouteTypes {
     | '/'
     | '/chowbea-img-indexnow-c7e41b8a.txt'
     | '/fix'
+    | '/guides'
     | '/portals'
     | '/privacy'
     | '/queue'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/fix/$preset'
+    | '/guides/$slug'
     | '/og/$slug'
     | '/fix/'
+    | '/guides/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -141,27 +170,33 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/fix/$preset'
+    | '/guides/$slug'
     | '/og/$slug'
     | '/fix'
+    | '/guides'
   id:
     | '__root__'
     | '/'
     | '/chowbea-img-indexnow-c7e41b8a.txt'
     | '/fix'
+    | '/guides'
     | '/portals'
     | '/privacy'
     | '/queue'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/fix/$preset'
+    | '/guides/$slug'
     | '/og/$slug'
     | '/fix/'
+    | '/guides/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChowbeaImgIndexnowC7e41b8aDottxtRoute: typeof ChowbeaImgIndexnowC7e41b8aDottxtRoute
   FixRoute: typeof FixRouteWithChildren
+  GuidesRoute: typeof GuidesRouteWithChildren
   PortalsRoute: typeof PortalsRoute
   PrivacyRoute: typeof PrivacyRoute
   QueueRoute: typeof QueueRoute
@@ -191,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/fix'
       fullPath: '/fix'
       preLoaderRoute: typeof FixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guides': {
+      id: '/guides'
+      path: '/guides'
+      fullPath: '/guides'
+      preLoaderRoute: typeof GuidesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portals': {
@@ -242,6 +284,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FixPresetRouteImport
       parentRoute: typeof FixRoute
     }
+    '/guides/': {
+      id: '/guides/'
+      path: '/'
+      fullPath: '/guides/'
+      preLoaderRoute: typeof GuidesIndexRouteImport
+      parentRoute: typeof GuidesRoute
+    }
+    '/guides/$slug': {
+      id: '/guides/$slug'
+      path: '/$slug'
+      fullPath: '/guides/$slug'
+      preLoaderRoute: typeof GuidesSlugRouteImport
+      parentRoute: typeof GuidesRoute
+    }
     '/og/$slug': {
       id: '/og/$slug'
       path: '/og/$slug'
@@ -264,10 +320,24 @@ const FixRouteChildren: FixRouteChildren = {
 
 const FixRouteWithChildren = FixRoute._addFileChildren(FixRouteChildren)
 
+interface GuidesRouteChildren {
+  GuidesSlugRoute: typeof GuidesSlugRoute
+  GuidesIndexRoute: typeof GuidesIndexRoute
+}
+
+const GuidesRouteChildren: GuidesRouteChildren = {
+  GuidesSlugRoute: GuidesSlugRoute,
+  GuidesIndexRoute: GuidesIndexRoute,
+}
+
+const GuidesRouteWithChildren =
+  GuidesRoute._addFileChildren(GuidesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChowbeaImgIndexnowC7e41b8aDottxtRoute: ChowbeaImgIndexnowC7e41b8aDottxtRoute,
   FixRoute: FixRouteWithChildren,
+  GuidesRoute: GuidesRouteWithChildren,
   PortalsRoute: PortalsRoute,
   PrivacyRoute: PrivacyRoute,
   QueueRoute: QueueRoute,
