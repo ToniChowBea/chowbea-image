@@ -965,3 +965,17 @@ export function guideCategories(): (typeof PORTAL_CATEGORIES)[number][] {
     (category) => guidesInCategory(category.id).length > 0
   )
 }
+
+/**
+ * Neighbouring how-to pages in the same /guides category.
+ * Wraps around the group, skips the current slug, and caps at `count`
+ * (default 5). Small groups such as health return every remaining sibling.
+ */
+export function relatedGuideIds(slug: string, count = 5): string[] {
+  const category = categoryForPreset(slug)
+  if (category === "generic") return []
+  const pool = guidesInCategory(category).map((guide) => guide.slug)
+  const index = pool.indexOf(slug)
+  if (index < 0) return []
+  return [...pool.slice(index + 1), ...pool.slice(0, index)].slice(0, count)
+}

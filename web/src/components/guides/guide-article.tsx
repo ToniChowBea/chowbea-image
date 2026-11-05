@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowLeft01Icon, ArrowRight02Icon } from "@hugeicons/core-free-icons"
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons"
 
 import { JsonLd } from "@/components/fix/json-ld"
 import { PresetFaq } from "@/components/fix/faq"
+import { GuideCta } from "@/components/guides/guide-cta"
+import { RelatedGuides } from "@/components/guides/related-guides"
 import { Badge } from "@/components/ui/badge"
 import type { Guide } from "@/lib/guides"
 import { guideSteps } from "@/lib/guides"
@@ -58,6 +60,8 @@ export function GuideArticle({ guide }: { guide: Guide }) {
         <p className="text-[13px] font-semibold text-muted-ink">
           Rules last checked {guide.lastChecked}
         </p>
+        {/* Primary fixer CTA sits in the header so it is above the fold. */}
+        <GuideCta presetId={guide.presetId} label={guide.ctaLabel} />
       </header>
 
       <section className="block-card">
@@ -98,18 +102,9 @@ export function GuideArticle({ guide }: { guide: Guide }) {
             </li>
           ))}
         </ol>
-        <Link
-          to="/fix/$preset"
-          params={{ preset: guide.presetId }}
-          className="press mt-5 inline-flex w-fit items-center gap-2.5 rounded-full border-2 border-ink bg-amber px-6 py-3.5 font-heading text-base font-extrabold tracking-wide text-ink uppercase shadow-block"
-        >
-          {guide.ctaLabel}
-          <HugeiconsIcon
-            icon={ArrowRight02Icon}
-            className="size-5"
-            strokeWidth={2.4}
-          />
-        </Link>
+        <div className="mt-5">
+          <GuideCta presetId={guide.presetId} label={guide.ctaLabel} />
+        </div>
       </section>
 
       <p className="rounded-[20px] border-2 border-ink bg-soft-amber px-5 py-4 text-[13px] font-semibold text-ink">
@@ -117,6 +112,8 @@ export function GuideArticle({ guide }: { guide: Guide }) {
         faces, backgrounds or content, and it does not guarantee a portal will
         accept the file.
       </p>
+
+      <RelatedGuides slug={guide.slug} />
 
       <PresetFaq items={faq} />
     </article>

@@ -4,6 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { Image01Icon } from "@hugeicons/core-free-icons"
 
 import { JsonLd } from "@/components/fix/json-ld"
+import { GuideLink } from "@/components/guides/guide-link"
 import { Badge } from "@/components/ui/badge"
 import { fetchPresets, formatBytes, type Preset } from "@/lib/api"
 import { webAppJsonLd } from "@/lib/json-ld"
@@ -88,8 +89,8 @@ function FixIndexPage() {
           </h1>
           <p className="mt-1.5 max-w-xl text-[15px] font-semibold text-subtext">
             Pick a UK portal, drop a file, and we convert / resize / compress it
-            to that portal&apos;s rules. One file is free. Format only — not a
-            guarantee of acceptance.{" "}
+            to that portal&apos;s rules. One file is free. No account needed.
+            Format only — not a guarantee of acceptance.{" "}
             <Link
               to="/portals"
               className="font-extrabold text-ink underline decoration-2 underline-offset-2"
@@ -149,32 +150,37 @@ function PresetGroup({ title, items }: { title: string; items: Preset[] }) {
       </h2>
       <div className="grid gap-4 sm:grid-cols-2">
         {items.map((preset) => (
-          <Link
+          <div
             key={preset.id}
-            to="/fix/$preset"
-            params={{ preset: preset.id }}
-            className="press group flex flex-col gap-2 rounded-[20px] border-2 border-ink bg-card p-5 shadow-block-sm hover:bg-surface"
+            className="flex flex-col gap-2 rounded-[20px] border-2 border-ink bg-card p-5 shadow-block-sm hover:bg-surface"
           >
-            <div className="flex items-start justify-between gap-2">
-              <p className="font-heading text-base font-extrabold text-ink">
-                {preset.h1 || preset.name}
+            <Link
+              to="/fix/$preset"
+              params={{ preset: preset.id }}
+              className="press group flex flex-col gap-2"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-heading text-base font-extrabold text-ink">
+                  {preset.h1 || preset.name}
+                </p>
+                <span className="font-heading text-lg font-extrabold text-ink">
+                  →
+                </span>
+              </div>
+              <p className="text-[13px] font-semibold text-muted-ink">
+                {preset.accepted_types
+                  .map((type) => (type === "jpeg" ? "JPG" : type.toUpperCase()))
+                  .join(" · ")}
+                {preset.max_bytes
+                  ? ` · max ${formatBytes(preset.max_bytes)}`
+                  : ""}
               </p>
-              <span className="font-heading text-lg font-extrabold text-ink">
-                →
-              </span>
-            </div>
-            <p className="text-[13px] font-semibold text-muted-ink">
-              {preset.accepted_types
-                .map((type) => (type === "jpeg" ? "JPG" : type.toUpperCase()))
-                .join(" · ")}
-              {preset.max_bytes
-                ? ` · max ${formatBytes(preset.max_bytes)}`
-                : ""}
-            </p>
-            <Badge variant={preset.verified ? "amber" : "outline"}>
-              {preset.verified ? "Verified" : "Unverified"}
-            </Badge>
-          </Link>
+              <Badge variant={preset.verified ? "amber" : "outline"}>
+                {preset.verified ? "Verified" : "Unverified"}
+              </Badge>
+            </Link>
+            <GuideLink presetId={preset.id} />
+          </div>
         ))}
       </div>
     </section>
