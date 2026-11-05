@@ -20,6 +20,7 @@ from app.services.pdfutil import (
     PdfError,
     compress_pdf_to_target,
     merge_pdfs,
+    pdf_first_page_to_image,
     pdf_is_encrypted,
     wrap_jpeg_as_pdf,
 )
@@ -459,10 +460,13 @@ def _fix_one(src: Path, dest_dir: Path, index: int, name: str, preset: Preset) -
         _fix_existing_pdf(src, dest, preset)
     else:
         if input_kind == "pdf":
-            raise FixError(
-                "This preset wants an image, and PDF-to-image is not available yet. "
-                "Export a page as JPEG and try again."
-            )
+            # PDF input needs to become an image: convert first page to JPEG, then proceed.
+            tmp_jpeg = dest_dir / f"pdf-page-{index}.jpg"
+            try:
+                pdf_first_page_to_image(src, tmp_jpeg, dpi=300)
+                src = tmp_jpeg
+            except PdfError as exc:
+                raise FixError(str(exc)) from exc
         try:
             image = imaging.load(src)
         except imaging.ImageError as exc:

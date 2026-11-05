@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pyvips
 import pytest
+from pypdf import PdfWriter
 
 from app.services.pdfutil import (
     PdfError,
@@ -66,3 +67,37 @@ def test_corrupt_pdf_has_clear_error(tmp_path):
 def test_merge_pdfs_rejects_empty_list(tmp_path):
     with pytest.raises(PdfError, match="No PDFs"):
         merge_pdfs([], tmp_path / "x.pdf")
+
+
+@pytest.mark.skipif(not ghostscript_available(), reason="ghostscript (gs) is not installed")
+def test_pdf_first_page_to_image(tmp_path):
+    """Convert the first page of a PDF to a JPEG image."""
+    from app.services.pdfutil import pdf_first_page_to_image
+    
+    jpeg = pyvips.Image.black(400, 600, bands=3).add(128).cast("uchar").write_to_buffer(".jpg", Q=95)
+    src = tmp_path / "document.pdf"
+    wrap_jpeg_as_pdf(jpeg, 400, 600, src, bands=3)
+    dest = tmp_path / "page.jpg"
+    pdf_first_page_to_image(src, dest, dpi=150)
+    
+    assert dest.exists()
+    assert dest.stat().st_size > 0
+    image = pyvips.Image.new_from_file(str(dest))
+    assert image.width > 0
+    assert image.height > 0
+    assert image.get("vips-loader") == "jpegload"
+
+
+def test_pdf_first_page_to_image_rejects_encrypted(tmp_path):
+    """Encrypted PDFs are rejected with a clear error."""
+    from app.services.pdfutil import pdf_first_page_to_image
+    
+    locked = tmp_path / "locked.pdf"
+    writer = PdfWriter()
+    writer.add_blank_page(width=72, height=72)
+    writer.encrypt("secret")
+    writer.write(str(locked))
+    dest = tmp_path / "page.jpg"
+    
+    with pytest.raises(PdfError, match="password"):
+        pdf_first_page_to_image(locked, dest)

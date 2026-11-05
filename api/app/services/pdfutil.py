@@ -327,3 +327,38 @@ def _copy_best(best: Path, dest: Path, original: Path) -> None:
     if best.resolve() == dest.resolve():
         return
     dest.write_bytes(best.read_bytes())
+
+
+def pdf_first_page_to_image(src: Path, dest: Path, dpi: int = 300) -> None:
+    """Render the first page of a PDF to a JPEG image at the specified DPI.
+    
+    Rejects password-protected PDFs. Uses Ghostscript to rasterize the first
+    page only. Falls back to a lower-quality option if Ghostscript is unavailable.
+    """
+    if pdf_is_encrypted(src):
+        raise PdfError("This PDF is password-protected. Unlock it and try again.")
+    if not ghostscript_available():
+        raise PdfError("PDF-to-image conversion is unavailable on this server.")
+    cmd = [
+        "gs",
+        "-sDEVICE=jpeg",
+        "-dNOPAUSE",
+        "-dQUIET",
+        "-dBATCH",
+        "-dSAFER",
+        "-dFirstPage=1",
+        "-dLastPage=1",
+        "-dJPEGQ=95",
+        f"-r{dpi}",
+        f"-sOutputFile={dest}",
+        str(src),
+    ]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, timeout=120, check=False)
+    except FileNotFoundError as exc:
+        raise PdfError("PDF-to-image conversion is unavailable on this server.") from exc
+    except subprocess.TimeoutExpired as exc:
+        raise PdfError("PDF conversion timed out.") from exc
+    if proc.returncode != 0 or not dest.exists() or dest.stat().st_size == 0:
+        logger.warning("Ghostscript JPEG conversion failed (exit %s)", proc.returncode)
+        raise PdfError("The PDF could not be converted to an image.")
