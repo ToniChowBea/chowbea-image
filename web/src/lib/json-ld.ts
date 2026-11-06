@@ -3,7 +3,7 @@
  * against the properties schema.org and Google Search expect.
  */
 
-import { GUIDE_IDS, GUIDES_SEO, guideFor } from "./guides"
+import { GUIDE_IDS, GUIDES_SEO, guideFor, guideSteps } from "./guides"
 import { PORTAL_IDS, categoryForPreset } from "./portal-catalogue"
 import { publicUrl, seoForPreset } from "./preset-seo"
 import { ogCard } from "./og-copy"
@@ -157,6 +157,40 @@ export function portalsItemListJsonLd(): JsonLdObject {
   }
 }
 
+/** HowTo with numbered steps from guide content. */
+export function guideHowToJsonLd(slug: string): JsonLdObject {
+  const guide = guideFor(slug)
+  if (!guide) {
+    return {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      name: slug,
+      description: "",
+      url: publicUrl(`/guides/${slug}`),
+      step: [],
+    }
+  }
+
+  const steps = guideSteps(slug)
+  const url = publicUrl(`/guides/${slug}`)
+  const card = ogCard(guide.presetId)
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: guide.h1,
+    description: guide.intro,
+    url,
+    step: steps.map((text, index) => ({
+      "@type": "HowToStep",
+      position: index + 1,
+      name: text,
+      text,
+    })),
+    ...(card.image ? { image: card.image } : {}),
+  }
+}
+
 const SCHEMA_CONTEXT = "https://schema.org"
 
 /** Narrow a JSON-LD node to a plain object. */
@@ -306,6 +340,49 @@ export function itemListErrors(payload: JsonLdObject): string[] {
             : null
     if (!httpsUrl(url) && !httpsUrl(nestedUrl)) {
       errors.push(`itemListElement[${index}] needs an https url or item`)
+    }
+  })
+  return errors
+}
+
+/** schema.org HowTo with step array. */
+export function howToErrors(payload: JsonLdObject): string[] {
+  const errors: string[] = []
+  if (payload["@context"] !== SCHEMA_CONTEXT) {
+    errors.push("@context must be https://schema.org")
+  }
+  if (!hasType(payload["@type"], "HowTo")) {
+    errors.push("@type must be HowTo")
+  }
+  if (typeof payload.name !== "string" || payload.name.length === 0) {
+    errors.push("name is required")
+  }
+  if (!httpsUrl(payload.url)) {
+    errors.push("url must be an https URL")
+  }
+  if (!Array.isArray(payload.step)) {
+    errors.push("step must be an array")
+    return errors
+  }
+  if (payload.step.length === 0) {
+    errors.push("step array must not be empty")
+  }
+  payload.step.forEach((entry, index) => {
+    const item = asRecord(entry)
+    if (!item) {
+      errors.push(`step[${index}] must be an object`)
+      return
+    }
+    if (item["@type"] !== "HowToStep") {
+      errors.push(`step[${index}] @type must be HowToStep`)
+    }
+    if (item.position !== index + 1) {
+      errors.push(`step[${index}] position must be ${index + 1}`)
+    }
+    const hasName = typeof item.name === "string" && item.name.length > 0
+    const hasText = typeof item.text === "string" && item.text.length > 0
+    if (!hasName && !hasText) {
+      errors.push(`step[${index}] must have name or text`)
     }
   })
   return errors

@@ -9,7 +9,7 @@ import { RelatedGuides } from "@/components/guides/related-guides"
 import { Badge } from "@/components/ui/badge"
 import type { Guide } from "@/lib/guides"
 import { guideSteps } from "@/lib/guides"
-import { guideBreadcrumbJsonLd } from "@/lib/json-ld"
+import { guideBreadcrumbJsonLd, guideHowToJsonLd } from "@/lib/json-ld"
 import { faqJsonLd } from "@/lib/preset-seo"
 
 /**
@@ -24,6 +24,7 @@ export function GuideArticle({ guide }: { guide: Guide }) {
     <article className="page-stack pb-10">
       <JsonLd payload={faqJsonLd(faq)} />
       <JsonLd payload={guideBreadcrumbJsonLd(guide.slug)} />
+      <JsonLd payload={guideHowToJsonLd(guide.slug)} />
 
       <nav aria-label="Breadcrumb" className="flex flex-wrap gap-2">
         <Link
