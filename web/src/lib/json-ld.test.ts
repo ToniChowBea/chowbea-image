@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest"
 
-import { GUIDE_IDS } from "./guides"
+import { GUIDE_IDS, guideSteps } from "./guides"
 import { PORTAL_IDS } from "./portal-catalogue"
 import {
   breadcrumbJsonLd,
   breadcrumbListErrors,
   guideBreadcrumbJsonLd,
+  guideHowToJsonLd,
   guidesItemListJsonLd,
+  howToErrors,
   itemListErrors,
   portalsItemListJsonLd,
   webAppJsonLd,
@@ -104,6 +106,33 @@ describe("schema.org JSON-LD", () => {
     )
   })
 
+  it("emits a HowTo for every guide with the correct step count", () => {
+    GUIDE_IDS.forEach((slug) => {
+      const payload = guideHowToJsonLd(slug)
+      const errors = howToErrors(payload)
+      expect(errors).toEqual([])
+      expect(payload["@type"]).toBe("HowTo")
+      expect(typeof payload.name).toBe("string")
+      expect((payload.name as string).length).toBeGreaterThan(0)
+      expect(typeof payload.url).toBe("string")
+      expect((payload.url as string)).toContain(`/guides/${slug}`)
+      const steps = payload.step as Array<{ position: number; text?: string; name?: string }>
+      const expectedSteps = guideSteps(slug)
+      expect(steps).toHaveLength(expectedSteps.length)
+      steps.forEach((step, index) => {
+        expect(step.position).toBe(index + 1)
+        expect(step["@type"]).toBe("HowToStep")
+      })
+    })
+  })
+
+  it("emits HowTo with matching step text from guideSteps", () => {
+    const payload = guideHowToJsonLd("ucas-documents")
+    const steps = payload.step as Array<{ text: string }>
+    const expectedSteps = guideSteps("ucas-documents")
+    expect(steps.map((s) => s.text)).toEqual(expectedSteps)
+  })
+
   it("rejects payloads that drop required schema.org fields", () => {
     expect(
       webApplicationErrors({
@@ -123,6 +152,21 @@ describe("schema.org JSON-LD", () => {
         "@context": "https://schema.org",
         "@type": "ItemList",
         itemListElement: [{ "@type": "Thing" }],
+      })
+    ).not.toEqual([])
+    expect(
+      howToErrors({
+        "@context": "https://schema.org",
+        "@type": "Thing",
+      })
+    ).not.toEqual([])
+    expect(
+      howToErrors({
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: "Test",
+        url: "https://example.com",
+        step: [],
       })
     ).not.toEqual([])
   })
