@@ -13,6 +13,9 @@ def test_app_starts_and_degrades_without_broker():
         assert body["status"] == "ok"
         assert body["commit"]  # identifies the running deploy; "dev" locally
         assert client.get("/queue").status_code == 200
+        stats = client.get("/stats")
+        assert stats.status_code == 200
+        assert "totals" in stats.json() and "days" in stats.json()
 
 
 def test_app_starts_with_unwritable_data_dir(tmp_path, monkeypatch):
@@ -26,5 +29,8 @@ def test_app_starts_with_unwritable_data_dir(tmp_path, monkeypatch):
         with TestClient(app) as client:
             assert client.get("/health").json()["status"] == "ok"
             assert client.get("/queue").json()["jobs_completed"] == 0
+            stats = client.get("/stats")
+            assert stats.status_code == 200
+            assert stats.json() == {"totals": {}, "days": []}
     finally:
         ro.chmod(0o700)

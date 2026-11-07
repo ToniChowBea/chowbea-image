@@ -53,8 +53,8 @@ class Settings(BaseSettings):
     # Git SHA of the running deploy; Railway injects this on git-connected deploys.
     commit_sha: str = Field(default="dev", validation_alias="RAILWAY_GIT_COMMIT_SHA")
 
-    # Directory for small durable state (the jobs counter); a Railway volume is
-    # mounted here in production so the data survives redeploys.
+    # Directory for small durable state (jobs counter, usage aggregates,
+    # entitlements). Mount a Railway volume here so the data survives redeploys.
     data_dir: str = "./data"
 
     # Stripe Checkout (unprefixed env names). Empty → paywall is off.
