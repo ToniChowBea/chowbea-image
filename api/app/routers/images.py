@@ -12,6 +12,7 @@ from fastapi import APIRouter, File, Form, Header, HTTPException, Request, Uploa
 
 from app.core.config import settings
 from app.jobs.schemas import JobAccepted
+from app.jobs.stats import CounterStore, record_usage
 from app.services import imaging
 from app.services.billing import EntitlementError, EntitlementStore, paywall_enabled
 from app.services.crop import ASPECT_RATIOS
@@ -251,6 +252,11 @@ def _entitlements(request: Request) -> EntitlementStore:
     return store
 
 
+def _usage_counter(request: Request) -> CounterStore | None:
+    """Optional CounterStore attached at startup; tests may omit it."""
+    return getattr(request.app.state, "counter", None)
+
+
 @router.post("/fix", status_code=202, summary="Queue a file to meet a portal upload preset", response_model=JobAccepted)
 async def fix(
     request: Request,
@@ -268,6 +274,10 @@ async def fix(
     if get_preset(preset) is None:
         raise HTTPException(status_code=400, detail="Unknown preset.")
     is_batch = len(files) > 1
+    counter = _usage_counter(request)
+    # A pack is the action that would require payment if the paywall were on.
+    if is_batch:
+        record_usage(counter, preset, paywall_would_trigger=1)
     raw_token = (token or "").strip() or _bearer_token(authorization)
     consumed = False
     store = _entitlements(request)
@@ -290,7 +300,7 @@ async def fix(
                 detail="Too many free fixes from this network. Try again in a minute.",
             )
     try:
-        return await _intake(
+        accepted = await _intake(
             request,
             files,
             "fix",
@@ -304,3 +314,6 @@ async def fix(
         if consumed and raw_token:
             store.restore(raw_token)
         raise
+    # Count demand only after the job is actually queued. Packs are 2+ files.
+    record_usage(counter, preset, started=1, packs=1 if is_batch else 0)
+    return accepted

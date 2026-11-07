@@ -14,7 +14,7 @@ import zipfile
 from pathlib import Path
 
 from app.jobs.registry import JobRecord, JobRegistry, JobStatus
-from app.jobs.stats import CounterStore
+from app.jobs.stats import CounterStore, record_usage
 from app.services import imaging
 from app.services.analytics import capture
 from app.services.compress import CompressError, compress_image
@@ -184,19 +184,37 @@ async def execute_job(registry: JobRegistry, job_id: str, counter: CounterStore 
     except _KNOWN_ERRORS as exc:
         record.status = JobStatus.failed
         record.error = str(exc)
+        _count_fix_outcome(record, counter, succeeded=False)
         _track_fix(record, succeeded=False)
     except Exception:
         logger.exception("Job %s crashed", job_id)
         record.status = JobStatus.failed
         record.error = "Something went wrong while processing this image."
+        _count_fix_outcome(record, counter, succeeded=False)
         _track_fix(record, succeeded=False)
     else:
         record.status = JobStatus.done
         if counter is not None:
-            counter.increment()
+            try:
+                counter.increment()
+            except Exception:
+                logger.warning("Jobs counter skipped")
+        _count_fix_outcome(record, counter, succeeded=True)
         _track_fix(record, succeeded=True)
     finally:
         record.finished_at = time.time()
+
+
+def _count_fix_outcome(record: JobRecord, counter: CounterStore | None, *, succeeded: bool) -> None:
+    """Tally pass vs fail for fixer jobs. Processing errors count as fail."""
+    if record.tool != "fix":
+        return
+    preset = str(record.params.get("preset") or "")
+    passed = succeeded and bool(record.report and record.report.get("passed"))
+    if passed:
+        record_usage(counter, preset, passed=1)
+    else:
+        record_usage(counter, preset, failed=1)
 
 
 def _track_fix(record: JobRecord, *, succeeded: bool) -> None:

@@ -70,3 +70,27 @@ class QueueBoard(BaseModel):
     jobs_completed: int
     processing: list[BoardEntry]
     waiting: list[BoardEntry]
+
+
+class PresetUsageCounts(BaseModel):
+    """Aggregate fixer demand for one preset. Never includes personal data."""
+
+    started: int = 0
+    passed: int = 0
+    failed: int = 0
+    packs: int = 0
+    paywall_would_trigger: int = 0
+
+
+class DayUsage(BaseModel):
+    """One UTC day's per-preset counters."""
+
+    date: str
+    presets: dict[str, PresetUsageCounts]
+
+
+class UsageStats(BaseModel):
+    """Public read-only snapshot: all-time totals plus the last 30 UTC days."""
+
+    totals: dict[str, PresetUsageCounts]
+    days: list[DayUsage]

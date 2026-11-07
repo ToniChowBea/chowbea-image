@@ -89,7 +89,7 @@ export interface PresetSeo {
 const PRIVACY_FAQ: FaqItem[] = [
   {
     q: "Do you keep my file?",
-    a: "No. Files are deleted 1 hour after processing. We never log file contents, only generic errors. Optional PostHog events (off without a key) record preset and file type only — never names or bytes.",
+    a: "No. Files are deleted 1 hour after processing. We never log file contents, only generic errors. We keep anonymous per-preset totals (no filenames, IPs, or cookies). Optional PostHog events (off without a key) record preset and file type only — never names or bytes.",
   },
   {
     q: "Is a single file free?",

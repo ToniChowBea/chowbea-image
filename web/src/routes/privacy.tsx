@@ -57,6 +57,19 @@ function PrivacyPage() {
 
       <section className="mt-6">
         <h2 className="font-heading text-lg font-extrabold text-ink">
+          Anonymous usage counts
+        </h2>
+        <p className="mt-2 text-[15px] font-medium text-ink">
+          We keep per-preset totals (jobs started, pass or fail, evidence packs,
+          and when a pack would have required payment). These are numbers only —
+          no filenames, IPs, user agents, or cookies. They live on the API host
+          and are published as aggregates at that host&apos;s public{" "}
+          <code>/stats</code> endpoint.
+        </p>
+      </section>
+
+      <section className="mt-6">
+        <h2 className="font-heading text-lg font-extrabold text-ink">
           Optional analytics
         </h2>
         <p className="mt-2 text-[15px] font-medium text-ink">
