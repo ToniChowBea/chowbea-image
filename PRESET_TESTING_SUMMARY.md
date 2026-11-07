@@ -36,12 +36,12 @@ Added comprehensive test coverage for all 41 presets in `api/app/presets.yaml` (
 
 Daily weekday workflow (9 AM UTC) that:
 - ✅ Tests API health endpoint
-- ✅ Tests web homepage (`/fix`)
-- ✅ Tests portals listing (`/portals`)
+- ✅ Tests key web routes (`/`, `/fix`, `/portals`, `/guides`, sample guides, `/privacy`)
+- ✅ Tests that `sitemap.xml` includes `/guides`
 - ✅ Tests presets API endpoint (validates ≥31 presets returned)
 - ✅ Runs end-to-end fix job (upload → process → download)
 - No secrets required
-- Gracefully skips if API is unreachable
+- Fails if the API or web host is unreachable
 - Uses `jpg-100kb` generic preset for smoke test
 
 ### 5. Test Infrastructure Improvements

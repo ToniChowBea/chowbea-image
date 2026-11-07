@@ -40,6 +40,7 @@ jobs:
           # Small sample of public pages. Do not fetch every /guides/<preset>:
           # uk-passport-online is a photo guide and universal-credit is a document
           # guide, so the two cover both conversion-CTA shapes without the full set.
+          # /privacy is linked from the footer and sitemap; keep it in the sample.
           paths=(
             /
             /fix
@@ -47,6 +48,7 @@ jobs:
             /guides
             /guides/uk-passport-online
             /guides/universal-credit
+            /privacy
           )
           failed=0
           for path in "${paths[@]}"; do
@@ -193,7 +195,7 @@ jobs:
           echo "════════════════════════════════════════"
           echo "✓ All production smoke tests passed"
           echo "  - API health endpoint: OK"
-          echo "  - Web routes (/, /fix, /portals, /guides, sample guides): OK"
+          echo "  - Web routes (/, /fix, /portals, /guides, sample guides, /privacy): OK"
           echo "  - sitemap.xml includes /guides: OK"
           echo "  - API presets endpoint: OK"
           echo "  - End-to-end fix job: OK"
