@@ -61,7 +61,7 @@ See [`.env.example`](.env.example) for every variable (no real values). Summary:
 | --- | --- | --- |
 | `CHOWBEA_RABBITMQ_URL` | API / worker | Broker URL |
 | `CHOWBEA_CORS_ORIGINS` | API | Comma-separated web origins |
-| `CHOWBEA_DATA_DIR` | API / worker | Durable jobs counter, per-preset usage JSON, entitlements; mount a volume so counts survive redeploys |
+| `CHOWBEA_DATA_DIR` | API / worker | Directory for `stats.json` (jobs counter + per-preset usage) and entitlements. Default `./data`. Production: `/data` with a mounted volume, otherwise counts reset on redeploy |
 | `CHOWBEA_FIX_MAX_FILES` | API | Pack file-count cap (default 20) |
 | `CHOWBEA_FIX_MAX_UPLOAD_MB` | API | Per-file cap on `/img/fix` (default 50) |
 | `CHOWBEA_FIX_FREE_RATE_PER_MINUTE` | API | Per-IP free-fix rate limit (default 10) |
@@ -117,12 +117,27 @@ Heavy LibreOffice tests are skipped in CI when LibreOffice is unavailable (via `
 
 ## Usage counts
 
-The API keeps anonymous, keyless counters so we can see which presets are used without PostHog or cookies.
+The API keeps anonymous, keyless counters so we can see which presets are used without PostHog or cookies. `GET /stats` returns aggregates only (per-preset totals and daily buckets). It never includes IPs, filenames, user agents, or other user data.
 
-- **Stored in** `$CHOWBEA_DATA_DIR/stats.json` (default `./data/stats.json`; production should be `/data/stats.json` on the Railway volume).
-- **Survive redeploys** only when that directory is a mounted volume. With no volume, the file lives on the container disk and **resets on redeploy**.
-- **Read them** with `GET /stats` (public, aggregates only): all-time `totals` plus the last 30 UTC days, each broken down by preset into `started`, `passed`, `failed`, `packs`, and `paywall_would_trigger`. Example: `curl https://chowbea-image-production.up.railway.app/stats`.
-- Counting never stores file contents, filenames, IPs, or user agents. A failed count is logged and ignored so it cannot break a fix job.
+**File path**
+
+| Environment | `CHOWBEA_DATA_DIR` | Counts file |
+| --- | --- | --- |
+| Local default | `./data` | `./data/stats.json` |
+| Docker Compose | `/data` (volume `api-data`) | `/data/stats.json` |
+| Railway | `/data` **when a volume is mounted there** | `/data/stats.json` |
+
+Set the directory with `CHOWBEA_DATA_DIR`. The filename is always `stats.json` inside that directory.
+
+**Durability**
+
+Counts survive process restarts on that disk. They **survive container redeploys only when `CHOWBEA_DATA_DIR` is a mounted volume**. Docker Compose already shares `api-data` at `/data` between the API and worker. This repo does not attach a Railway volume; keep a volume mounted at `CHOWBEA_DATA_DIR=/data` on the API (and worker replica, if you use one). With no volume, the file sits on the container disk and **resets on redeploy**. At startup the API logs a warning when that directory is not a mounted volume; counting still runs.
+
+A failed count (including a lock that cannot be acquired) is logged and ignored so it cannot break or slow a fix job.
+
+**Read them**
+
+`GET /stats` is public: all-time `totals` plus the last 30 UTC days, each broken down by preset into `started`, `passed`, `failed`, `packs`, and `paywall_would_trigger`. Example: `curl https://chowbea-image-production.up.railway.app/stats`.
 
 ## Privacy
 

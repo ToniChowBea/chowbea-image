@@ -15,6 +15,7 @@ import json
 import logging
 import os
 import re
+import tempfile
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -49,6 +50,44 @@ def _empty_metrics() -> dict[str, int]:
 def _valid_preset(preset: str) -> bool:
     """True when `preset` is a safe catalogue-style id."""
     return bool(preset) and len(preset) <= _PRESET_MAX_LEN and _PRESET_RE.fullmatch(preset) is not None
+
+
+def data_dir_is_durable(path: Path) -> bool:
+    """True when `path` sits on a mount other than the container root filesystem.
+
+    Compose and Railway keep `$CHOWBEA_DATA_DIR` across redeploys by mounting a
+    volume there (typically `/data`). A directory whose only mount is `/` lives
+    on the container disk and is wiped when the container is replaced.
+    """
+    try:
+        resolved = path.expanduser().resolve()
+    except OSError:
+        return False
+    root = Path("/")
+    current = resolved
+    # Walk up until we find a mount; `/` itself is the ephemeral container disk.
+    while True:
+        try:
+            if current.is_mount():
+                return current != root
+        except OSError:
+            return False
+        parent = current.parent
+        if parent == current:
+            return False
+        current = parent
+
+
+def warn_if_counts_not_durable(data_dir: Path) -> None:
+    """Log when usage counts will reset on the next container redeploy."""
+    if data_dir_is_durable(data_dir):
+        return
+    logger.warning(
+        "Usage counts at %s/stats.json are not on a mounted volume and will "
+        "reset on container redeploy. Set CHOWBEA_DATA_DIR to a volume mount "
+        "(production: /data) so the file survives. Counting still runs.",
+        data_dir,
+    )
 
 
 class CounterStore:
@@ -149,16 +188,20 @@ class CounterStore:
 
     @contextmanager
     def _locked(self) -> Iterator[None]:
-        """Exclusive lock so API and worker processes do not clobber the file."""
+        """Hold an exclusive flock for the whole read-modify-write.
+
+        If the lock cannot be acquired, raise OSError and do not yield, so the
+        caller never writes without the lock. Counting is best-effort; callers
+        log and swallow that error.
+        """
         self._path.parent.mkdir(parents=True, exist_ok=True)
         lock_path = self._path.with_name(self._path.name + ".lock")
         with open(lock_path, "a+", encoding="utf-8") as lock:
             try:
                 fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
             except OSError:
-                # Still read-modify-write; single-process deploys do not need the lock.
-                yield
-                return
+                logger.warning("Could not lock %s; skipping the stats write", lock_path)
+                raise
             try:
                 yield
             finally:
@@ -168,7 +211,7 @@ class CounterStore:
                     pass
 
     def _update(self, mutator) -> dict:
-        """Lock, read, mutate in place, atomically replace."""
+        """Lock, read, mutate in place, atomically replace. Requires the lock."""
         with self._locked():
             data = self._read_unlocked()
             mutator(data)
@@ -176,10 +219,14 @@ class CounterStore:
             return data
 
     def _read(self) -> dict:
-        """Locked read used by snapshot and startup."""
+        """Read without the exclusive lock so GET /stats cannot stall writers.
+
+        os.replace makes the published file appear atomically, so a reader sees
+        either the previous complete JSON or the new one. An unreadable file
+        becomes a blank snapshot instead of raising.
+        """
         try:
-            with self._locked():
-                return self._read_unlocked()
+            return self._read_unlocked()
         except OSError:
             logger.warning("Stats file %s unreadable; starting the counter at 0", self._path)
             return self._blank()
@@ -195,9 +242,31 @@ class CounterStore:
             return self._blank()
 
     def _write_unlocked(self, data: dict) -> None:
-        tmp = self._path.with_suffix(".tmp")
-        tmp.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
-        os.replace(tmp, self._path)
+        """Replace the stats file via a unique temp sibling, then os.replace.
+
+        Unique names mean concurrent writers cannot share a `.tmp` path even if
+        a lock is missing. Callers must hold `_locked` so the read-modify-write
+        itself cannot lose updates.
+        """
+        payload = json.dumps(data, separators=(",", ":"))
+        fd, tmp_name = tempfile.mkstemp(
+            prefix=f".{self._path.name}.",
+            suffix=".tmp",
+            dir=self._path.parent,
+        )
+        try:
+            try:
+                os.write(fd, payload.encode("utf-8"))
+                os.fsync(fd)
+            finally:
+                os.close(fd)
+            os.replace(tmp_name, self._path)
+        except Exception:
+            try:
+                os.unlink(tmp_name)
+            except OSError:
+                pass
+            raise
 
     def _coerce(self, payload: object) -> dict:
         """Accept the legacy `{jobs_completed: N}` shape and the usage shape."""

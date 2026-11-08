@@ -113,6 +113,24 @@ def test_counting_failure_does_not_block_submit(tmp_path):
     assert resp.status_code == 202
 
 
+def test_lock_oserror_does_not_write_or_block_submit(tmp_path, monkeypatch):
+    """A flock failure must skip the count and still queue the fix job."""
+    client, counter = _fix_client(tmp_path)
+    path = tmp_path / "stats.json"
+
+    def boom(*_args, **_kwargs):
+        raise OSError("flock failed")
+
+    monkeypatch.setattr("app.jobs.stats.fcntl.flock", boom)
+    files = {"files": ("a.png", io.BytesIO(_png_bytes()), "image/png")}
+    resp = client.post("/img/fix", files=files, data={"preset": "jpg-100kb"})
+    assert resp.status_code == 202
+    if path.exists():
+        data = path.read_text(encoding="utf-8")
+        assert "jpg-100kb" not in data
+    assert counter.snapshot()["totals"] == {}
+
+
 def _fix_record(registry, tmp_path, preset="jpg-100kb"):
     ws = tmp_path / "fix-job"
     ws.mkdir()

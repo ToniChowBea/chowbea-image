@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.jobs.queue import JobQueue
 from app.jobs.registry import JobRegistry
-from app.jobs.stats import CounterStore
+from app.jobs.stats import CounterStore, warn_if_counts_not_durable
 from app.jobs.worker import execute_job
 from app.routers import billing, images, jobs, presets, stats
 from app.services.billing import EntitlementStore
@@ -60,6 +60,8 @@ async def lifespan(app: FastAPI):
         data_dir = Path(settings.data_dir)
         data_dir.mkdir(parents=True, exist_ok=True)
         counter = CounterStore(data_dir / "stats.json")
+        # Counts persist across redeploys only when this directory is a volume.
+        warn_if_counts_not_durable(data_dir)
     except OSError:
         logger.warning("Data dir %s unavailable; the jobs counter is disabled", settings.data_dir)
     app.state.counter = counter
