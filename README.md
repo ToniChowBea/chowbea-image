@@ -111,7 +111,7 @@ Ghostscript and LibreOffice are already in the API image. You still need to supp
 
 **CI (GitHub Actions):**
 - **On push/PR:** Runs all API and web tests with Ghostscript
-- **Daily (weekdays 9 AM UTC):** Production smoke test validates live API (`/health`, `/presets`, `/stats`), key web routes (including `/guides`), sitemap, and an end-to-end fix job
+- **Daily (weekdays 9 AM UTC):** Production smoke test validates live API (`/health`, `/presets`, `/stats`), key web routes (including `/guides` and `/privacy`), sitemap, and an end-to-end fix job
 
 Heavy LibreOffice tests are skipped in CI when LibreOffice is unavailable (via `pytest.importorskip`). All 131 preset tests pass.
 
