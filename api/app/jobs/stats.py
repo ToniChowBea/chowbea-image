@@ -10,6 +10,7 @@ Counting failures are swallowed so they cannot break a fix job.
 
 from __future__ import annotations
 
+import errno
 import fcntl
 import json
 import logging
@@ -247,8 +248,13 @@ class CounterStore:
         Unique names mean concurrent writers cannot share a `.tmp` path even if
         a lock is missing. Callers must hold `_locked` so the read-modify-write
         itself cannot lose updates.
+
+        The temp file is fully written and fsync'd before rename. A short
+        `os.write` therefore cannot publish truncated JSON (which `_read_unlocked`
+        would treat as corrupt and reset to blank counts).
         """
-        payload = json.dumps(data, separators=(",", ":"))
+        # Compact JSON keeps the on-disk file small; encode once for the write loop.
+        payload = json.dumps(data, separators=(",", ":")).encode("utf-8")
         fd, tmp_name = tempfile.mkstemp(
             prefix=f".{self._path.name}.",
             suffix=".tmp",
@@ -256,12 +262,14 @@ class CounterStore:
         )
         try:
             try:
-                os.write(fd, payload.encode("utf-8"))
-                os.fsync(fd)
+                _write_fully(fd, payload)
+                _fsync(fd)
             finally:
                 os.close(fd)
+            # Rename only after a complete, durable temp file exists.
             os.replace(tmp_name, self._path)
         except Exception:
+            # Leave the published file untouched if anything failed mid-write.
             try:
                 os.unlink(tmp_name)
             except OSError:
@@ -306,6 +314,39 @@ class CounterStore:
 
     def _blank(self) -> dict:
         return {"jobs_completed": 0, "totals": {}, "days": {}}
+
+
+def _write_fully(fd: int, payload: bytes) -> None:
+    """Write every byte of `payload` to `fd`.
+
+    `os.write` may return a short count or raise EINTR. Loop until the whole
+    payload is on disk so a later rename cannot publish truncated JSON.
+    """
+    remaining = memoryview(payload)
+    while remaining:
+        try:
+            # One syscall may write only a prefix of `remaining`.
+            written = os.write(fd, remaining)
+        except OSError as exc:
+            # Retry the same slice when the syscall is interrupted.
+            if isinstance(exc, InterruptedError) or exc.errno == errno.EINTR:
+                continue
+            raise
+        if written < 1:
+            raise OSError("os.write wrote 0 bytes before the payload was complete")
+        remaining = remaining[written:]
+
+
+def _fsync(fd: int) -> None:
+    """Flush `fd` to stable storage, retrying if the syscall is interrupted."""
+    while True:
+        try:
+            os.fsync(fd)
+            return
+        except OSError as exc:
+            if isinstance(exc, InterruptedError) or exc.errno == errno.EINTR:
+                continue
+            raise
 
 
 def _looks_like_day(value: str) -> bool:

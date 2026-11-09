@@ -1,5 +1,6 @@
 """The durable jobs counter and per-preset usage aggregates."""
 
+import errno
 import json
 import logging
 import multiprocessing
@@ -219,6 +220,119 @@ def test_writes_use_unique_temp_names(tmp_path, monkeypatch):
     assert all(name.endswith(".tmp") for name in seen)
     # The old shared sibling was stats.tmp; unique names must not reuse it.
     assert "stats.tmp" not in seen
+    leftover = [p for p in path.parent.iterdir() if p.suffix == ".tmp"]
+    assert leftover == []
+
+
+def test_short_os_write_persists_complete_json(tmp_path, monkeypatch):
+    """A short os.write must not publish truncated JSON or reset counts."""
+    path = tmp_path / "stats.json"
+    store = CounterStore(path)
+    store.record("jpg-100kb", started=3)
+    store.record("ucas-documents", failed=2)
+    store.increment()
+    real_write = os.write
+    write_calls = {"n": 0}
+
+    def short_write(fd, data):
+        # Return fewer bytes than requested so a single write cannot finish the payload.
+        write_calls["n"] += 1
+        chunk = bytes(data)[: min(8, len(data))]
+        return real_write(fd, chunk)
+
+    real_replace = os.replace
+
+    def spy_replace(src, dst):
+        # Rename is allowed only when the temp sibling is already complete JSON.
+        json.loads(Path(src).read_text(encoding="utf-8"))
+        return real_replace(src, dst)
+
+    monkeypatch.setattr("app.jobs.stats.os.write", short_write)
+    monkeypatch.setattr("app.jobs.stats.os.replace", spy_replace)
+    store.record("jpg-100kb", passed=1)
+
+    raw = path.read_text(encoding="utf-8")
+    payload = json.loads(raw)
+    assert payload["jobs_completed"] == 1
+    assert payload["totals"]["jpg-100kb"]["started"] == 3
+    assert payload["totals"]["jpg-100kb"]["passed"] == 1
+    assert payload["totals"]["ucas-documents"]["failed"] == 2
+    reloaded = CounterStore(path)
+    assert reloaded.count == 1
+    assert reloaded.snapshot()["totals"]["jpg-100kb"]["started"] == 3
+    assert reloaded.snapshot()["totals"]["jpg-100kb"]["passed"] == 1
+    assert write_calls["n"] > 1
+    leftover = [p for p in path.parent.iterdir() if p.suffix == ".tmp"]
+    assert leftover == []
+
+
+def test_eintr_during_os_write_persists_complete_json(tmp_path, monkeypatch):
+    """EINTR and short writes together must still leave a complete stats file."""
+    path = tmp_path / "stats.json"
+    store = CounterStore(path)
+    store.record("jpg-100kb", started=4)
+    real_write = os.write
+    state = {"eintr": False, "calls": 0}
+
+    def write_with_eintr(fd, data):
+        state["calls"] += 1
+        if not state["eintr"]:
+            state["eintr"] = True
+            raise InterruptedError
+        chunk = bytes(data)[: min(5, len(data))]
+        return real_write(fd, chunk)
+
+    monkeypatch.setattr("app.jobs.stats.os.write", write_with_eintr)
+    store.record("jpg-100kb", packs=1)
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    assert payload["totals"]["jpg-100kb"]["started"] == 4
+    assert payload["totals"]["jpg-100kb"]["packs"] == 1
+    assert state["eintr"] is True
+    assert state["calls"] > 1
+    assert CounterStore(path).snapshot()["totals"]["jpg-100kb"]["started"] == 4
+
+
+def test_os_write_eintr_errno_retries_and_keeps_counts(tmp_path, monkeypatch):
+    """OSError(EINTR) is retried the same way as InterruptedError."""
+    path = tmp_path / "stats.json"
+    store = CounterStore(path)
+    store.record("nhs-jobs", started=6)
+    real_write = os.write
+    state = {"eintr": False}
+
+    def write_with_errno(fd, data):
+        if not state["eintr"]:
+            state["eintr"] = True
+            raise OSError(errno.EINTR, "interrupted")
+        return real_write(fd, data)
+
+    monkeypatch.setattr("app.jobs.stats.os.write", write_with_errno)
+    store.record("nhs-jobs", passed=1)
+    snap = CounterStore(path).snapshot()
+    assert snap["totals"]["nhs-jobs"]["started"] == 6
+    assert snap["totals"]["nhs-jobs"]["passed"] == 1
+
+
+def test_failed_os_write_does_not_publish_partial_file(tmp_path, monkeypatch):
+    """A write error after a short syscall must leave the published file intact."""
+    path = tmp_path / "stats.json"
+    store = CounterStore(path)
+    store.record("jpg-100kb", started=5)
+    before = path.read_text(encoding="utf-8")
+    real_write = os.write
+    state = {"calls": 0}
+
+    def write_then_fail(fd, data):
+        state["calls"] += 1
+        if state["calls"] == 1:
+            return real_write(fd, bytes(data)[:4])
+        raise OSError("EIO")
+
+    monkeypatch.setattr("app.jobs.stats.os.write", write_then_fail)
+    store.record("jpg-100kb", passed=1)
+    assert path.read_text(encoding="utf-8") == before
+    assert json.loads(before)["totals"]["jpg-100kb"]["started"] == 5
     leftover = [p for p in path.parent.iterdir() if p.suffix == ".tmp"]
     assert leftover == []
 
