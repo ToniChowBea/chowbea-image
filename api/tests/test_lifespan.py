@@ -1,5 +1,7 @@
 """The app must start and serve /health even when RabbitMQ is unreachable."""
 
+import logging
+
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -13,6 +15,9 @@ def test_app_starts_and_degrades_without_broker():
         assert body["status"] == "ok"
         assert body["commit"]  # identifies the running deploy; "dev" locally
         assert client.get("/queue").status_code == 200
+        stats = client.get("/stats")
+        assert stats.status_code == 200
+        assert "totals" in stats.json() and "days" in stats.json()
 
 
 def test_app_starts_with_unwritable_data_dir(tmp_path, monkeypatch):
@@ -26,5 +31,22 @@ def test_app_starts_with_unwritable_data_dir(tmp_path, monkeypatch):
         with TestClient(app) as client:
             assert client.get("/health").json()["status"] == "ok"
             assert client.get("/queue").json()["jobs_completed"] == 0
+            stats = client.get("/stats")
+            assert stats.status_code == 200
+            assert stats.json() == {"totals": {}, "days": []}
     finally:
         ro.chmod(0o700)
+
+
+def test_startup_warns_when_data_dir_is_not_durable(tmp_path, monkeypatch, caplog):
+    from app.core.config import settings as app_settings
+    from app.jobs import stats as stats_mod
+
+    monkeypatch.setattr(app_settings, "data_dir", str(tmp_path / "data"))
+    monkeypatch.setattr(stats_mod, "data_dir_is_durable", lambda _path: False)
+    with caplog.at_level(logging.WARNING):
+        with TestClient(app) as client:
+            assert client.get("/health").json()["status"] == "ok"
+            assert client.get("/stats").status_code == 200
+    assert "CHOWBEA_DATA_DIR" in caplog.text
+    assert "mounted volume" in caplog.text

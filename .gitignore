@@ -30,3 +30,9 @@ build/
 
 # Worktrees
 .worktrees/
+
+# Durable local state (usage counters, entitlements). Keep api/data/.gitkeep.
+/data/
+api/data/*.json
+api/data/*.lock
+api/data/*.tmp

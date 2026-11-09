@@ -108,6 +108,64 @@ jobs:
             exit 1
           fi
 
+      - name: Check API stats endpoint
+        run: |
+          echo "Testing GET /stats on API (aggregates only)..."
+          python3 - <<'PY'
+          import json, os, sys, urllib.error, urllib.request
+
+          url = os.environ["API_URL"].rstrip("/") + "/stats"
+          try:
+              with urllib.request.urlopen(url, timeout=15) as response:
+                  code = response.getcode()
+                  body = response.read()
+          except urllib.error.URLError as exc:
+              print(f"✗ /stats unreachable ({exc})")
+              sys.exit(1)
+          if code != 200:
+              print(f"✗ /stats failed (HTTP {code})")
+              sys.exit(1)
+          try:
+              data = json.loads(body)
+          except json.JSONDecodeError:
+              print("✗ /stats did not return JSON")
+              sys.exit(1)
+
+          keys = {"started", "passed", "failed", "packs", "paywall_would_trigger"}
+
+          def check_counts(counts, label):
+              if not isinstance(counts, dict) or set(counts) != keys:
+                  raise ValueError(f"{label} missing count keys {keys}")
+              for name, value in counts.items():
+                  if type(value) is not int or value < 0:
+                      raise ValueError(f"{label}.{name} is not a non-negative int")
+
+          if not isinstance(data, dict) or "totals" not in data or "days" not in data:
+              print("✗ /stats JSON missing totals/days")
+              sys.exit(1)
+          if not isinstance(data["totals"], dict) or not isinstance(data["days"], list):
+              print("✗ /stats totals/days have the wrong types")
+              sys.exit(1)
+          try:
+              for preset, counts in data["totals"].items():
+                  if not isinstance(preset, str) or not preset:
+                      raise ValueError("empty preset id in totals")
+                  check_counts(counts, f"totals.{preset}")
+              for i, day in enumerate(data["days"]):
+                  if not isinstance(day, dict) or "date" not in day or "presets" not in day:
+                      raise ValueError(f"days[{i}] missing date/presets")
+                  if not isinstance(day["date"], str) or len(day["date"]) != 10:
+                      raise ValueError(f"days[{i}].date is not YYYY-MM-DD")
+                  if not isinstance(day["presets"], dict):
+                      raise ValueError(f"days[{i}].presets is not an object")
+                  for preset, counts in day["presets"].items():
+                      check_counts(counts, f"days[{i}].presets.{preset}")
+          except ValueError as exc:
+              print(f"✗ /stats shape: {exc}")
+              sys.exit(1)
+          print("✓ /stats returned HTTP 200 with aggregate shape")
+          PY
+
       - name: Install dependencies for end-to-end test
         run: |
           sudo apt-get update
@@ -198,6 +256,7 @@ jobs:
           echo "  - Web routes (/, /fix, /portals, /guides, sample guides, /privacy): OK"
           echo "  - sitemap.xml includes /guides: OK"
           echo "  - API presets endpoint: OK"
+          echo "  - API stats endpoint: OK"
           echo "  - End-to-end fix job: OK"
           echo "════════════════════════════════════════"
 
