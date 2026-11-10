@@ -62,12 +62,17 @@ See [`.env.example`](.env.example) for every variable (no real values). Summary:
 | `CHOWBEA_RABBITMQ_URL` | API / worker | Broker URL |
 | `CHOWBEA_CORS_ORIGINS` | API | Comma-separated web origins |
 | `CHOWBEA_DATA_DIR` | API / worker | Directory for `stats.json` (jobs counter + per-preset usage) and entitlements. Default `./data`. Production: `/data` with a mounted volume, otherwise counts reset on redeploy |
+| `CHOWBEA_MAX_UPLOAD_MB` | API | Per-file cap on the image tools (`/img/convert`, `/img/compress`, `/img/resize`, `/img/rotate`, `/img/crop`), default 100 |
+| `CHOWBEA_MAX_FILES_PER_REQUEST` | API | File-count cap per image-tool request (default 100) |
+| `CHOWBEA_MAX_IMAGE_MEGAPIXELS` | API / worker | Decompression-bomb guard: images over this many megapixels (width × height) are rejected (default 300) |
+| `CHOWBEA_JOB_CONCURRENCY` | Worker | Jobs processed at once (RabbitMQ prefetch, default 3) |
 | `CHOWBEA_FIX_MAX_FILES` | API | Pack file-count cap (default 20) |
 | `CHOWBEA_FIX_MAX_UPLOAD_MB` | API | Per-file cap on `/img/fix` (default 50) |
 | `CHOWBEA_FIX_FREE_RATE_PER_MINUTE` | API | Per-IP free-fix rate limit (default 10) |
 | `CHOWBEA_RUN_WORKER` | API / worker | `true` consumes jobs; `false` is HTTP-only |
 | `CHOWBEA_TRUST_FORWARDED_IP` | API | `true` behind Railway / a proxy |
 | `CHOWBEA_RESULT_TTL_MINUTES` | API | Auto-delete window (default 60) |
+| `RAILWAY_GIT_COMMIT_SHA` | API | Set by Railway on git deploys; shown as `commit` in `GET /health` and in the API version. Default `dev` |
 | `STRIPE_SECRET_KEY` `STRIPE_WEBHOOK_SECRET` `STRIPE_PRICE_BATCH` `STRIPE_PRICE_PASS` | API | Paywall **off** if any are empty |
 | `FIX_TOKEN_SECRET` | API | Optional; defaults to the webhook secret |
 | `PUBLIC_WEB_URL` | API | Checkout redirects |
