@@ -6,7 +6,7 @@ import { USAGE_STATS_PATH, usageStatsUrl } from "./usage-stats"
 describe("usageStatsUrl", () => {
   it("points at the public /stats JSON path on the API host", () => {
     expect(USAGE_STATS_PATH).toBe("/stats")
-    expect(usageStatsUrl()).toBe(`${API_BASE_URL}/stats`)
+    expect(usageStatsUrl()).toBe(`${API_BASE_URL.replace(/\/$/, "")}/stats`)
   })
 
   it("joins a custom API origin without a double slash", () => {
