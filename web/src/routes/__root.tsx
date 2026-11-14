@@ -13,6 +13,7 @@ import { Image01Icon, GithubIcon } from "@hugeicons/core-free-icons"
 
 import { FixTokenClaimer } from "@/components/fix/token-claimer"
 import { JobsCounter } from "@/components/jobs-counter"
+import { SiteFooter } from "@/components/site-footer"
 import { resolveQueueToggle } from "@/lib/queue-toggle"
 // Self-hosted latin faces — preloaded so the H1 is not blocked on Google Fonts.
 import bricolageLatin from "@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2?url"
@@ -163,42 +164,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <FixTokenClaimer />
             <main className="flex-1">{children}</main>
 
-            {/* Footer line, echoing the design-system footer. */}
-            <footer className="mt-14 flex flex-col items-center justify-between gap-3 border-t-[3px] border-ink pt-6 sm:flex-row">
-              <span className="font-heading text-sm font-extrabold text-ink">
-                Chowbea Image — Bold Blocks
-              </span>
-              <span className="text-[13px] font-semibold text-muted-ink">
-                Free &amp; ad-free · files deleted 1 hour after processing ·{" "}
-                <Link
-                  to="/fix"
-                  className="underline decoration-2 underline-offset-2"
-                >
-                  Upload fixer
-                </Link>
-                {" · "}
-                <Link
-                  to="/portals"
-                  className="underline decoration-2 underline-offset-2"
-                >
-                  UK portals
-                </Link>
-                {" · "}
-                <Link
-                  to="/guides"
-                  className="underline decoration-2 underline-offset-2"
-                >
-                  Guides
-                </Link>
-                {" · "}
-                <Link
-                  to="/privacy"
-                  className="underline decoration-2 underline-offset-2"
-                >
-                  Privacy
-                </Link>
-              </span>
-            </footer>
+            {/* Footer: brand, legal nav, and anonymous usage-counter note. */}
+            <SiteFooter />
           </div>
         </div>
 
